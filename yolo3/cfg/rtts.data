@@ -1,0 +1,5 @@
+train  = RTTS_train.txt
+valid  = RTTS_test.txt
+names = data/voc.names
+backup = backup
+gpus  = 0

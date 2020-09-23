@@ -1,0 +1,7 @@
+server:
+  host: localhost
+  port: 80
+
+client:
+  url: http://${server.host}:${server.port}/
+  server_port: ${server.port}

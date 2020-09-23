@@ -1,0 +1,16 @@
+torch>=1.4.0
+timm>=0.1.22
+torchvision
+pycocotools
+pyyaml
+
+# better to manually install pillow-simd
+Pillow
+
+# conflict between pycocotools and numpy 1.18.+
+numpy<=1.17.5
+
+# pycocotools needs this but doesn't have dep
+matplotlib
+
+omegaconf==2.0.0rc24
