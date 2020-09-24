@@ -1,7 +1,6 @@
 # detection_template
 
-
-一个目标检测的Baseline。
+一个目标检测的Baseline(不需要cuda编译)，Kaggle全球小麦检测12/2245(金牌)。
 
 ## Todo List
 
