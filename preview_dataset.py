@@ -75,7 +75,6 @@ train_transform = train_transform = A.Compose(
     ),
 )
 
-
 voc_dataset = voc.VOCTrainValDataset('/home/raid/public/datasets/wheat_detection', 
         ['wheat'],
         split='train.txt',
@@ -83,10 +82,11 @@ voc_dataset = voc.VOCTrainValDataset('/home/raid/public/datasets/wheat_detection
 
 def collate_fn(batch):
     target = {}
-    target['input'] = torch.stack([sample['input'] for sample in batch])
+    target['image'] = torch.stack([sample['image'] for sample in batch])
     target['bboxes'] = [sample['bboxes'] for sample in batch]
     target['labels'] = [sample['labels'] for sample in batch]
     target['path'] = [sample['path'] for sample in batch]
+    target['yolo_boxes'] = torch.stack([sample['yolo_boxes'] for sample in batch])
     return target
 
 voc_dataloader = torch.utils.data.DataLoader(voc_dataset,
@@ -96,11 +96,13 @@ voc_dataloader = torch.utils.data.DataLoader(voc_dataset,
     num_workers=0,
     drop_last=True)
     
-# for i, sample in enumerate(voc_dataloader):
-#     if i > 30:
-#         break
+import ipdb; ipdb.set_trace()
+for i, sample in enumerate(voc_dataloader):
+    pass
 
-#     image = sample['input'][0].detach().cpu().numpy().transpose([1,2,0])
+exit(1)
+
+#     image = sample['image'][0].detach().cpu().numpy().transpose([1,2,0])
 #     image = image.copy()
 #     bboxes = sample['bboxes'][0]
 #     for y1, x1, y2, x2 in bboxes:

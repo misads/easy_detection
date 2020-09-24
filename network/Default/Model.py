@@ -61,7 +61,7 @@ class Model(BaseModel):
         """
 
         # L1 & SSIM loss
-        input, bboxes, labels = data['input'], data['bboxes'], data['labels']
+        input, bboxes, labels = data['image'], data['bboxes'], data['labels']
         bboxes = [bbox.to(opt.device).float() for bbox in bboxes]
         labels = [label.to(opt.device).float() for label in labels]
 

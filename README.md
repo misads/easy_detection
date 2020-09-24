@@ -31,6 +31,7 @@ torch >= 1.0
 tensorboardX >= 1.6
 utils-misc >= 0.0.5
 mscv >= 0.0.3
+albumentations >= 0.4.0
 ```
 
 ## Code Usage
@@ -75,4 +76,3 @@ See ALL Running Commands:
 
 ③ 尝试 python train.py --model MyNet 看能否成功运行
 ```
-

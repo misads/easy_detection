@@ -70,13 +70,13 @@ class Model(BaseModel):
         return {}
 
     def forward(self, sample):
-        input, bboxes, labels = sample['input'], sample['bboxes'], sample['labels']
+        image, bboxes, labels = sample['image'], sample['bboxes'], sample['labels'] + 1.   # effdet的label从1开始
 
-        input = input.to(opt.device)
+        image = image.to(opt.device)
         bboxes = [bbox.to(opt.device).float() for bbox in bboxes]
         labels = [label.to(opt.device).float() for label in labels]
 
-        loss, _, _  = self.detector(input, bboxes, labels)
+        loss, _, _  = self.detector(image, bboxes, labels)
 
         return loss
 

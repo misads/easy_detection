@@ -7,6 +7,7 @@ import os
 from PIL import Image
 import torch.utils.data.dataset as dataset
 from torchvision import transforms
+import albumentations as A
 
 import xml.etree.ElementTree as ET
 import misc_utils as utils
@@ -90,6 +91,8 @@ class VOCTrainValDataset(dataset.Dataset):
 
         self.format = format
 
+        assert transforms is not None, '"transforms" is required'
+
         self.transforms = transforms
         self.max_size = max_size
 
@@ -103,11 +106,6 @@ class VOCTrainValDataset(dataset.Dataset):
         bboxes = np.array(self.bboxes[index])
         labels = np.array(self.labels[index])
 
-        # records = self.marking[self.marking['image_id'] == image_id]
-        # boxes = records[['x', 'y', 'w', 'h']].values
-        # boxes[:, 2] = boxes[:, 0] + boxes[:, 2]
-        # boxes[:, 3] = boxes[:, 1] + boxes[:, 3]
-        # return image, boxes
         return image, bboxes, labels, image_path
 
     def __getitem__(self, index):
@@ -117,7 +115,7 @@ class VOCTrainValDataset(dataset.Dataset):
             index(int): index
 
         Returns:
-            {'image': input,
+            {'image': image,
              'bboxes': bboxes,
              'label': label,
              'path': path
@@ -127,54 +125,43 @@ class VOCTrainValDataset(dataset.Dataset):
         image, bboxes, labels, image_path = self.load_image_and_boxes(index)
         target = {}
         # target['boxes'] = torch.stack(tuple(map(torch.tensor, zip(*sample['bboxes'])))).permute(1, 0)
-        target['input'] = F.to_tensor(image)
-        target['bboxes'] = torch.Tensor(bboxes)
-
-        if self.transforms is not None:
-            for i in range(10):
-                sample = self.transforms(**{
-                    'image': image,
-                    'bboxes': bboxes,
-                    'labels': labels
-                })
-                
-                sample['bboxes'] = torch.Tensor(sample['bboxes'])
-
-                if len(sample['bboxes']) > 0:
-                    sample['bboxes'][:,[0,1,2,3]] = sample['bboxes'][:,[1,0,3,2]]  
-                    break
-                    
-            sample['input'] = sample['image']
-            sample['labels'] = torch.Tensor(sample['labels'])  # <--- add this!
-            sample['path'] = image_path
-            return sample
-        """
-        注意!! yxyx 
-        """
-        target['bboxes'][:,[0,1,2,3]] = target['bboxes'][:,[1,0,3,2]]  
-        target['labels'] = torch.Tensor(labels)  # <--- add this!
-        target['path'] = image_path
 
         yolo_boxes = np.zeros([50, 5])
-        bboxes = target['bboxes']
-        for i, bbox in enumerate(bboxes):
-            if i >= 50:
+
+        for i in range(10):
+            sample = self.transforms(**{
+                'image': image,
+                'bboxes': bboxes,
+                'labels': labels
+            })
+            
+            sample['bboxes'] = torch.Tensor(sample['bboxes'])
+
+            if len(sample['bboxes']) > 0:
+                bboxes = sample['bboxes']
+                for i, bbox in enumerate(bboxes):
+                    if i >= 50:
+                        break
+
+                    x1, y1, x2, y2 = bbox
+                    w, h = x2 - x1, y2 - y1
+                    c_x, c_y = x1 + w / 2, y1 + h / 2
+                    w, c_x = w / 512, c_x / 512
+                    h, c_y = h / 512, c_y / 512
+
+                    yolo_boxes[i, :] = labels[i], c_x, c_y, w, h  # 中心点坐标、宽、高
+
+                """
+                注意!! yxyx 
+                """
+                sample['bboxes'][:,[0,1,2,3]] = sample['bboxes'][:,[1,0,3,2]]  
                 break
+                
+        sample['labels'] = torch.Tensor(sample['labels'])  # <--- add this!
+        sample['path'] = image_path
 
-            x1, y1, x2, y2 = bbox
-            w, h = x2 - x1, y2 - y1
-            c_x = x1 + w / 2
-            c_y = y1 + h / 2
-            w, c_x = w / 512, c_x / 512
-            h, c_y = h / 512, c_y / 512
-
-            yolo_boxes[i, 0] = labels[i]
-            yolo_boxes[i, 1] = c_x
-            yolo_boxes[i, 2] = c_y
-            yolo_boxes[i, 3] = w
-            yolo_boxes[i, 4] = h
-
-        return target
+        sample['yolo_boxes'] = torch.Tensor(yolo_boxes).view([-1])
+        return sample
 
     def __len__(self):
         if self.max_size is not None:

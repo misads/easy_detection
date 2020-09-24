@@ -182,13 +182,13 @@ train_transform = train_transform = A.Compose(
 
 
 voc_train_dataset = voc.VOCTrainValDataset('/home/raid/public/datasets/wheat_detection', 
-        ['None', 'wheat'],
+        ['wheat'],
         split='train.txt',
         transforms=train_transform)
 
 def collate_fn(batch):
     target = {}
-    target['input'] = torch.stack([sample['input'] for sample in batch])
+    target['image'] = torch.stack([sample['image'] for sample in batch])
     target['bboxes'] = [sample['bboxes'] for sample in batch]
     target['labels'] = [sample['labels'] for sample in batch]
     target['path'] = [sample['path'] for sample in batch]
@@ -219,7 +219,7 @@ val_transform = A.Compose(
 )
 
 voc_val_dataset = voc.VOCTrainValDataset('/home/raid/public/datasets/wheat_detection', 
-        ['None', 'wheat'],
+        ['wheat'],
         split='val.txt',
         transforms=val_transform)
 
@@ -305,7 +305,7 @@ try:
             if opt.debug and iteration > 10:
                 break
 
-            # img, label = data['input'], data['label']  # ['label'], data['image']  #
+            # img, label = data['image'], data['label']  # ['label'], data['image']  #
             # img, label = data
 
             # img_var = Variable(img, requires_grad=False).to(device=opt.device)
