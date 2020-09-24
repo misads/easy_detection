@@ -23,6 +23,12 @@
   - [ ] nms
   - [ ] Weighted Box Fusion
 
+- Scheduler
+  - [ ] 验证集指标不下降时学习率衰减
+
+- Metrics
+  - [ ] mAP
+
 ## Prerequisites
 
 ```yaml

@@ -192,6 +192,7 @@ def collate_fn(batch):
     target['bboxes'] = [sample['bboxes'] for sample in batch]
     target['labels'] = [sample['labels'] for sample in batch]
     target['path'] = [sample['path'] for sample in batch]
+    target['yolo_boxes'] = torch.stack([sample['yolo_boxes'] for sample in batch])
     return target
 
 voc_train_dataloader = torch.utils.data.DataLoader(voc_train_dataset,
