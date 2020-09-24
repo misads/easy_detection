@@ -1,23 +1,28 @@
-# cv_template
+# detection_template
 
 
-一个图像复原或分割的Baseline。
+一个目标检测的Baseline。
 
-## To do List
+## Todo List
 
-- 平台支持
-  - [ ] 多GPU支持
-  - [ ] 测试时支持多`batch_size`
+- 数据格式
+  - [x] VOC
+  - [ ] CSV文件
+  - [ ] COCO
+
+- 网络模型
+  - [x] EfficientDet
+  - [ ] YoloV2、V3
+  - [ ] YoloV5
+  - [ ] SSD
+  - [ ] Faster-RCNN
+  - [ ] Cascade-RCNNN
+  - [ ] RetinaNet
   
 - TTA
-  - [ ] 放大、色相、饱和度、亮度
-  - [ ] `flip`
-  - [ ] 多尺度测试
-  - [ ] ttach库
-  
-- 其他Tricks
-  - [ ] 使用fp_16训练，提高训练速度
-  - [ ] One_Cycle 学习率
+  - [ ] 多尺度融合
+  - [ ] nms
+  - [ ] Weighted Box Fusion
 
 ## Prerequisites
 
@@ -31,8 +36,28 @@ mscv >= 0.0.3
 
 ## Code Usage
 
-```python
-python help.py
+```bash
+Code Usage:
+Training:
+    python train.py --tag your_tag --model FFA --epochs 20 -b 2 --lr 0.0001 --gpu 0
+
+Resume Training (or fine-tune):
+    python train.py --tag your_tag --model FFA --epochs 20 -b 2 --load checkpoints/your_tag/9_FFA.pt --resume --gpu 0
+
+Eval:
+    python eval.py --model FFA -b 2 --load checkpoints/your_tag/9_FFA.pt --gpu 1
+
+Generate Submission:
+    python submit.py --model FFA --load checkpoints/your_tag/9_FFA.pt -b 2 --gpu 0
+
+See Running Log:
+    cat logs/your_tag/log.txt
+
+Clear(delete all files with the tag, BE CAREFUL to use):
+    python clear.py --tag your_tag
+
+See ALL Running Commands:
+    cat run_log.txt
 ```
 
 ## 如何添加新的模型：
