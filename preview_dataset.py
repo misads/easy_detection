@@ -52,7 +52,7 @@ from albumentations.pytorch.transforms import ToTensorV2
 
 train_transform = train_transform = A.Compose(
     [
-        A.RandomSizedCrop(min_max_height=(800, 800), height=1024, width=1000, p=0.5),
+        A.RandomSizedCrop(min_max_height=(800, 800), height=1024, width=1024, p=0.5),
         A.OneOf([
             A.HueSaturationValue(hue_shift_limit=0.2, sat_shift_limit= 0.2, 
                                     val_shift_limit=0.2, p=0.9),
@@ -96,16 +96,31 @@ voc_dataloader = torch.utils.data.DataLoader(voc_dataset,
     num_workers=0,
     drop_last=True)
     
-# import ipdb; ipdb.set_trace()
+# for i, sample in enumerate(voc_dataloader):
+#     if i > 30:
+#         break
 
-for i, sample in enumerate(voc_dataloader):
-    continue
+#     image = sample['input'][0].detach().cpu().numpy().transpose([1,2,0])
+#     image = image.copy()
+#     bboxes = sample['bboxes'][0]
+#     for y1, x1, y2, x2 in bboxes:
+#         x1 = int(round(x1.item()))
+#         y1 = int(round(y1.item()))
+#         x2 = int(round(x2.item()))
+#         y2 = int(round(y2.item()))
+#         cv2.rectangle(image, (x1, y1), (x2, y2), (0, 1., 0), 2)
+
+#     write_image(writer, f'preview/{i}', 'image', image, 0, 'HWC')
+
+for i, sample in enumerate(effdet_dataset.eff_train_loader):
     if i > 30:
         break
 
-    image = sample['input'][0].detach().cpu().numpy().transpose([1,2,0])
+    images, bboxes, image_id = sample
+
+    image = images[0].detach().cpu().numpy().transpose([1,2,0])
     image = image.copy()
-    bboxes = sample['bboxes'][0]
+    bboxes = bboxes[0]['boxes']
     for y1, x1, y2, x2 in bboxes:
         x1 = int(round(x1.item()))
         y1 = int(round(y1.item()))
@@ -114,4 +129,5 @@ for i, sample in enumerate(voc_dataloader):
         cv2.rectangle(image, (x1, y1), (x2, y2), (0, 1., 0), 2)
 
     write_image(writer, f'preview/{i}', 'image', image, 0, 'HWC')
-#     writer.flush()
+
+writer.flush()

@@ -110,8 +110,6 @@ class DatasetRetriever(Dataset):
         labels = torch.ones((boxes.shape[0],), dtype=torch.int64)
         
         target = {}
-        
-        import ipdb; ipdb.set_trace()
 
         target['boxes'] = boxes
         target['labels'] = labels
@@ -217,6 +215,6 @@ eff_train_loader = torch.utils.data.DataLoader(
     #sampler=RandomSampler(train_dataset),
     pin_memory=False,
     drop_last=True,
-    num_workers=3,
+    num_workers=0,
     collate_fn=collate_fn
 )

@@ -21,16 +21,32 @@ class VOCTrainValDataset(dataset.Dataset):
     Args:
         voc_root(str): root dir to voc dataset
         class_names(list(str)): class names
-        split(str): txt in ImageSets/Main
+        split(str): .txt file in ImageSets/Main
         format(str): 'jpg' or 'png'
-        scale(int): images will be first resize to this size
-        aug(bool): data argument (×8)
-        norm(bool): normalization
+        transforms(albumentations.transform): required, input images and bboxes will be applied simultaneously
+        max_size(int): maximum data returned
 
     Example:
-        train_dataset = VOCTrainValDataset('voc')
-        for i, data in enumerate(train_dataset):
-            input, bboxes, labels = data['input'], data['bboxes'], data['labels']
+        import albumentations as A
+        val_transform =A.Compose(  # images and bboxes will transform together
+            [
+                A.Resize(height=512, width=512, p=1.0),
+                ToTensorV2(p=1.0),
+            ], 
+            p=1.0, 
+            bbox_params=A.BboxParams(
+                format='pascal_voc',
+                min_area=0, 
+                min_visibility=0,
+                label_fields=['labels']
+            )
+        )
+
+        train_dataset = VOCTrainValDataset('voc', ['person'], 'train.txt', transforms=val_transform)
+
+        for i, sample in enumerate(train_dataset):
+            image, bboxes, labels, path = sample['image'], sample['bboxes'], sample['labels'], sample['path']
+            
 
     """
 
@@ -101,7 +117,7 @@ class VOCTrainValDataset(dataset.Dataset):
             index(int): index
 
         Returns:
-            {'input': input,
+            {'image': input,
              'bboxes': bboxes,
              'label': label,
              'path': path
@@ -159,10 +175,6 @@ class VOCTrainValDataset(dataset.Dataset):
             yolo_boxes[i, 4] = h
 
         return target
-
-        # if self.scale:
-        #     input = F.resize(input, self.scale)
-        #     label = F.resize(label, self.scale)
 
     def __len__(self):
         if self.max_size is not None:

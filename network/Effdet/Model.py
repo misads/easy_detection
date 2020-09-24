@@ -51,24 +51,16 @@ class Model(BaseModel):
         self.avg_meters = ExponentialMovingAverage(0.95)
         self.save_dir = os.path.join(opt.checkpoint_dir, opt.tag)
 
-    def update(self, data):
+    def update(self, sample):
         """
         Args:
-            data: {'input': input_image [b, 3, height, width],
+            sample: {'input': input_image [b, 3, height, width],
                    'bboxes': bboxes [b, None, 4],
                    'labels': labels [b, None],
                    'path': paths}
         """
+        loss = self.forward(sample)
 
-        # L1 & SSIM loss
-        input, bboxes, labels = data['input'], data['bboxes'], data['labels']
-
-        input = input.to(opt.device)
-        bboxes = [bbox.to(opt.device).float() for bbox in bboxes]
-        labels = [label.to(opt.device).float() for label in labels]
-
-        # target = {'bbox': bboxes, 'cls': labels}
-        loss, _, _  = self.detector(input, bboxes, labels)
         self.avg_meters.update({'loss': loss.item()})
 
         self.optimizer.zero_grad()
@@ -77,11 +69,24 @@ class Model(BaseModel):
 
         return {}
 
-    def forward(self, x):
-        return self.detector(x)
+    def forward(self, sample):
+        input, bboxes, labels = sample['input'], sample['bboxes'], sample['labels']
+
+        input = input.to(opt.device)
+        bboxes = [bbox.to(opt.device).float() for bbox in bboxes]
+        labels = [label.to(opt.device).float() for label in labels]
+
+        loss, _, _  = self.detector(input, bboxes, labels)
+
+        return loss
 
     def inference(self, x, progress_idx=None):
         return super(Model, self).inference(x, progress_idx)
+
+    def evaluate(self, sample):
+        with torch.no_grad():
+            loss = self.forward(sample)
+        return loss.item()
 
     def load(self, ckpt_path):
         load_dict = {

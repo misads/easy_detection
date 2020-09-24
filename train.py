@@ -157,7 +157,7 @@ from albumentations.pytorch.transforms import ToTensorV2
 
 train_transform = train_transform = A.Compose(
     [
-        A.RandomSizedCrop(min_max_height=(800, 800), height=1024, width=1000, p=0.5),
+        A.RandomSizedCrop(min_max_height=(800, 800), height=1024, width=1024, p=0.5),
         A.OneOf([
             A.HueSaturationValue(hue_shift_limit=0.2, sat_shift_limit= 0.2, 
                                     val_shift_limit=0.2, p=0.9),
@@ -181,8 +181,8 @@ train_transform = train_transform = A.Compose(
 )
 
 
-voc_dataset = voc.VOCTrainValDataset('/home/raid/public/datasets/wheat_detection', 
-        ['wheat'],
+voc_train_dataset = voc.VOCTrainValDataset('/home/raid/public/datasets/wheat_detection', 
+        ['None', 'wheat'],
         split='train.txt',
         transforms=train_transform)
 
@@ -194,7 +194,7 @@ def collate_fn(batch):
     target['path'] = [sample['path'] for sample in batch]
     return target
 
-voc_dataloader = torch.utils.data.DataLoader(voc_dataset,
+voc_train_dataloader = torch.utils.data.DataLoader(voc_train_dataset,
     shuffle=True,
     collate_fn=collate_fn,
     batch_size=opt.batch_size,
@@ -202,7 +202,34 @@ voc_dataloader = torch.utils.data.DataLoader(voc_dataset,
     drop_last=True)
     
 
-train_dataloader = voc_dataloader
+train_dataloader = voc_train_dataloader
+
+val_transform = A.Compose(
+    [
+        A.Resize(height=512, width=512, p=1.0),
+        ToTensorV2(p=1.0),
+    ], 
+    p=1.0, 
+    bbox_params=A.BboxParams(
+        format='pascal_voc',
+        min_area=0, 
+        min_visibility=0,
+        label_fields=['labels']
+    )
+)
+
+voc_val_dataset = voc.VOCTrainValDataset('/home/raid/public/datasets/wheat_detection', 
+        ['None', 'wheat'],
+        split='val.txt',
+        transforms=val_transform)
+
+voc_val_dataloader = torch.utils.data.DataLoader(voc_val_dataset,
+    shuffle=False,
+    collate_fn=collate_fn,
+    batch_size=4,
+    num_workers=3,
+    drop_last=False)
+    
 
 print('Start training...')
 start_step = (start_epoch - 1) * len(train_dataloader)
@@ -317,8 +344,8 @@ try:
 
             model.eval()
             # eval_yolo(model.DA.Yolo, dl.src_val_loader, epoch, writer, logger)
-
-            # eval_result = evaluate(model, val_dataloader, epoch, writer, logger)
+            
+            _ = evaluate(model, voc_val_dataloader, epoch, writer, logger)
             # sots_result = evaluate(model, dl.sots_dataloader, epoch, writer, logger, 'sots')
             # _ = evaluate(model, dl.sots_outdoor_dataloader, epoch, writer, logger, 'sots_outdoor')
             # _ = evaluate(model, dl.hsts_dataloader, epoch, writer, logger, 'hsts')
