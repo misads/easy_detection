@@ -5,10 +5,12 @@ sys.path.insert(0, "./omegaconf")
 
 import numpy as np
 import torch
+import cv2
 import os
 
-from effdet import get_efficientdet_config, EfficientDet, DetBenchTrain
-from effdet.efficientdet import HeadNet
+from torch import nn
+import torchvision
+from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 
 from options import opt
 
@@ -18,26 +20,22 @@ from scheduler import get_scheduler
 from network.base_model import BaseModel
 from mscv import ExponentialMovingAverage, print_network, load_checkpoint, save_checkpoint
 # from mscv.cnn import normal_init
+from mscv.summary import write_image
 from loss import get_default_loss
 
 import misc_utils as utils
 
 
-def get_net():
-    config = get_efficientdet_config('tf_efficientdet_d5')
-    net = EfficientDet(config, pretrained_backbone=False)
-    checkpoint = torch.load('/home/ubuntu/.cache/torch/checkpoints/efficientdet_d5-ef44aea8.pth')
-    net.load_state_dict(checkpoint)
-    config.num_classes = 1
-    config.image_size = opt.scale
-    net.class_net = HeadNet(config, num_outputs=config.num_classes, norm_kwargs=dict(eps=.001, momentum=.01))
-    return DetBenchTrain(net, config)
-
 class Model(BaseModel):
     def __init__(self, opt):
         super(Model, self).__init__()
         self.opt = opt
-        self.detector = get_net().to(device=opt.device)
+        cfgfile = 'yolo-voc.cfg'
+        self.detector = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
+        in_features = self.detector.roi_heads.box_predictor.cls_score.in_features
+
+        # replace the pre-trained head with a new one
+        self.detector.roi_heads.box_predictor = FastRCNNPredictor(in_features, opt.num_classes + 1)
         #####################
         #    Init weights
         #####################
@@ -59,7 +57,31 @@ class Model(BaseModel):
                    'labels': labels [b, None],
                    'path': paths}
         """
-        loss = self.forward(sample)
+        labels = sample['labels']
+        for label in labels:
+            label += 1.  # effdet的label从1开始
+
+        image, bboxes, labels = sample['image'], sample['bboxes'], sample['labels']
+
+        image = image.to(opt.device)
+        bboxes = [bbox.to(opt.device).float() for bbox in bboxes]
+        labels = [label.to(opt.device).float() for label in labels]
+        image = list(im for im in image)
+
+        b = len(bboxes)
+
+        target = [{'boxes': bboxes[i], 'labels': labels[i].long()} for i in range(b)]
+        """
+            target['boxes'] = boxes
+            target['labels'] = labels
+            # target['masks'] = None
+            target['image_id'] = torch.tensor([index])
+            target['area'] = area
+            target['iscrowd'] = iscrowd
+        """
+        loss_dict = self.detector(image, target)
+
+        loss = sum(l for l in loss_dict.values())
 
         self.avg_meters.update({'loss': loss.item()})
 
@@ -70,38 +92,45 @@ class Model(BaseModel):
         return {}
 
     def forward(self, sample):
-        labels = sample['labels']
-        for label in labels: 
-            label += 1.  # effdet的label从1开始
-
-        image, bboxes, labels = sample['image'], sample['bboxes'], sample['labels']
-
+        image = sample['image']
         image = image.to(opt.device)
-        bboxes = [bbox.to(opt.device).float() for bbox in bboxes]
-        labels = [label.to(opt.device).float() for label in labels]
+        image = list(im for im in image)
+        outputs = self.detector(image)
 
-        loss, _, _ = self.detector(image, bboxes, labels)
+        img = image[0].detach().cpu().numpy().transpose([1, 2, 0]).copy()
 
-        return loss
+        boxes = outputs[0]['boxes'].data.cpu().numpy()
+        scores = outputs[0]['scores'].data.cpu().numpy()
+        boxes = boxes[scores >= 0.5]
+
+        for x1, y1, x2, y2 in boxes:
+            x1 = int(round(x1))
+            y1 = int(round(y1))
+            x2 = int(round(x2))
+            y2 = int(round(y2))
+            cv2.rectangle(img, (x1, y1), (x2, y2), (0, 1., 0), 2)
+
+        return img
 
     def inference(self, x, progress_idx=None):
-        return super(Model, self).inference(x, progress_idx)
+        raise NotImplementedError
 
     def evaluate(self, dataloader, epoch, writer, logger, data_name='val'):
-        total_loss = 0.
+
         for i, sample in enumerate(dataloader):
             utils.progress_bar(i, len(dataloader), 'Eva... ')
 
             with torch.no_grad():
-                loss = self.forward(sample)
+                img = self.forward(sample)
 
-            total_loss += loss.item()
+            if i < 30:
+                write_image(writer, 'val', f'preview/{i}', img, epoch, 'HWC')
 
-        logger.info(f'Eva({data_name}) epoch {epoch}, total loss: {total_loss}.')
+        # logger.info(f'Eva({data_name}) epoch {epoch}, total loss: {total_loss}.')
 
     def load(self, ckpt_path):
         load_dict = {
-            'detector': self.detector.model,
+            'detector': self.detector,
         }
 
         if opt.resume:
@@ -122,7 +151,7 @@ class Model(BaseModel):
         save_filename = f'{which_epoch}_{opt.model}.pt'
         save_path = os.path.join(self.save_dir, save_filename)
         save_dict = {
-            'detector': self.detector.model,
+            'detector': self.detector,
             'optimizer': self.optimizer,
             'scheduler': self.scheduler,
             'epoch': which_epoch

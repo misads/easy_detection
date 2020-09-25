@@ -154,7 +154,7 @@ class VOCTrainValDataset(dataset.Dataset):
                 """
                 注意!! yxyx 
                 """
-                sample['bboxes'][:,[0,1,2,3]] = sample['bboxes'][:,[1,0,3,2]]  
+                # sample['bboxes'][:,[0,1,2,3]] = sample['bboxes'][:,[1,0,3,2]]
                 break
                 
         sample['labels'] = torch.Tensor(sample['labels'])  # <--- add this!

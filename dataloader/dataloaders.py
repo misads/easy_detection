@@ -27,7 +27,7 @@ DATA_FOTMAT = 'VOC'  # 数据集格式
 
 if DATA_FOTMAT == 'VOC':
 
-    voc_root = '/home/raid/public/datasets/wheat_detection'
+    voc_root = 'datasets/wheat_detection'
     train_split = 'train.txt'
     val_split = 'val.txt' 
     class_names = ['wheat']
@@ -94,7 +94,7 @@ if DATA_FOTMAT == 'VOC':
         )
     )
 
-    voc_val_dataset = VOCTrainValDataset('/home/raid/public/datasets/wheat_detection', 
+    voc_val_dataset = VOCTrainValDataset(voc_root,
             class_names,
             split=val_split,
             transforms=val_transform)
