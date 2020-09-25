@@ -1,6 +1,6 @@
 # detection_template
 
-一个目标检测的Baseline(不需要cuda编译)，Kaggle全球小麦检测12/2245(金牌)。
+一个目标检测的Baseline(不需要cuda编译)，Kaggle小麦检测12/2245。
 
 ## Todo List
 
@@ -10,7 +10,7 @@
   - [ ] COCO
 
 - 网络模型
-  - [x] EfficientDet
+  - [x] EfficientDet(目前不支持训练过程中验证)
   - [ ] YoloV2、V3
   - [ ] YoloV5
   - [ ] SSD
@@ -45,16 +45,16 @@ albumentations >= 0.4.0
 ```bash
 Code Usage:
 Training:
-    python train.py --tag your_tag --model FFA --epochs 20 -b 2 --lr 0.0001 --gpu 0
+    python train.py --tag your_tag --model Effdet --epochs 200 -b 3 --lr 0.0001 --gpu 0
 
 Resume Training (or fine-tune):
-    python train.py --tag your_tag --model FFA --epochs 20 -b 2 --load checkpoints/your_tag/9_FFA.pt --resume --gpu 0
+    python train.py --tag your_tag --model Effdet --epochs 20 -b 2 --load checkpoints/your_tag/9_Effdet.pt --resume --gpu 0
 
 Eval:
-    python eval.py --model FFA -b 2 --load checkpoints/your_tag/9_FFA.pt --gpu 1
+    python eval.py --model Effdet -b 2 --load checkpoints/your_tag/9_Effdet.pt --gpu 1
 
 Generate Submission:
-    python submit.py --model FFA --load checkpoints/your_tag/9_FFA.pt -b 2 --gpu 0
+    python submit.py --model Effdet --load checkpoints/your_tag/9_Effdet.pt -b 2 --gpu 0
 
 See Running Log:
     cat logs/your_tag/log.txt
