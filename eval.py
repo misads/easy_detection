@@ -3,7 +3,7 @@
 from skimage.measure import compare_psnr as psnr
 from skimage.measure import compare_ssim as ski_ssim  # deprecated
 
-import dataloader as dl
+from dataloader.dataloaders import val_dataloader
 from options import opt
 from mscv.summary import write_loss, write_image
 from mscv.image import tensor2im
@@ -16,24 +16,9 @@ import pdb
 
 
 def evaluate(model, dataloader, epoch, writer, logger, data_name='val'):
-
-    save_root = os.path.join(opt.result_dir, opt.tag, str(epoch), data_name)
-
-    utils.try_make_dir(save_root)
-
-    total_loss = 0.
-    ct_num = 0
-    # print('Start testing ' + tag + '...')
-    for i, sample in enumerate(dataloader):
-        utils.progress_bar(i, len(dataloader), 'Eva... ')
-
-        loss = model.evaluate(sample)
-        total_loss += loss
-        
-    logger.info(f'Eva({data_name}) epoch {epoch}, total loss: {total_loss}.')
-
-    return f'{total_loss}'
-
+    # 每个模型的evaluate方式不同
+    loss = model.evaluate(dataloader, epoch, writer, logger, data_name)
+    return f'{loss}'
 
 
 if __name__ == '__main__':
@@ -60,5 +45,5 @@ if __name__ == '__main__':
     writer = create_summary_writer(log_root)
 
     logger = init_log(training=False)
-    evaluate(model, dl.val_dataloader, opt.which_epoch, writer, logger, 'val')
+    evaluate(model, val_dataloader, opt.which_epoch, writer, logger, 'val')
 

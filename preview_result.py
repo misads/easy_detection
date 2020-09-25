@@ -66,7 +66,7 @@ voc_dataset = voc.VOCTrainValDataset('/home/raid/public/datasets/wheat_detection
 
 def collate_fn(batch):
     target = {}
-    target['input'] = torch.stack([sample['input'] for sample in batch])
+    target['image'] = torch.stack([sample['image'] for sample in batch])
     target['bboxes'] = [sample['bboxes'] for sample in batch]
     target['labels'] = [sample['labels'] for sample in batch]
     target['path'] = [sample['path'] for sample in batch]
@@ -108,7 +108,7 @@ for i, sample in enumerate(val_dataloader):
     if i > 20:
         break
 
-    images = sample['input'].to('cuda:1')
+    images = sample['image'].to('cuda:1')
     predictions = make_predictions(images)
     img = images[0].detach().cpu().numpy().transpose([1,2,0])
     img = img.copy()

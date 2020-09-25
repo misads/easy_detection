@@ -70,7 +70,11 @@ class Model(BaseModel):
         return {}
 
     def forward(self, sample):
-        image, bboxes, labels = sample['image'], sample['bboxes'], sample['labels'] + 1.   # effdet的label从1开始
+        labels = sample['labels']
+        for label in labels: 
+            label += 1.  # effdet的label从1开始
+
+        image, bboxes, labels = sample['image'], sample['bboxes'], sample['labels']
 
         image = image.to(opt.device)
         bboxes = [bbox.to(opt.device).float() for bbox in bboxes]
@@ -83,10 +87,17 @@ class Model(BaseModel):
     def inference(self, x, progress_idx=None):
         return super(Model, self).inference(x, progress_idx)
 
-    def evaluate(self, sample):
-        with torch.no_grad():
-            loss = self.forward(sample)
-        return loss.item()
+    def evaluate(self, dataloader, epoch, writer, logger, data_name='val'):
+        total_loss = 0.
+        for i, sample in enumerate(dataloader):
+            utils.progress_bar(i, len(dataloader), 'Eva... ')
+
+            with torch.no_grad():
+                loss = self.forward(sample)
+
+            total_loss += loss.item()
+        
+        logger.info(f'Eva({data_name}) epoch {epoch}, total loss: {total_loss}.')
 
     def load(self, ckpt_path):
         load_dict = {

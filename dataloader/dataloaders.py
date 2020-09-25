@@ -5,135 +5,115 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from dataloader import yolo_dataset
 from dataloader import paired_dataset
+from dataloader.voc import VOCTrainValDataset
+
+import albumentations as A
+from albumentations.pytorch.transforms import ToTensorV2
 
 from options import opt
 from mscv.image import tensor2im
 import torch
 import pdb
 
+
 ###################
 
 TEST_DATASET_HAS_OPEN = False  # 有没有开放测试集
+DATA_FOTMAT = 'VOC'  # 数据集格式
 
 ###################
 
-train_list = "./datasets/apollo/merge_train.txt"
-val_list = "./datasets/apollo/apollo_val.txt"
-
-max_size = 64 if opt.debug else None
-
-train_dataset = ListTrainValDataset(train_list, scale=opt.scale, crop=opt.crop, aug=opt.aug, max_size=max_size, norm=opt.norm_input)
-train_dataloader = DataLoader(train_dataset, batch_size=opt.batch_size, shuffle=True, num_workers=4, drop_last=True)
-
-val_dataset = ListTrainValDataset(val_list, scale=opt.scale, aug=False, max_size=max_size, norm=opt.norm_input)
-val_dataloader = DataLoader(val_dataset, batch_size=1, shuffle=False, num_workers=1)
 
 
-src_list = "./datasets/yolo/apollo_clear_train.txt"
-src_val_list = "./datasets/yolo/apollo_clear_val.txt"
-"""
-source domain 是clear的
-"""
+if DATA_FOTMAT == 'VOC':
 
-num_workers = 3
+    voc_root = '/home/raid/public/datasets/wheat_detection'
+    train_split = 'train.txt'
+    val_split = 'val.txt' 
+    class_names = ['wheat']
+    opt.num_classes = len(class_names)
 
-src_data_loader = torch.utils.data.DataLoader(
-            yolo_dataset.listDataset(src_list, 
-                                shape=(416, 416),
-                                shuffle=True,
-                                transform=transforms.Compose([
-                                    transforms.ToTensor(),
-                                    ]), 
-                                train=True,
-                                seen=0,
-                                batch_size=opt.batch_size,
-                                num_workers=num_workers),
-            collate_fn=yolo_dataset.custom_collate, 
-            batch_size=opt.batch_size, shuffle=False, num_workers=num_workers)
-
-
-src_val_loader = torch.utils.data.DataLoader(
-    yolo_dataset.listDataset(src_val_list,
-                        shape=(416, 416),
-                        shuffle=False,
-                        transform=transforms.Compose([
-                            transforms.ToTensor(),
-                        ]), train=False),
-    batch_size=1, shuffle=False, num_workers=3)
-
-
-tgt_list = "./datasets/yolo/apollo_train.txt"
-tgt_val_list = "./datasets/yolo/apollo_val.txt"
-"""
-target domain 是hazy的
-"""
-
-tgt_data_loader = torch.utils.data.DataLoader(
-            yolo_dataset.listDataset(tgt_list, 
-                                shape=(416, 416),
-                                shuffle=True,
-                                transform=transforms.Compose([
-                                    transforms.ToTensor(),
-                                    ]), 
-                                train=True,
-                                seen=0,
-                                batch_size=opt.batch_size,
-                                num_workers=num_workers),
-            collate_fn=yolo_dataset.custom_collate, 
-            batch_size=opt.batch_size, shuffle=False, num_workers=num_workers)
+    train_transform = train_transform = A.Compose(
+        [
+            A.RandomSizedCrop(min_max_height=(800, 800), height=1024, width=1024, p=0.5),
+            A.OneOf([
+                A.HueSaturationValue(hue_shift_limit=0.2, sat_shift_limit= 0.2, 
+                                        val_shift_limit=0.2, p=0.9),
+                A.RandomBrightnessContrast(brightness_limit=0.2, 
+                                            contrast_limit=0.2, p=0.9),
+            ],p=0.9),
+            A.ToGray(p=0.01),
+            A.HorizontalFlip(p=0.5),
+            A.VerticalFlip(p=0.5),
+            A.Resize(height=512, width=512, p=1),
+            A.Cutout(num_holes=5, max_h_size=64, max_w_size=64, fill_value=0, p=0.5),
+            ToTensorV2(p=1.0),
+        ], 
+        p=1.0, 
+        bbox_params=A.BboxParams(
+            format='pascal_voc',
+            min_area=0, 
+            min_visibility=0,
+            label_fields=['labels']
+        ),
+    )
 
 
-tgt_val_loader = torch.utils.data.DataLoader(
-    yolo_dataset.listDataset(tgt_val_list,
-                        shape=(416, 416),
-                        shuffle=False,
-                        transform=transforms.Compose([
-                            transforms.ToTensor(),
-                        ]), train=False),
-    batch_size=1, shuffle=False, num_workers=3)
+    voc_train_dataset = VOCTrainValDataset(voc_root, 
+            class_names,
+            split=train_split,
+            transforms=train_transform)
 
+    def collate_fn(batch):
+        target = {}
+        target['image'] = torch.stack([sample['image'] for sample in batch])
+        target['bboxes'] = [sample['bboxes'] for sample in batch]
+        target['labels'] = [sample['labels'] for sample in batch]
+        target['path'] = [sample['path'] for sample in batch]
+        target['yolo_boxes'] = torch.stack([sample['yolo_boxes'] for sample in batch])
+        return target
 
-paired_list = './datasets/apollo/apollo_val.txt'  # 这里要填一下
+    voc_train_dataloader = torch.utils.data.DataLoader(voc_train_dataset,
+        shuffle=True,
+        collate_fn=collate_fn,
+        batch_size=opt.batch_size,
+        num_workers=4,
+        drop_last=True)
 
-paired_loader = torch.utils.data.DataLoader(    
-    paired_dataset.pairedDataset(paired_list, shape=(416, 416),  # 这里不是listDataset
-                    shuffle=False,
-                    transform=transforms.Compose([
-                        transforms.ToTensor(),
-                    ])), 
-    batch_size=opt.batch_size, shuffle=False, num_workers=3)
+    val_transform = A.Compose(
+        [
+            A.Resize(height=512, width=512, p=1.0),
+            ToTensorV2(p=1.0),
+        ], 
+        p=1.0, 
+        bbox_params=A.BboxParams(
+            format='pascal_voc',
+            min_area=0, 
+            min_visibility=0,
+            label_fields=['labels']
+        )
+    )
 
-# ([b, 3, 416, 416], [b, 250])
-"""
-50×5 最多50个bbox
-"""
+    voc_val_dataset = VOCTrainValDataset('/home/raid/public/datasets/wheat_detection', 
+            class_names,
+            split=val_split,
+            transforms=val_transform)
 
+    voc_val_dataloader = torch.utils.data.DataLoader(voc_val_dataset,
+        shuffle=False,
+        collate_fn=collate_fn,
+        batch_size=opt.batch_size,
+        num_workers=0,
+        drop_last=False)
 
-sots_list = './datasets/ITS_val.txt'
-sots_dataset = ListTrainValDataset(sots_list, scale=opt.scale, aug=False, max_size=max_size, norm=opt.norm_input)
-sots_dataloader = DataLoader(sots_dataset, batch_size=1, shuffle=False, num_workers=1)
+    train_dataloader = voc_train_dataloader
+    val_dataloader = voc_val_dataloader
 
+    if TEST_DATASET_HAS_OPEN:
+        test_list = "./datasets/test.txt"  # 还没有
 
-sots_outdoor_list = './datasets/SOTS_OUTDOOR.txt'
-sots_outdoor_dataset = ListTrainValDataset(sots_outdoor_list, scale=opt.scale, aug=False, max_size=max_size, norm=opt.norm_input)
-sots_outdoor_dataloader = DataLoader(sots_outdoor_dataset, batch_size=1, shuffle=False, num_workers=1)
+        test_dataset = ListTestDataset(test_list, scale=opt.scale, max_size=max_size, norm=opt.norm_input)
+        test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False, num_workers=1)
 
-
-hsts_list = './datasets/HSTS.txt'
-hsts_dataset = ListTrainValDataset(hsts_list, scale=opt.scale, aug=False, max_size=max_size, norm=opt.norm_input)
-hsts_dataloader = DataLoader(hsts_dataset, batch_size=1, shuffle=False, num_workers=1)
-
-
-real_list = "./datasets/REAL.txt" 
-real_dataset = ListTestDataset(real_list, scale=opt.scale, max_size=max_size, norm=opt.norm_input)
-real_dataloader = DataLoader(real_dataset, batch_size=1, shuffle=False, num_workers=1)
-
-
-if TEST_DATASET_HAS_OPEN:
-    test_list = "./datasets/test.txt"  # 还没有
-
-    test_dataset = ListTestDataset(test_list, scale=opt.scale, max_size=max_size, norm=opt.norm_input)
-    test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False, num_workers=1)
-
-else:
-    test_dataloader = None
+    else:
+        test_dataloader = None

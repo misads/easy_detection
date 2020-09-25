@@ -39,32 +39,22 @@ def parse_args():
 
     # data augmentation
     parser.add_argument('--aug', action='store_true', help='Randomly scale, jitter, change hue, saturation and brightness')
-    parser.add_argument('--norm-input', action='store_true')
-    parser.add_argument('--random-erase', action='store_true', help='debug mode')
 
     # scale
     parser.add_argument('--scale', type=int, default=512, help='scale images to this size')
     parser.add_argument('--crop', type=int, default=None, help='then crop to this size')
 
     # for datasets
-    parser.add_argument('--dataset', choices=['ITS', 'OTS'], default='ITS', help='training dataset')
+    parser.add_argument('--dataset', choices=['VOC', 'COCO'], default='VOC', help='training dataset')
     parser.add_argument('--val_set', type=str, default=None)
     parser.add_argument('--test_set', type=str, default=None)
 
     # init weights
     parser.add_argument('--init', type=str, default=None, help='{normal, xavier, kaiming, orthogonal}')
 
-    parser.add_argument('--config', '--cfg', type=str, default='yolo3/cfg/yolo-voc.cfg', help='config file for yolo     detector')
-    # loss weight
-    parser.add_argument('--weight_ssim', type=float, default=1.1)  # SSIM loss
-    parser.add_argument('--weight_l1', type=float, default=0.75)  # l1 loss
-    parser.add_argument('--weight_vgg', type=float, default=0.)  # content loss(vgg loss)
-    parser.add_argument('--weight_grad', type=float, default=0.)  # gradient loss
-
     # training options
     parser.add_argument('--debug', action='store_true', help='debug mode')
     parser.add_argument('--load', type=str, default=None, help='load checkpoint')
-    parser.add_argument('--weights', type=str, default=None, help='load checkpoint for Detector')
     
     parser.add_argument('--resume', action='store_true', help='resume training, only used when --load')
     parser.add_argument('--reset', action='store_true', help='reset training, only used when --load')
@@ -75,7 +65,7 @@ def parse_args():
     parser.add_argument('--save_freq', type=int, default=10, help='freq to save models')
     parser.add_argument('--eval_freq', '--val_freq', type=int, default=10, help='freq to eval models')
     parser.add_argument('--log_freq', type=int, default=1, help='freq to vis in tensorboard')
-    parser.add_argument('--no-eval', '--no-val', action='store_true', help='不要eval')
+    parser.add_argument('--no_eval', '--no_val', action='store_true', help='不要eval')
 
     # test options
     parser.add_argument('--tta', action='store_true', help='test with augmentation')

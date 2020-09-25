@@ -33,7 +33,7 @@ utils.try_make_dir(result_dir)
 
 for i, data in enumerate(dl.test_dataloader):
     utils.progress_bar(i, len(dl.test_dataloader), 'Test... ')
-    img, paths = data['input'], data['path']
+    img, paths = data['image'], data['path']
     img = img.to(device=opt.device)
     """
     Test Codes
