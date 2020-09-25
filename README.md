@@ -14,7 +14,7 @@
   - [ ] YoloV2、V3
   - [ ] YoloV5
   - [ ] SSD
-  - [ ] Faster-RCNN
+  - [x] Faster-RCNN
   - [ ] Cascade-RCNNN
   - [ ] RetinaNet
   
