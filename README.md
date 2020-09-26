@@ -12,7 +12,7 @@
 - 网络模型
   - [x] EfficientDet(目前不支持训练过程中验证)
   - [ ] YoloV2、V3
-  - [ ] YoloV5
+  - [x] YoloV5
   - [ ] SSD
   - [x] Faster-RCNN
   - [ ] Cascade-RCNNN
