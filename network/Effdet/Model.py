@@ -76,6 +76,9 @@ class Model(BaseModel):
 
         image, bboxes, labels = sample['image'], sample['bboxes'], sample['labels']
 
+        for bbox in bboxes:
+            bbox[:,[0,1,2,3]] = bbox[:,[1,0,3,2]]  # yxyx
+
         image = image.to(opt.device)
         bboxes = [bbox.to(opt.device).float() for bbox in bboxes]
         labels = [label.to(opt.device).float() for label in labels]

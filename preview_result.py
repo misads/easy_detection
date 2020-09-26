@@ -16,6 +16,7 @@ from matplotlib import pyplot as plt
 from effdet import get_efficientdet_config, EfficientDet, DetBenchEval
 from effdet.efficientdet import HeadNet
 from mscv.summary import create_summary_writer, write_image
+from dataloader.dataloaders import val_dataloader
 
 def load_net(checkpoint_path):
     config = get_efficientdet_config('tf_efficientdet_d5')
@@ -44,41 +45,6 @@ net = load_net('./checkpoints/transform/40_Effdet.pt')
 net.to('cuda:1')
 
 from dataloader import voc
-
-val_transform =A.Compose(
-    [
-        A.Resize(height=512, width=512, p=1.0),
-        ToTensorV2(p=1.0),
-    ], 
-    p=1.0, 
-    bbox_params=A.BboxParams(
-        format='pascal_voc',
-        min_area=0, 
-        min_visibility=0,
-        label_fields=['labels']
-    )
-)
-
-voc_dataset = voc.VOCTrainValDataset('/home/raid/public/datasets/wheat_detection', 
-        ['wheat'],
-        split='val.txt',
-        transforms=val_transform)
-
-def collate_fn(batch):
-    target = {}
-    target['image'] = torch.stack([sample['image'] for sample in batch])
-    target['bboxes'] = [sample['bboxes'] for sample in batch]
-    target['labels'] = [sample['labels'] for sample in batch]
-    target['path'] = [sample['path'] for sample in batch]
-    return target
-
-val_dataloader = torch.utils.data.DataLoader(voc_dataset,
-    shuffle=False,
-    collate_fn=collate_fn,
-    batch_size=4,
-    num_workers=3,
-    drop_last=False)
-    
 
 def make_predictions(images, score_threshold=0.22):
     # images = torch.stack(images).cuda('cuda:1').float()
