@@ -134,7 +134,8 @@ class VOCTrainValDataset(dataset.Dataset):
                 'bboxes': bboxes,
                 'labels': labels
             })
-            
+
+            yolo5_boxes = np.zeros([len(sample['bboxes']), 5])
             sample['bboxes'] = torch.Tensor(sample['bboxes'])
 
             if len(sample['bboxes']) > 0:
@@ -150,6 +151,8 @@ class VOCTrainValDataset(dataset.Dataset):
                     h, c_y = h / 512, c_y / 512
 
                     yolo_boxes[i, :] = labels[i], c_x, c_y, w, h  # 中心点坐标、宽、高
+                    if i < yolo5_boxes.shape[0]:
+                        yolo5_boxes[i, :] = labels[i], c_x, c_y, w, h  # 中心点坐标、宽、高
 
                 """
                 注意!! yxyx 
@@ -161,6 +164,7 @@ class VOCTrainValDataset(dataset.Dataset):
         sample['path'] = image_path
 
         sample['yolo_boxes'] = torch.Tensor(yolo_boxes).view([-1])
+        sample['yolo5_boxes'] = torch.Tensor(yolo5_boxes)
         return sample
 
     def __len__(self):

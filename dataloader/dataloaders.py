@@ -27,7 +27,7 @@ DATA_FOTMAT = 'VOC'  # 数据集格式
 
 if DATA_FOTMAT == 'VOC':
 
-    voc_root = 'datasets/wheat_detection'
+    voc_root = '/media/windows/c/datasets/wheat_detection'
     train_split = 'train.txt'
     val_split = 'val.txt' 
     class_names = ['wheat']
@@ -66,11 +66,15 @@ if DATA_FOTMAT == 'VOC':
 
     def collate_fn(batch):
         target = {}
+        b = len(batch)
         target['image'] = torch.stack([sample['image'] for sample in batch])
         target['bboxes'] = [sample['bboxes'] for sample in batch]
         target['labels'] = [sample['labels'] for sample in batch]
         target['path'] = [sample['path'] for sample in batch]
         target['yolo_boxes'] = torch.stack([sample['yolo_boxes'] for sample in batch])
+        target['yolo5_boxes'] = torch.cat(  # [b*50, 6] batch中第几张图片, label, c_x, c_y, w, h
+                                    [torch.cat([torch.ones([batch[i]['yolo5_boxes'].shape[0], 1]) * i,
+                                    batch[i]['yolo5_boxes']], 1) for i in range(b)], 0)
         return target
 
     voc_train_dataloader = torch.utils.data.DataLoader(voc_train_dataset,

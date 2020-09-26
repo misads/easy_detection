@@ -49,7 +49,7 @@ class Model(BaseModel):
         self.avg_meters = ExponentialMovingAverage(0.95)
         self.save_dir = os.path.join(opt.checkpoint_dir, opt.tag)
 
-    def update(self, sample):
+    def update(self, sample, *arg):
         """
         Args:
             sample: {'input': input_image [b, 3, height, width],
