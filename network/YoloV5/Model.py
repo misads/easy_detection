@@ -3,13 +3,11 @@ import sys
 import numpy as np
 import torch
 import os
-from .yolo import Model as model
+from .yolo import Model as Yolo5
 from torch import nn
 import gc
-from yolo3.darknet import Darknet
-from yolo3.utils import get_all_boxes, bbox_iou, nms, read_data_cfg, load_class_names
-from yolo3.image import correct_yolo_boxes
 from .eval_yolo import eval_yolo
+from yolo3.eval_map import eval_detection_voc
 
 from options import opt
 
@@ -18,11 +16,13 @@ from scheduler import get_scheduler
 
 from network.base_model import BaseModel
 from mscv import ExponentialMovingAverage, print_network, load_checkpoint, save_checkpoint
-from mscv.summary import write_image
+from mscv.summary import write_image, write_loss
 from .utils import *
 # from mscv.cnn import normal_init
 from loss import get_default_loss
-from utils.ensemble_boxes import non_maximum_weighted
+
+from torchvision.ops import nms
+
 import misc_utils as utils
 
 hyp = {'momentum': 0.937,  # SGD momentum
@@ -45,7 +45,7 @@ class Model(BaseModel):
         super(Model, self).__init__()
         self.opt = opt
         cfgfile = 'yolov5x.yaml'
-        self.detector = model(cfgfile).to(opt.device)
+        self.detector = Yolo5(cfgfile).to(opt.device)
         self.detector.hyp = hyp
         self.detector.gr = 1.0
         self.detector.nc = opt.num_classes
@@ -103,41 +103,79 @@ class Model(BaseModel):
         raise NotImplementedError
 
     def evaluate(self, dataloader, epoch, writer, logger, data_name='val'):
-        opt.iou_thres = 0.7
-        conf_thresh = 0.5
+        nms_thresh = 0.45  # 0.3~0.5
+        conf_thresh = 0.4
         # import ipdb; ipdb.set_trace()
         round_int = lambda x: int(round(x.item())) if isinstance(x, torch.Tensor) else int(round(x))
 
+
+        pred_bboxes = []
+        pred_labels = []
+        pred_scores = []
+        gt_bboxes = []
+        gt_labels = []
+        gt_difficults = []
+
         with torch.no_grad():
             for i, sample in enumerate(dataloader):
-                if i > 30:
-                    break
                 image = sample['image'].to(opt.device)  # target domain
-                target = sample['yolo5_boxes'].to(opt.device)
+                gt_bbox = sample['bboxes']
+                gt_label = sample['labels']
+
                 pred = self.detector(image)
-                pred = non_max_suppression(pred[0], 0.4, opt.iou_thres, merge=True, classes=None, agnostic=False)
+                bboxes = pred[0]
+                """xywh转x1y1x2y2"""
+                bboxes[:, :, 0] = bboxes[:, :, 0] - bboxes[:, :, 2] / 2
+                bboxes[:, :, 1] = bboxes[:, :, 1] - bboxes[:, :, 3] / 2
+                bboxes[:, :, 2] += bboxes[:, :, 0]
+                bboxes[:, :, 3] += bboxes[:, :, 1]
+
+                # pred = non_max_suppression(pred[0], 0.4, opt.iou_thres, merge=True, classes=None, agnostic=False)
 
                 img = image[0].detach().cpu().numpy().transpose([1, 2, 0]).copy()
-                bbox = pred[0]
+                
+                b = image.shape[0]  # batch有几张图
+                for bi in range(b):
+                    bbox = bboxes[bi]
+                    conf_bbox = bbox[bbox[:, 4] > conf_thresh]
+                    xyxy_bbox = conf_bbox[:, :4]  # x1y1x2y2坐标
+                    scores = conf_bbox[:, 5]
+                    nms_indices = nms(xyxy_bbox, scores, nms_thresh)
 
-                conf_bbox = bbox[bbox[:, 4] > conf_thresh]
-                # for x_c, y_c, w, h, *_ in conf_bbox:
-                #     x1 = int(round((x_c - w / 2).item()))
-                #     x2 = int(round((x_c + w / 2).item()))
-                #     y1 = int(round((y_c - h / 2).item()))
-                #     y2 = int(round((y_c + h / 2).item()))
+                    xyxy_bbox = xyxy_bbox[nms_indices]
+                    scores = scores[nms_indices]
+                    pred_bboxes.append(xyxy_bbox.detach().cpu().numpy())
+                    pred_labels.append(np.zeros([xyxy_bbox.shape[0]], dtype=np.int32))
+                    pred_scores.append(scores.detach().cpu().numpy())
+                    gt_bboxes.append(gt_bbox[bi].detach().cpu().numpy())
+                    gt_labels.append(np.zeros([len(gt_bbox[bi])], dtype=np.int32))
+                    gt_difficults.append(np.array([False] * len(gt_bbox[bi])))
+
+                # for x1, y1, x2, y2, *_ in nms_bbox:
+                #     x1 = round_int(x1)
+                #     x2 = round_int(x2)
+                #     y1 = round_int(y1)
+                #     y2 = round_int(y2)
                 #     cv2.rectangle(img, (x1, y1), (x2, y2), (0, 1., 0), 2)
-                for x1, y1, x2, y2, *_ in conf_bbox:
-                    x1 = round_int(x1)
-                    x2 = round_int(x2)
-                    y1 = round_int(y1)
-                    y2 = round_int(y2)
-                    cv2.rectangle(img, (x1, y1), (x2, y2), (0, 1., 0), 2)
 
-                write_image(writer, 'val', f'pred{i}', img, epoch, 'HWC')
+                # write_image(writer, 'val', f'pred{i}', img, epoch, 'HWC')
 
+        AP = eval_detection_voc(
+            pred_bboxes,
+            pred_labels,
+            pred_scores,
+            gt_bboxes,
+            gt_labels,
+            gt_difficults=None,
+            iou_thresh=0.5,
+            use_07_metric=False)
 
-        # eval_yolo(self.detector, dataloader, epoch, writer, logger, dataname=data_name)
+        APs = AP['ap']
+        mAP = AP['map']
+
+        logger.info(f'Eva({data_name}) epoch {epoch}, APs: {str(APs[:opt.num_classes])}, mAP: {mAP}')
+        write_loss(writer, f'val/{data_name}', 'mAP', mAP, epoch)
+
 
     def load(self, ckpt_path):
         load_dict = {
