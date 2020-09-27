@@ -8,10 +8,9 @@ import torch.nn.functional as F
 from .utils import bbox_iou, multi_bbox_ious, convert2cpu
 
 class YoloLayer(nn.Module):
-    def __init__(self, anchor_mask=[], num_classes=0, anchors=[1.0], num_anchors=1, use_cuda=None):
+    def __init__(self, anchor_mask=[], num_classes=0, anchors=[1.0], num_anchors=1, device=None):
         super(YoloLayer, self).__init__()
-        use_cuda = torch.cuda.is_available() and (True if use_cuda is None else use_cuda)
-        self.device = torch.device("cuda" if use_cuda else "cpu")
+        self.device = device
 
         self.anchor_mask = anchor_mask
         self.num_classes = num_classes

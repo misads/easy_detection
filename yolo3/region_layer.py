@@ -8,10 +8,9 @@ import torch.nn.functional as F
 from .utils import bbox_iou, multi_bbox_ious, convert2cpu
 
 class RegionLayer(nn.Module):
-    def __init__(self, num_classes=0, anchors=[1.0], num_anchors=1, use_cuda=None):
+    def __init__(self, num_classes=0, anchors=[1.0], num_anchors=1, device=None):
         super(RegionLayer, self).__init__()
-        use_cuda = torch.cuda.is_available() and (True if use_cuda is None else use_cuda)
-        self.device = torch.device("cuda" if use_cuda else "cpu")
+        self.device = device
         self.num_classes = num_classes
         self.num_anchors = num_anchors
         self.anchor_step = len(anchors)//num_anchors

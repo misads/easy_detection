@@ -12,6 +12,10 @@ import gc
 from yolo3.darknet import Darknet
 from yolo3.utils import get_all_boxes, bbox_iou, nms, read_data_cfg, load_class_names
 from yolo3.image import correct_yolo_boxes
+from yolo3.utils import *
+from yolo3.image import correct_yolo_boxes
+from yolo3.eval_map import eval_detection_voc
+
 from .eval_yolo import eval_yolo
 
 from options import opt
@@ -21,18 +25,34 @@ from scheduler import get_scheduler
 
 from network.base_model import BaseModel
 from mscv import ExponentialMovingAverage, print_network, load_checkpoint, save_checkpoint
+from mscv.summary import write_loss
 # from mscv.cnn import normal_init
 from loss import get_default_loss
 
 import misc_utils as utils
+
+conf_thresh = 0.005
+nms_thresh = 0.45
+iou_thresh = 0.5
+
+def truths_length(truths):
+    for i in range(50):
+        if truths[i][1] == 0:
+            return i
+    return 50
 
 
 class Model(BaseModel):
     def __init__(self, opt):
         super(Model, self).__init__()
         self.opt = opt
-        cfgfile = 'yolo-voc.cfg'
-        self.detector = Darknet(cfgfile, use_cuda=False).to(opt.device)
+        
+        if opt.model == 'Yolo2':
+            cfgfile = 'yolo-voc.cfg'
+        elif opt.model == 'Yolo3':
+            cfgfile = 'yolo_v3.cfg'
+
+        self.detector = Darknet(cfgfile, device=opt.device).to(opt.device)
         #####################
         #    Init weights
         #####################
@@ -89,7 +109,82 @@ class Model(BaseModel):
         raise NotImplementedError
 
     def evaluate(self, dataloader, epoch, writer, logger, data_name='val'):
-        eval_yolo(self.detector, dataloader, epoch, writer, logger, dataname=data_name)
+        # eval_yolo(self.detector, dataloader, epoch, writer, logger, dataname=data_name)
+        pred_bboxes = []
+        pred_labels = []
+        pred_scores = []
+        gt_bboxes = []
+        gt_labels = []
+        gt_difficults = []
+
+        if self.detector.net_name() == 'region':  # region_layer
+            shape = (0, 0)
+        else:
+            shape = (512, 512)
+        shape = (0, 0)
+
+        num_classes = self.detector.num_classes
+
+        with torch.no_grad():
+            for i, sample in enumerate(dataloader):
+                utils.progress_bar(i, len(dataloader), 'Eva... ')
+                image = sample['image'].to(opt.device)
+                target = sample['yolo_boxes'].to(opt.device)
+                gt_bbox = sample['bboxes']
+
+                output = self.detector(image)
+                all_boxes = get_all_boxes(output, shape, conf_thresh, num_classes, 
+                                        device=opt.device, only_objectness=0, 
+                                        validation=True)
+
+                line_bboxes = []
+                line_labels = []
+                line_scores = []
+                gt_line_bboxes = []
+                gt_line_labels = []
+
+                for b in range(len(all_boxes)):
+                    boxes = all_boxes[b]
+                    width = 512
+                    height = 512
+                    correct_yolo_boxes(boxes, width, height, width, height)
+                    boxes = np.array(nms(boxes, nms_thresh))
+
+                    boxes[:, 0] -= boxes[:, 2] / 2
+                    boxes[:, 1] -= boxes[:, 3] / 2
+                    boxes[:, 2] += boxes[:, 0]
+                    boxes[:, 3] += boxes[:, 1]
+
+                    boxes[:, 0] *= width
+                    boxes[:, 2] *= width
+                    boxes[:, 1] *= height
+                    boxes[:, 3] *= height
+
+                    score = boxes[:, 4] * boxes[:, 5]
+
+                    pred_bboxes.append(boxes[:, :4])
+                    pred_labels.append(boxes[:, 6])
+                    pred_scores.append(score)
+
+                    gt_bboxes.append(gt_bbox[b].detach().cpu().numpy())
+                    gt_labels.append(np.zeros([len(gt_bbox[b])], dtype=np.int32))
+                    gt_difficults.append(np.array([False] * len(gt_bbox[b])))
+
+            AP = eval_detection_voc(
+                pred_bboxes,
+                pred_labels,
+                pred_scores,
+                gt_bboxes,
+                gt_labels,
+                gt_difficults=None,
+                iou_thresh=0.5,
+                use_07_metric=False)
+
+            APs = AP['ap']
+            mAP = AP['map']
+
+            logger.info(f'Eva({data_name}) epoch {epoch}, APs: {str(APs[:opt.num_classes])}, mAP: {mAP}')
+            write_loss(writer, f'val/{data_name}', 'mAP', mAP, epoch)
 
     def load(self, ckpt_path):
         load_dict = {

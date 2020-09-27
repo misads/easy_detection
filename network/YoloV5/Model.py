@@ -118,6 +118,8 @@ class Model(BaseModel):
 
         with torch.no_grad():
             for i, sample in enumerate(dataloader):
+                utils.progress_bar(i, len(dataloader), 'Eva... ')
+                
                 image = sample['image'].to(opt.device)  # target domain
                 gt_bbox = sample['bboxes']
                 gt_label = sample['labels']

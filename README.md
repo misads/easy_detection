@@ -11,7 +11,7 @@
 
 - 网络模型
   - [x] EfficientDet(目前不支持训练过程中验证)
-  - [ ] YoloV2、V3
+  - [x] YoloV2、V3
   - [x] YoloV5
   - [ ] SSD
   - [x] Faster-RCNN
@@ -20,14 +20,14 @@
   
 - TTA
   - [ ] 多尺度融合
-  - [ ] nms
+  - [x] nms
   - [ ] Weighted Box Fusion
 
 - Scheduler
   - [ ] 验证集指标不下降时学习率衰减
 
 - Metrics
-  - [ ] mAP
+  - [x] mAP
 
 ## Prerequisites
 

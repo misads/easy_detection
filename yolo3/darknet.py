@@ -118,9 +118,9 @@ class Darknet(nn.Module):
                 loss_layers.append(m)
         return loss_layers
 
-    def __init__(self, cfgfile, use_cuda=True):
+    def __init__(self, cfgfile, device='cuda:0'):
         super(Darknet, self).__init__()
-        self.use_cuda = use_cuda
+        self.device = device
         self.blocks = parse_cfg(cfgfile)
         self.models = self.create_network(self.blocks) # merge conv, bn,leaky
         self.loss_layers = self.getLossLayers()
@@ -364,7 +364,7 @@ class Darknet(nn.Module):
                 out_strides.append(prev_stride)
                 models.append(model)
             elif block['type'] == 'region':
-                region_layer = RegionLayer(use_cuda=self.use_cuda)
+                region_layer = RegionLayer(device=self.device)
                 anchors = block['anchors'].split(',')
                 region_layer.anchors = [float(i) for i in anchors]
                 region_layer.num_classes = int(block['classes'])
@@ -380,7 +380,7 @@ class Darknet(nn.Module):
                 out_strides.append(prev_stride)
                 models.append(region_layer)
             elif block['type'] == 'yolo':
-                yolo_layer = YoloLayer(use_cuda=self.use_cuda)
+                yolo_layer = YoloLayer(device=self.device)
                 anchors = block['anchors'].split(',')
                 anchor_mask = block['mask'].split(',')
                 yolo_layer.anchor_mask = [int(i) for i in anchor_mask]
