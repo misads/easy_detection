@@ -209,7 +209,7 @@ class BiFpnLayer(nn.Module):
         self.feature_info = []
         self.fnode = SequentialAppend()
         for i, fnode_cfg in enumerate(fpn_config.nodes):
-            logging.debug('fnode {} : {}'.format(i, fnode_cfg))
+            # logging.debug('fnode {} : {}'.format(i, fnode_cfg))
             fnode_layers = OrderedDict()
 
             # combine features
@@ -278,7 +278,7 @@ class BiFpn(nn.Module):
 
         self.cell = nn.Sequential()
         for rep in range(config.fpn_cell_repeats):
-            logging.debug('building cell {}'.format(rep))
+            # logging.debug('building cell {}'.format(rep))
             fpn_layer = BiFpnLayer(
                 feature_info=feature_info,
                 fpn_config=fpn_config,

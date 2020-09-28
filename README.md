@@ -15,7 +15,7 @@
   - [x] YoloV5
   - [x] SSD300、SSD512(目前只支持vgg backbone,且不支持预训练模型)
   - [x] Faster-RCNN
-  - [ ] Cascade-RCNNN
+  - [ ] Cascade-RCNN
   - [ ] RetinaNet
   
 - TTA

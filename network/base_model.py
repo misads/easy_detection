@@ -57,21 +57,28 @@ class BaseModel(torch.nn.Module):
                     gt_labels.append(np.zeros([len(gt_bbox[b])], dtype=np.int32))
                     gt_difficults.append(np.array([False] * len(gt_bbox[b])))
 
-            AP = eval_detection_voc(
-                pred_bboxes,
-                pred_labels,
-                pred_scores,
-                gt_bboxes,
-                gt_labels,
-                gt_difficults=None,
-                iou_thresh=0.5,
-                use_07_metric=False)
+            result = []
+            for iou_thresh in [0.5, 0.55, 0.6, 0.65, 0.7, 0.75]:
+                AP = eval_detection_voc(
+                    pred_bboxes,
+                    pred_labels,
+                    pred_scores,
+                    gt_bboxes,
+                    gt_labels,
+                    gt_difficults=None,
+                    iou_thresh=iou_thresh,
+                    use_07_metric=False)
 
-            APs = AP['ap']
-            mAP = AP['map']
+                APs = AP['ap']
+                mAP = AP['map']
+                result.append(mAP)
 
-            logger.info(f'Eva({data_name}) epoch {epoch}, APs: {str(APs[:opt.num_classes])}, mAP: {mAP}')
-            write_loss(writer, f'val/{data_name}', 'mAP', mAP, epoch)
+                logger.info(f'Eva({data_name}) epoch {epoch}, IoU: {iou_thresh}, APs: {str(APs[:opt.num_classes])}, mAP: {mAP}')
+
+                write_loss(writer, f'val/{data_name}', 'mAP', mAP, epoch)
+
+            logger.info(
+                f'Eva({data_name}) epoch {epoch}, mean of (AP50-AP75): {sum(result)/len(result)}')
 
     # helper saving function that can be used by subclasses
     @deprecated('model.save_network() is deprecated now, use model.save() instead')
