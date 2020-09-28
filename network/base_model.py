@@ -4,12 +4,16 @@ from abc import abstractmethod
 import torch
 import warnings
 import sys
+from yolo3.eval_map import eval_detection_voc
 
 from misc_utils import color_print, progress_bar
 from options import opt
+import misc_utils as utils
+import numpy as np
 from utils import deprecated
 from mscv.image import tensor2im
 from mscv.aug_test import tta_inference, tta_inference_x8
+from mscv.summary import write_loss
 
 
 class BaseModel(torch.nn.Module):
@@ -54,6 +58,47 @@ class BaseModel(torch.nn.Module):
     @abstractmethod
     def update(self, *args, **kwargs):
         pass
+
+    def eval_mAP(self, dataloader, epoch, writer, logger, data_name='val'):
+        # eval_yolo(self.detector, dataloader, epoch, writer, logger, dataname=data_name)
+        pred_bboxes = []
+        pred_labels = []
+        pred_scores = []
+        gt_bboxes = []
+        gt_labels = []
+        gt_difficults = []
+
+        with torch.no_grad():
+            for i, sample in enumerate(dataloader):
+                utils.progress_bar(i, len(dataloader), 'Eva... ')
+                image = sample['image'].to(opt.device)
+                gt_bbox = sample['bboxes']
+
+                batch_bboxes, batch_labels, batch_scores = self.forward(image)
+                pred_bboxes.extend(batch_bboxes)
+                pred_labels.extend(batch_labels)
+                pred_scores.extend(batch_scores)
+
+                for b in range(len(gt_bbox)):
+                    gt_bboxes.append(gt_bbox[b].detach().cpu().numpy())
+                    gt_labels.append(np.zeros([len(gt_bbox[b])], dtype=np.int32))
+                    gt_difficults.append(np.array([False] * len(gt_bbox[b])))
+
+            AP = eval_detection_voc(
+                pred_bboxes,
+                pred_labels,
+                pred_scores,
+                gt_bboxes,
+                gt_labels,
+                gt_difficults=None,
+                iou_thresh=0.5,
+                use_07_metric=False)
+
+            APs = AP['ap']
+            mAP = AP['map']
+
+            logger.info(f'Eva({data_name}) epoch {epoch}, APs: {str(APs[:opt.num_classes])}, mAP: {mAP}')
+            write_loss(writer, f'val/{data_name}', 'mAP', mAP, epoch)
 
     # helper saving function that can be used by subclasses
     @deprecated('model.save_network() is deprecated now, use model.save() instead')

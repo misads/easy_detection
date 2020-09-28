@@ -83,7 +83,7 @@ class VOCTrainValDataset(dataset.Dataset):
                     y1 = int(bbox.find('ymin').text)
                     x2 = int(bbox.find('xmax').text)
                     y2 = int(bbox.find('ymax').text)
-                    bboxes.append([x1,y1,x2,y2])
+                    bboxes.append([x1, y1, x2, y2])
                     labels.append(class_id)
 
                 self.bboxes.append(bboxes)

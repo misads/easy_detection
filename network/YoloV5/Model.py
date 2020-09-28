@@ -96,88 +96,43 @@ class Model(BaseModel):
 
         return {}
 
-    def forward(self, sample):
-        raise NotImplementedError
+    def forward(self, image):  # test
+        nms_thresh = 0.45  # 0.3~0.5
+        conf_thresh = 0.4
+
+        batch_bboxes = []
+        batch_labels = []
+        batch_scores = []
+
+        pred = self.detector(image)
+        bboxes = pred[0]
+        """xywh转x1y1x2y2"""
+        bboxes[:, :, 0] = bboxes[:, :, 0] - bboxes[:, :, 2] / 2
+        bboxes[:, :, 1] = bboxes[:, :, 1] - bboxes[:, :, 3] / 2
+        bboxes[:, :, 2] += bboxes[:, :, 0]
+        bboxes[:, :, 3] += bboxes[:, :, 1]
+
+        b = image.shape[0]  # batch有几张图
+        for bi in range(b):
+            bbox = bboxes[bi]
+            conf_bbox = bbox[bbox[:, 4] > conf_thresh]
+            xyxy_bbox = conf_bbox[:, :4]  # x1y1x2y2坐标
+            scores = conf_bbox[:, 5]
+            nms_indices = nms(xyxy_bbox, scores, nms_thresh)
+
+            xyxy_bbox = xyxy_bbox[nms_indices]
+            scores = scores[nms_indices]
+            batch_bboxes.append(xyxy_bbox.detach().cpu().numpy())
+            batch_labels.append(np.zeros([xyxy_bbox.shape[0]], dtype=np.int32))
+            batch_scores.append(scores.detach().cpu().numpy())
+
+        return batch_bboxes, batch_labels, batch_scores
 
     def inference(self, x, progress_idx=None):
         raise NotImplementedError
 
     def evaluate(self, dataloader, epoch, writer, logger, data_name='val'):
-        nms_thresh = 0.45  # 0.3~0.5
-        conf_thresh = 0.4
-        # import ipdb; ipdb.set_trace()
-        round_int = lambda x: int(round(x.item())) if isinstance(x, torch.Tensor) else int(round(x))
-
-
-        pred_bboxes = []
-        pred_labels = []
-        pred_scores = []
-        gt_bboxes = []
-        gt_labels = []
-        gt_difficults = []
-
-        with torch.no_grad():
-            for i, sample in enumerate(dataloader):
-                utils.progress_bar(i, len(dataloader), 'Eva... ')
-                
-                image = sample['image'].to(opt.device)  # target domain
-                gt_bbox = sample['bboxes']
-                gt_label = sample['labels']
-
-                pred = self.detector(image)
-                bboxes = pred[0]
-                """xywh转x1y1x2y2"""
-                bboxes[:, :, 0] = bboxes[:, :, 0] - bboxes[:, :, 2] / 2
-                bboxes[:, :, 1] = bboxes[:, :, 1] - bboxes[:, :, 3] / 2
-                bboxes[:, :, 2] += bboxes[:, :, 0]
-                bboxes[:, :, 3] += bboxes[:, :, 1]
-
-                # pred = non_max_suppression(pred[0], 0.4, opt.iou_thres, merge=True, classes=None, agnostic=False)
-
-                img = image[0].detach().cpu().numpy().transpose([1, 2, 0]).copy()
-                
-                b = image.shape[0]  # batch有几张图
-                for bi in range(b):
-                    bbox = bboxes[bi]
-                    conf_bbox = bbox[bbox[:, 4] > conf_thresh]
-                    xyxy_bbox = conf_bbox[:, :4]  # x1y1x2y2坐标
-                    scores = conf_bbox[:, 5]
-                    nms_indices = nms(xyxy_bbox, scores, nms_thresh)
-
-                    xyxy_bbox = xyxy_bbox[nms_indices]
-                    scores = scores[nms_indices]
-                    pred_bboxes.append(xyxy_bbox.detach().cpu().numpy())
-                    pred_labels.append(np.zeros([xyxy_bbox.shape[0]], dtype=np.int32))
-                    pred_scores.append(scores.detach().cpu().numpy())
-                    gt_bboxes.append(gt_bbox[bi].detach().cpu().numpy())
-                    gt_labels.append(np.zeros([len(gt_bbox[bi])], dtype=np.int32))
-                    gt_difficults.append(np.array([False] * len(gt_bbox[bi])))
-
-                # for x1, y1, x2, y2, *_ in nms_bbox:
-                #     x1 = round_int(x1)
-                #     x2 = round_int(x2)
-                #     y1 = round_int(y1)
-                #     y2 = round_int(y2)
-                #     cv2.rectangle(img, (x1, y1), (x2, y2), (0, 1., 0), 2)
-
-                # write_image(writer, 'val', f'pred{i}', img, epoch, 'HWC')
-
-        AP = eval_detection_voc(
-            pred_bboxes,
-            pred_labels,
-            pred_scores,
-            gt_bboxes,
-            gt_labels,
-            gt_difficults=None,
-            iou_thresh=0.5,
-            use_07_metric=False)
-
-        APs = AP['ap']
-        mAP = AP['map']
-
-        logger.info(f'Eva({data_name}) epoch {epoch}, APs: {str(APs[:opt.num_classes])}, mAP: {mAP}')
-        write_loss(writer, f'val/{data_name}', 'mAP', mAP, epoch)
-
+        return self.eval_mAP(dataloader, epoch, writer, logger, data_name)
 
     def load(self, ckpt_path):
         load_dict = {

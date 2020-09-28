@@ -1,0 +1,203 @@
+import pdb
+import sys
+import numpy as np
+import torch
+import cv2
+import os
+
+from .ssd import SSDDetector
+from .transform.target_transform import SSDTargetTransform
+from .anchors.prior_box import PriorBox
+
+from options import opt
+
+from optimizer import get_optimizer
+from scheduler import get_scheduler
+
+from network.base_model import BaseModel
+from mscv import ExponentialMovingAverage, print_network, load_checkpoint, save_checkpoint
+from mscv.summary import write_image
+# from mscv.cnn import normal_init
+from loss import get_default_loss
+
+import misc_utils as utils
+
+
+class Model(BaseModel):
+    def __init__(self, opt):
+        super(Model, self).__init__()
+        self.opt = opt
+        self.detector = SSDDetector(opt).to(device=opt.device)
+        #####################
+        #    Init weights
+        #####################
+        # normal_init(self.detector)
+
+        print_network(self.detector)
+
+        self.optimizer = get_optimizer(opt, self.detector)
+        self.scheduler = get_scheduler(opt, self.optimizer)
+
+        self.avg_meters = ExponentialMovingAverage(0.95)
+        self.save_dir = os.path.join(opt.checkpoint_dir, opt.tag)
+
+        CENTER_VARIANCE = 0.1
+        SIZE_VARIANCE = 0.2
+        THRESHOLD = 0.5
+
+        self.target_transform = SSDTargetTransform(PriorBox(opt)(),
+                                   CENTER_VARIANCE,
+                                   SIZE_VARIANCE,
+                                   THRESHOLD)
+
+    def update(self, sample, *arg):
+        """
+        Args:
+            sample: {'input': input_image [b, 3, height, width],
+                   'bboxes': bboxes [b, None, 4],
+                   'labels': labels [b, None],
+                   'path': paths}
+        """
+        loss_dict = self.forward(sample)
+
+        loss = sum(loss for loss in loss_dict.values())
+        self.avg_meters.update({'loss': loss.item()})
+
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+
+        return {}
+
+    def forward(self, sample):
+        if self.training:
+            return self.forward_train(sample)
+        else:
+            return self.forward_test(sample)
+
+    def forward_train(self, sample):
+        labels = sample['labels']
+        for label in labels:
+            label += 1.  # effdet的label从1开始
+
+        image, bboxes, labels = sample['image'], sample['bboxes'], sample['labels']
+
+        for box in bboxes:
+            box[:, 0::2] /= 512  # width
+            box[:, 1::2] /= 512  # height
+
+        for b in range(len(labels)):
+            bboxes[b], labels[b] = self.target_transform(bboxes[b], labels[b])
+
+        image = image.to(opt.device)
+        bboxes = torch.stack(bboxes).to(opt.device)
+        labels = torch.stack(labels).long().to(opt.device)
+
+        targets = {'boxes': bboxes, 'labels': labels}
+
+        loss_dict = self.detector(image, targets=targets)
+
+        return loss_dict
+
+    def forward_test(self, image):
+        conf_thresh = 0.5
+
+        batch_bboxes = []
+        batch_labels = []
+        batch_scores = []
+
+        outputs = self.detector(image)
+
+        for b in range(len(outputs)):  #
+            output = outputs[b]
+            boxes = output['boxes']
+            labels = output['labels']
+            scores = output['scores']
+            boxes = boxes[scores > conf_thresh]
+            labels = labels[scores > conf_thresh]
+            labels = labels - 1
+            scores = scores[scores > conf_thresh]
+
+            batch_bboxes.append(boxes.detach().cpu().numpy())
+            batch_labels.append(labels.detach().cpu().numpy())
+            batch_scores.append(scores.detach().cpu().numpy())
+
+        return batch_bboxes, batch_labels, batch_scores
+
+    def inference(self, x, progress_idx=None):
+        pass
+
+    def evaluate(self, dataloader, epoch, writer, logger, data_name='val'):
+        return self.eval_mAP(dataloader, epoch, writer, logger, data_name)
+
+        round_int = lambda x: int(round(x.item())) if isinstance(x, torch.Tensor) else int(round(x))
+
+        for i, sample in enumerate(dataloader):
+            if i > 30:
+                break
+
+            utils.progress_bar(i, len(dataloader), 'Eva... ')
+
+            with torch.no_grad():
+                labels = sample['labels']
+                for label in labels:
+                    label += 1.  # effdet的label从1开始
+
+                image, bboxes, gt_labels = sample['image'], sample['bboxes'], sample['labels']
+
+                image = image.to(opt.device)
+                outputs = self.detector(image)
+
+                for b in range(1):  # len(outputs)
+                    img = image[b].detach().cpu().numpy().transpose([1, 2, 0]).copy()
+
+                    output = outputs[b]
+                    boxes = output['boxes']
+                    labels = output['labels']
+                    scores = output['scores']
+                    boxes = boxes[scores > conf_thresh]
+                    labels = labels[scores > conf_thresh]
+
+                    for x1, y1, x2, y2 in boxes:
+                        x1 = round_int(x1)
+                        y1 = round_int(y1)
+                        x2 = round_int(x2)
+                        y2 = round_int(y2)
+                        cv2.rectangle(img, (x1, y1), (x2, y2), (0, 1., 0), 2)
+
+                    write_image(writer, 'val', f'output{i}', img, epoch, 'HWC')
+
+    def load(self, ckpt_path):
+        load_dict = {
+            'detector': self.detector,
+        }
+
+        if opt.resume:
+            load_dict.update({
+                'optimizer': self.optimizer,
+                'scheduler': self.scheduler,
+            })
+            utils.color_print('Load checkpoint from %s, resume training.' % ckpt_path, 3)
+        else:
+            utils.color_print('Load checkpoint from %s.' % ckpt_path, 3)
+
+        ckpt_info = load_checkpoint(load_dict, ckpt_path, map_location=opt.device)
+        epoch = ckpt_info.get('epoch', 0)
+
+        return epoch
+
+    def save(self, which_epoch):
+        save_filename = f'{which_epoch}_{opt.model}.pt'
+        save_path = os.path.join(self.save_dir, save_filename)
+        save_dict = {
+            'detector': self.detector,
+            'optimizer': self.optimizer,
+            'scheduler': self.scheduler,
+            'epoch': which_epoch
+        }
+
+        save_checkpoint(save_dict, save_path)
+        utils.color_print(f'Save checkpoint "{save_path}".', 3)
+
+
+
