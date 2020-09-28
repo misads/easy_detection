@@ -91,74 +91,42 @@ class Model(BaseModel):
 
         return {}
 
-    def forward(self, sample):
-        image = sample['image']
-        image = image.to(opt.device)
+    def forward(self, image):  # test
+        conf_thresh = 0.5
+
         image = list(im for im in image)
-        outputs = self.detector(image)
 
-        img = image[0].detach().cpu().numpy().transpose([1, 2, 0]).copy()
+        batch_bboxes = []
+        batch_labels = []
+        batch_scores = []
 
-        boxes = outputs[0]['boxes'].data.cpu().numpy()
-        scores = outputs[0]['scores'].data.cpu().numpy()
-        boxes = boxes[scores >= 0.5]
+        with torch.no_grad():
+            outputs = self.detector(image)
 
-        for x1, y1, x2, y2 in boxes:
-            x1 = int(round(x1))
-            y1 = int(round(y1))
-            x2 = int(round(x2))
-            y2 = int(round(y2))
-            cv2.rectangle(img, (x1, y1), (x2, y2), (0, 1., 0), 2)
+        for b in range(len(outputs)):  #
+            output = outputs[b]
+            boxes = output['boxes']
+            labels = output['labels']
+            scores = output['scores']
+            boxes = boxes[scores > conf_thresh]
+            labels = labels[scores > conf_thresh]
+            labels = labels - 1
+            scores = scores[scores > conf_thresh]
 
-        return img
+            batch_bboxes.append(boxes.detach().cpu().numpy())
+            batch_labels.append(labels.detach().cpu().numpy())
+            batch_scores.append(scores.detach().cpu().numpy())
+
+        return batch_bboxes, batch_labels, batch_scores
 
     def inference(self, x, progress_idx=None):
         raise NotImplementedError
 
     def evaluate(self, dataloader, epoch, writer, logger, data_name='val'):
-
-        for i, sample in enumerate(dataloader):
-            utils.progress_bar(i, len(dataloader), 'Eva... ')
-
-            with torch.no_grad():
-                img = self.forward(sample)
-
-            if i < 30:
-                write_image(writer, 'val', f'preview/{i}', img, epoch, 'HWC')
-
-        # logger.info(f'Eva({data_name}) epoch {epoch}, total loss: {total_loss}.')
+        return self.eval_mAP(dataloader, epoch, writer, logger, data_name)
 
     def load(self, ckpt_path):
-        load_dict = {
-            'detector': self.detector,
-        }
-
-        if opt.resume:
-            load_dict.update({
-                'optimizer': self.optimizer,
-                'scheduler': self.scheduler,
-            })
-            utils.color_print('Load checkpoint from %s, resume training.' % ckpt_path, 3)
-        else:
-            utils.color_print('Load checkpoint from %s.' % ckpt_path, 3)
-
-        ckpt_info = load_checkpoint(load_dict, ckpt_path, map_location=opt.device)
-        epoch = ckpt_info.get('epoch', 0)
-
-        return epoch
+        return super(Model, self).load(ckpt_path)
 
     def save(self, which_epoch):
-        save_filename = f'{which_epoch}_{opt.model}.pt'
-        save_path = os.path.join(self.save_dir, save_filename)
-        save_dict = {
-            'detector': self.detector,
-            'optimizer': self.optimizer,
-            'scheduler': self.scheduler,
-            'epoch': which_epoch
-        }
-
-        save_checkpoint(save_dict, save_path)
-        utils.color_print(f'Save checkpoint "{save_path}".', 3)
-
-
-
+        super(Model, self).save(which_epoch)

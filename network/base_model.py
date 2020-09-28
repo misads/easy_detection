@@ -11,6 +11,7 @@ from options import opt
 import misc_utils as utils
 import numpy as np
 from utils import deprecated
+from mscv import load_checkpoint, save_checkpoint
 from mscv.image import tensor2im
 from mscv.aug_test import tta_inference, tta_inference_x8
 from mscv.summary import write_loss
@@ -25,35 +26,7 @@ class BaseModel(torch.nn.Module):
         pass
 
     def inference(self, x, progress_idx=None):
-        # x: Tensor([1, C, H, W])
-        # recovered: 直接出图，可以用Image.save保存
-        with torch.no_grad():
-            img_var = x.to(device=opt.device)
-
-            if opt.tta:
-                output = tta_inference(self.forward, img_var, 10, 10, 256, 256,
-                                       progress_idx=progress_idx).unsqueeze(0)
-                recovered = tensor2im(output)
-            elif opt.tta_x8:
-                output = tta_inference_x8(self.forward, img_var, 10, 10, 256, 256,
-                                          progress_idx=progress_idx).unsqueeze(0)
-                recovered = tensor2im(output)
-            else:
-                recovered = self.forward(img_var)
-                if isinstance(recovered, tuple) or isinstance(recovered, list):
-                    recovered = recovered[0]
-
-                recovered = tensor2im(recovered)
-
-        return recovered
-
-    @abstractmethod
-    def load(self, ckpt_path):
-        pass
-
-    @abstractmethod
-    def save(self, which_epoch):
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def update(self, *args, **kwargs):
@@ -148,3 +121,34 @@ class BaseModel(torch.nn.Module):
                     print(sorted(not_initialized))
                     network.load_state_dict(model_dict)
 
+    def load(self, ckpt_path):
+        load_dict = {
+            'detector': self.detector,
+        }
+
+        if opt.resume:
+            load_dict.update({
+                'optimizer': self.optimizer,
+                'scheduler': self.scheduler,
+            })
+            utils.color_print('Load checkpoint from %s, resume training.' % ckpt_path, 3)
+        else:
+            utils.color_print('Load checkpoint from %s.' % ckpt_path, 3)
+
+        ckpt_info = load_checkpoint(load_dict, ckpt_path, map_location=opt.device)
+        epoch = ckpt_info.get('epoch', 0)
+
+        return epoch
+
+    def save(self, which_epoch):
+        save_filename = f'{which_epoch}_{opt.model}.pt'
+        save_path = os.path.join(self.save_dir, save_filename)
+        save_dict = {
+            'detector': self.detector,
+            'optimizer': self.optimizer,
+            'scheduler': self.scheduler,
+            'epoch': which_epoch
+        }
+
+        save_checkpoint(save_dict, save_path)
+        utils.color_print(f'Save checkpoint "{save_path}".', 3)

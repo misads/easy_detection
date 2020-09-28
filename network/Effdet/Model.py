@@ -33,6 +33,7 @@ def get_net():
     net.class_net = HeadNet(config, num_outputs=config.num_classes, norm_kwargs=dict(eps=.001, momentum=.01))
     return DetBenchTrain(net, config)
 
+
 class Model(BaseModel):
     def __init__(self, opt):
         super(Model, self).__init__()
@@ -88,7 +89,7 @@ class Model(BaseModel):
         return loss
 
     def inference(self, x, progress_idx=None):
-        return super(Model, self).inference(x, progress_idx)
+        raise NotImplementedError
 
     def evaluate(self, dataloader, epoch, writer, logger, data_name='val'):
         total_loss = 0.
@@ -103,36 +104,8 @@ class Model(BaseModel):
         logger.info(f'Eva({data_name}) epoch {epoch}, total loss: {total_loss}.')
 
     def load(self, ckpt_path):
-        load_dict = {
-            'detector': self.detector.model,
-        }
-
-        if opt.resume:
-            load_dict.update({
-                'optimizer': self.optimizer,
-                'scheduler': self.scheduler,
-            })
-            utils.color_print('Load checkpoint from %s, resume training.' % ckpt_path, 3)
-        else:
-            utils.color_print('Load checkpoint from %s.' % ckpt_path, 3)
-
-        ckpt_info = load_checkpoint(load_dict, ckpt_path, map_location=opt.device)
-        epoch = ckpt_info.get('epoch', 0)
-
-        return epoch
+        return super(Model, self).load(ckpt_path)
 
     def save(self, which_epoch):
-        save_filename = f'{which_epoch}_{opt.model}.pt'
-        save_path = os.path.join(self.save_dir, save_filename)
-        save_dict = {
-            'detector': self.detector.model,
-            'optimizer': self.optimizer,
-            'scheduler': self.scheduler,
-            'epoch': which_epoch
-        }
-
-        save_checkpoint(save_dict, save_path)
-        utils.color_print(f'Save checkpoint "{save_path}".', 3)
-
-
+        super(Model, self).save(which_epoch)
 

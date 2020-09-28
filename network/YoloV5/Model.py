@@ -135,36 +135,9 @@ class Model(BaseModel):
         return self.eval_mAP(dataloader, epoch, writer, logger, data_name)
 
     def load(self, ckpt_path):
-        load_dict = {
-            'detector': self.detector,
-        }
-
-        if opt.resume:
-            load_dict.update({
-                'optimizer': self.optimizer,
-                'scheduler': self.scheduler,
-            })
-            utils.color_print('Load checkpoint from %s, resume training.' % ckpt_path, 3)
-        else:
-            utils.color_print('Load checkpoint from %s.' % ckpt_path, 3)
-
-        ckpt_info = load_checkpoint(load_dict, ckpt_path, map_location=opt.device)
-        epoch = ckpt_info.get('epoch', 0)
-
-        return epoch
+        return super(Model, self).load(ckpt_path)
 
     def save(self, which_epoch):
-        save_filename = f'{which_epoch}_{opt.model}.pt'
-        save_path = os.path.join(self.save_dir, save_filename)
-        save_dict = {
-            'detector': self.detector,
-            'optimizer': self.optimizer,
-            'scheduler': self.scheduler,
-            'epoch': which_epoch
-        }
-
-        save_checkpoint(save_dict, save_path)
-        utils.color_print(f'Save checkpoint "{save_path}".', 3)
-
+        super(Model, self).save(which_epoch)
 
 
