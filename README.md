@@ -19,7 +19,7 @@
   - [x] SSD300、SSD512(目前只支持vgg backbone,且不支持预训练模型)
   - [x] Faster-RCNN
   - [ ] Cascade-RCNN
-  - [ ] RetinaNet
+  - [x] RetinaNet
   
 - TTA
   - [ ] 多尺度融合
@@ -37,6 +37,9 @@
   - [x] 数据集bbox预览
   - [x] dataloader数据增强预览
   - [ ] 预测结果预览
+
+- 辅助工具
+  - [ ] 手工标注工具
 
 ## Prerequisites
 

@@ -117,7 +117,7 @@ class Model(BaseModel):
             bbox = bboxes[bi]
             conf_bbox = bbox[bbox[:, 4] > conf_thresh]
             xyxy_bbox = conf_bbox[:, :4]  # x1y1x2y2坐标
-            scores = conf_bbox[:, 5]
+            scores = conf_bbox[:, 4]
             nms_indices = nms(xyxy_bbox, scores, nms_thresh)
 
             xyxy_bbox = xyxy_bbox[nms_indices]

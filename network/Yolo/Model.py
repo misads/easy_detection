@@ -30,6 +30,7 @@ from mscv.summary import write_loss
 from loss import get_default_loss
 
 import misc_utils as utils
+import ipdb
 
 conf_thresh = 0.005
 nms_thresh = 0.45
@@ -60,6 +61,10 @@ class Model(BaseModel):
         # normal_init(self.detector)
 
         print_network(self.detector)
+
+        if opt.weights:
+            utils.color_print('Load Yolo weights from %s.' % opt.weights, 3)
+            self.detector.load_weights(opt.weights)
 
         self.optimizer = get_optimizer(opt, self.detector)
         self.scheduler = get_scheduler(opt, self.optimizer)
@@ -126,10 +131,12 @@ class Model(BaseModel):
 
         for b in range(len(all_boxes)):
             boxes = all_boxes[b]
-            width = 512
+            width = 1024
             height = 512
             correct_yolo_boxes(boxes, width, height, width, height)
-            boxes = np.array(nms(boxes, nms_thresh))
+            boxes = nms(boxes, nms_thresh)
+
+            boxes = np.array([box[:7] for box in boxes])
 
             """cxcywh转xyxy"""
             boxes[:, 0] -= boxes[:, 2] / 2
@@ -144,8 +151,13 @@ class Model(BaseModel):
 
             score = boxes[:, 4] * boxes[:, 5]
 
+
+            conf_indics = score > 0.5
+            score = score[conf_indics]
+            boxes = boxes[conf_indics]
+
             batch_bboxes.append(boxes[:, :4])
-            batch_labels.append(boxes[:, 6])
+            batch_labels.append(boxes[:, 6].astype(np.int32))
             batch_scores.append(score)
 
         return batch_bboxes, batch_labels, batch_scores

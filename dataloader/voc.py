@@ -15,6 +15,7 @@ import random
 import numpy as np
 import cv2
 
+from collections import defaultdict
 
 class VOCTrainValDataset(dataset.Dataset):
     """VOC Dataset for training.
@@ -59,9 +60,13 @@ class VOCTrainValDataset(dataset.Dataset):
         self.bboxes = []
         self.labels = [] 
 
+        counter = defaultdict(int)
+        tot_bbox = 0
+
         with open(im_list, 'r') as f:
             lines = f.readlines()
-            for line in lines:
+            for i, line in enumerate(lines):
+                utils.progress_bar(i, len(lines), 'Load Anno...')
                 image_id = line.rstrip('\n')
                 abspath = os.path.abspath(os.path.join(image_root, f'{image_id}.{format}'))
                 self.image_paths.append(abspath)
@@ -79,16 +84,27 @@ class VOCTrainValDataset(dataset.Dataset):
                         raise Exception(f'"{class_name}" not in class names({class_names}).')
                     class_id = class_names.index(class_name)
                     bbox = obj.find('bndbox')
-                    x1 = int(bbox.find('xmin').text)
-                    y1 = int(bbox.find('ymin').text)
+                    x1 = max(0, int(bbox.find('xmin').text))
+                    y1 = max(0, int(bbox.find('ymin').text))
                     x2 = int(bbox.find('xmax').text)
                     y2 = int(bbox.find('ymax').text)
+
+                    if x2 - x1 <= 8 or y2 - y1 <= 4:  # 面积很小的标注
+                        continue
+
+                    counter[class_name] += 1
+                    tot_bbox += 1
                     bboxes.append([x1, y1, x2, y2])
                     labels.append(class_id)
 
                 self.bboxes.append(bboxes)
                 self.labels.append(labels)
 
+        for name in class_names:
+            utils.color_print(f'{name}: {counter[name]} ({counter[name]/tot_bbox*100:.2f}%)', 5)
+        
+        utils.color_print(f'Total bboxes: {tot_bbox}', 4)
+        
         self.format = format
 
         assert transforms is not None, '"transforms" is required'
@@ -123,12 +139,16 @@ class VOCTrainValDataset(dataset.Dataset):
 
         """
         image, bboxes, labels, image_path = self.load_image_and_boxes(index)
+
+        if len(bboxes) == 0:
+            ipdb.set_trace()
+
         target = {}
         # target['boxes'] = torch.stack(tuple(map(torch.tensor, zip(*sample['bboxes'])))).permute(1, 0)
 
         yolo_boxes = np.zeros([50, 5])
 
-        for i in range(10):
+        for i in range(20):
             sample = self.transforms(**{
                 'image': image,
                 'bboxes': bboxes,
@@ -147,7 +167,7 @@ class VOCTrainValDataset(dataset.Dataset):
                     x1, y1, x2, y2 = bbox
                     w, h = x2 - x1, y2 - y1
                     c_x, c_y = x1 + w / 2, y1 + h / 2
-                    w, c_x = w / 512, c_x / 512
+                    w, c_x = w / 1024, c_x / 1024
                     h, c_y = h / 512, c_y / 512
 
                     yolo_boxes[i, :] = labels[i], c_x, c_y, w, h  # 中心点坐标、宽、高

@@ -43,9 +43,10 @@ def parse_args():
     # scale
     parser.add_argument('--scale', type=int, default=512, help='scale images to this size')
     parser.add_argument('--crop', type=int, default=None, help='then crop to this size')
+    parser.add_argument('--workers', '-w', type=int, default=4, help='num of workers')
 
     # for datasets
-    parser.add_argument('--dataset', choices=['VOC', 'COCO'], default='VOC', help='training dataset')
+    parser.add_argument('--dataset', choices=['voc', 'cityscapes', 'apollo', 'wheat', 'widerface'], default='voc', help='training dataset')
     parser.add_argument('--val_set', type=str, default=None)
     parser.add_argument('--test_set', type=str, default=None)
 
@@ -55,6 +56,7 @@ def parse_args():
     # training options
     parser.add_argument('--debug', action='store_true', help='debug mode')
     parser.add_argument('--load', type=str, default=None, help='load checkpoint')
+    parser.add_argument('--weights', type=str, default=None, help='load checkpoint for Detector')
     
     parser.add_argument('--resume', action='store_true', help='resume training, only used when --load')
     parser.add_argument('--reset', action='store_true', help='reset training, only used when --load')

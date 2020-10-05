@@ -27,15 +27,16 @@ DATA_FOTMAT = 'VOC'  # 数据集格式
 
 if DATA_FOTMAT == 'VOC':
 
-    voc_root = 'datasets/wheat_detection'
+    voc_root = 'datasets/cityscapes'
     train_split = 'train.txt'
     val_split = 'val.txt' 
-    class_names = ['wheat']
+    class_names = ['bus', 'bicycle', 'car', 'motorcycle', 'person', 'rider', 'train', 'truck']
     opt.num_classes = len(class_names)
 
-    train_transform = train_transform = A.Compose(
+    train_transform = A.Compose(
         [
-            A.RandomSizedCrop(min_max_height=(800, 800), height=1024, width=1024, p=0.5),
+            # A.Resize(height=1024, width=1024, p=1),  # 896
+            A.RandomSizedCrop(min_max_height=(600, 800), height=1024, width=2048, w2h_ratio=2., p=0.5),
             A.OneOf([
                 A.HueSaturationValue(hue_shift_limit=0.2, sat_shift_limit= 0.2, 
                                         val_shift_limit=0.2, p=0.9),
@@ -44,9 +45,9 @@ if DATA_FOTMAT == 'VOC':
             ],p=0.9),
             A.ToGray(p=0.01),
             A.HorizontalFlip(p=0.5),
-            A.VerticalFlip(p=0.5),
-            A.Resize(height=512, width=512, p=1),
-            A.Cutout(num_holes=5, max_h_size=64, max_w_size=64, fill_value=0, p=0.5),
+            # A.VerticalFlip(p=0.5),
+            A.Resize(height=512, width=1024, p=1),
+            # A.Cutout(num_holes=5, max_h_size=64, max_w_size=64, fill_value=0, p=0.5),
             ToTensorV2(p=1.0),
         ], 
         p=1.0, 
@@ -62,6 +63,7 @@ if DATA_FOTMAT == 'VOC':
     voc_train_dataset = VOCTrainValDataset(voc_root, 
             class_names,
             split=train_split,
+            format='png',
             transforms=train_transform)
 
     def collate_fn(batch):
@@ -81,12 +83,12 @@ if DATA_FOTMAT == 'VOC':
         shuffle=True,
         collate_fn=collate_fn,
         batch_size=opt.batch_size,
-        num_workers=4,
+        num_workers=opt.workers,
         drop_last=True)
 
     val_transform = A.Compose(
         [
-            A.Resize(height=512, width=512, p=1.0),
+            A.Resize(height=512, width=1024, p=1.0),
             ToTensorV2(p=1.0),
         ], 
         p=1.0, 
@@ -101,13 +103,14 @@ if DATA_FOTMAT == 'VOC':
     voc_val_dataset = VOCTrainValDataset(voc_root,
             class_names,
             split=val_split,
+            format='png',
             transforms=val_transform)
 
     voc_val_dataloader = torch.utils.data.DataLoader(voc_val_dataset,
         shuffle=False,
         collate_fn=collate_fn,
         batch_size=opt.batch_size,
-        num_workers=0,
+        num_workers=opt.workers,
         drop_last=False)
 
     train_dataloader = voc_train_dataloader

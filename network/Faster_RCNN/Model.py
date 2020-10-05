@@ -24,7 +24,7 @@ from mscv.summary import write_image
 from loss import get_default_loss
 
 import misc_utils as utils
-
+import ipdb
 
 class Model(BaseModel):
     def __init__(self, opt):
