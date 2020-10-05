@@ -2,6 +2,8 @@
 
 一个目标检测的Baseline(不需要cuda编译)，Kaggle小麦检测12/2245。
 
+![preview](http://www.xyu.ink/wp-content/uploads/2020/06/cityscapes.png)
+
 ## Todo List
 
 - 数据格式
@@ -12,6 +14,7 @@
 - 网络模型
   - [x] EfficientDet(目前不支持训练过程中验证)
   - [x] YoloV2、V3
+  - [ ] YoloV4
   - [x] YoloV5
   - [x] SSD300、SSD512(目前只支持vgg backbone,且不支持预训练模型)
   - [x] Faster-RCNN
@@ -22,12 +25,18 @@
   - [ ] 多尺度融合
   - [x] nms
   - [ ] Weighted Box Fusion
+  - [ ] 伪标签
 
 - Scheduler
   - [ ] 验证集指标不下降时学习率衰减
 
 - Metrics
   - [x] mAP
+
+- 可视化
+  - [x] 数据集bbox预览
+  - [x] dataloader数据增强预览
+  - [ ] 预测结果预览
 
 ## Prerequisites
 
