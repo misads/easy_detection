@@ -56,6 +56,9 @@ class BaseModel(torch.nn.Module):
                     gt_bboxes.append(gt_bbox[b].detach().cpu().numpy())
                     gt_labels.append(np.zeros([len(gt_bbox[b])], dtype=np.int32))
                     gt_difficults.append(np.array([False] * len(gt_bbox[b])))
+                # import  pdb
+                # pdb.set_trace()
+
 
             result = []
             for iou_thresh in [0.5, 0.55, 0.6, 0.65, 0.7, 0.75]:
