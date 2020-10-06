@@ -80,17 +80,30 @@ See ALL Running Commands:
 
 ## 如何添加新的模型：
 
+
+1、复制`network`目录下的`Default`文件夹，改成另外一个名字(比如`MyNet`)。
+
+2、在`network/__init__.py`中`import`你模型的`Model`类并且在`models = {}`中添加它。
+```python
+from MyNet.Model import Model as MyNet
+models = {
+    'default': Default,
+    'MyNet': MyNet,
+}
 ```
-如何添加新的模型：
 
-① 复制network目录下的Default文件夹，改成另外一个名字(比如MyNet)。
+3、尝试 `python train.py --model MyNet` 看能否成功运行
 
-② 在network/__init__.py中import你的Model并且在models = {}中添加它。
-    from MyNet.Model import Model as MyNet
-    models = {
-        'default': Default,
-        'MyNet': MyNet,
-    }
 
-③ 尝试 python train.py --model MyNet 看能否成功运行
+## 如何训练自己的数据集
+
+1、将自己的数据集制作成VOC格式；
+
+2、在datasets目录一下建立数据集根目录的软链接：
+```bash
+cd datasets
+ln -s /home/<abspath> mydataset
 ```
+
+3、修改dataloader目录下的`dataloaders.py`，需要修改的有数据集目录`voc_root`，类别的列表`class_names`以及训练和验证时的`transforms`。
+
