@@ -1,6 +1,7 @@
 import os
 from abc import abstractmethod
 
+import cv2
 import torch
 import warnings
 import sys
@@ -15,7 +16,8 @@ from utils import deprecated
 from mscv import load_checkpoint, save_checkpoint
 from mscv.image import tensor2im
 from mscv.aug_test import tta_inference, tta_inference_x8
-from mscv.summary import write_loss
+from mscv.summary import write_loss, write_image
+from mscv.image import tensor2im
 
 
 class BaseModel(torch.nn.Module):
@@ -48,6 +50,7 @@ class BaseModel(torch.nn.Module):
                 image = sample['image'].to(opt.device)
                 gt_bbox = sample['bboxes']
                 labels = sample['labels']
+                paths = sample['path']
 
                 batch_bboxes, batch_labels, batch_scores = self.forward(image)
                 pred_bboxes.extend(batch_bboxes)
@@ -58,6 +61,25 @@ class BaseModel(torch.nn.Module):
                     gt_bboxes.append(gt_bbox[b].detach().cpu().numpy())
                     gt_labels.append(labels[b].int().detach().cpu().numpy())
                     gt_difficults.append(np.array([False] * len(gt_bbox[b])))
+
+
+                if opt.vis:  # 可视化预测结果
+                    img = tensor2im(image).copy()
+                    for x1, y1, x2, y2 in gt_bbox[0]:
+                        cv2.rectangle(img, (x1,y1), (x2,y2), (0, 255, 0), 2)  # 绿色的是gt
+
+                    num = len(batch_scores[0])
+                    for n in range(num):
+                        if batch_scores[0][n] > 0.4:
+                            x1, y1, x2, y2 = batch_bboxes[0][n]
+                            x1 = int(round(x1))
+                            y1 = int(round(y1))
+                            x2 = int(round(x2))
+                            y2 = int(round(y2))
+
+                            cv2.rectangle(img, (x1,y1), (x2,y2), (255, 0, 0), 2)  # 红色的是预测的
+
+                    write_image(writer, f'preview/{i}', 'image', img, 0, 'HWC')
 
             result = []
             for iou_thresh in [0.5, 0.55, 0.6, 0.65, 0.7, 0.75]:

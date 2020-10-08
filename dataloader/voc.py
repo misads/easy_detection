@@ -5,10 +5,12 @@ import torch
 import torchvision.transforms.functional as F
 import os
 from PIL import Image
-import torch.utils.data.dataset as dataset
 from torchvision import transforms
+from options import opt
+import torch.utils.data.dataset as dataset
 import albumentations as A
 
+import misc_utils as utils
 import xml.etree.ElementTree as ET
 import misc_utils as utils
 import random
@@ -16,6 +18,8 @@ import numpy as np
 import cv2
 
 from collections import defaultdict
+
+limit = lambda x, minimum, maximum: min(max(minimum, x), maximum)
 
 class VOCTrainValDataset(dataset.Dataset):
     """VOC Dataset for training.
@@ -53,15 +57,19 @@ class VOCTrainValDataset(dataset.Dataset):
     """
 
     def __init__(self, voc_root, class_names, split='train.txt', format='jpg', transforms=None, max_size=None):
+        utils.color_print(f'Use dataset: {voc_root}, split: {split.rstrip(".txt")}', 3)
+
         im_list = os.path.join(voc_root, f'ImageSets/Main/{split}')
         image_root = os.path.join(voc_root, 'JPEGImages')
 
         self.image_paths = []
         self.bboxes = []
         self.labels = [] 
+        self.difficults = []
 
         counter = defaultdict(int)
         tot_bbox = 0
+        difficult_bbox = 0
 
         with open(im_list, 'r') as f:
             lines = f.readlines()
@@ -77,19 +85,30 @@ class VOCTrainValDataset(dataset.Dataset):
                 root = tree.getroot()
                 bboxes = []
                 labels = []
+
+                size = root.find('size')
+                width = int(size.find('width').text)
+                height = int(size.find('height').text)
+
                 for obj in root.iter('object'):  # 多个元素
                     # difficult = obj.find('difficult').text
                     class_name = obj.find('name').text
+
+                    difficult = obj.find('difficult').text
+                    if difficult != '0': 
+                        difficult_bbox += 1
+                        continue  # 忽略困难样本
+
                     if class_name not in class_names:
                         raise Exception(f'"{class_name}" not in class names({class_names}).')
                     class_id = class_names.index(class_name)
                     bbox = obj.find('bndbox')
-                    x1 = max(0, int(bbox.find('xmin').text))
-                    y1 = max(0, int(bbox.find('ymin').text))
-                    x2 = int(bbox.find('xmax').text)
-                    y2 = int(bbox.find('ymax').text)
+                    x1 = limit(int(bbox.find('xmin').text), 0, width)
+                    y1 = limit(int(bbox.find('ymin').text), 0, height)
+                    x2 = limit(int(bbox.find('xmax').text), 0, width)
+                    y2 = limit(int(bbox.find('ymax').text), 0, height)
 
-                    if x2 - x1 <= 8 or y2 - y1 <= 4:  # 面积很小的标注
+                    if x2 - x1 <= 2 or y2 - y1 <= 2:  # 面积很小的标注
                         continue
 
                     counter[class_name] += 1
@@ -104,6 +123,9 @@ class VOCTrainValDataset(dataset.Dataset):
             utils.color_print(f'{name}: {counter[name]} ({counter[name]/tot_bbox*100:.2f}%)', 5)
         
         utils.color_print(f'Total bboxes: {tot_bbox}', 4)
+        if difficult_bbox:
+            utils.color_print(f'{difficult_bbox} difficult bboxes ignored.', 1)
+        
         
         self.format = format
 
@@ -115,6 +137,9 @@ class VOCTrainValDataset(dataset.Dataset):
 
     def load_image_and_boxes(self, index):
         image_path = self.image_paths[index]
+        if not os.path.exists(image_path):
+            raise FileNotFoundError(f'{image_path} not found.')
+
         image = cv2.imread(image_path)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype(np.float32)
         image /= 255.0  # 转成0~1之间
@@ -122,7 +147,9 @@ class VOCTrainValDataset(dataset.Dataset):
         bboxes = np.array(self.bboxes[index])
         labels = np.array(self.labels[index])
 
-        return image, bboxes, labels, image_path
+        h, w, _ = image.shape
+
+        return image, bboxes, labels, image_path, (w, h)
 
     def __getitem__(self, index):
         """Get indexs by index
@@ -138,41 +165,47 @@ class VOCTrainValDataset(dataset.Dataset):
             }
 
         """
-        image, bboxes, labels, image_path = self.load_image_and_boxes(index)
+        image, bboxes, labels, image_path, (org_w, org_h) = self.load_image_and_boxes(index)
 
         if len(bboxes) == 0:
-            ipdb.set_trace()
+            raise RuntimeError(f'no bboxes found in {image_path}.')
 
         target = {}
         # target['boxes'] = torch.stack(tuple(map(torch.tensor, zip(*sample['bboxes'])))).permute(1, 0)
 
         yolo_boxes = np.zeros([50, 5])
 
+        width = opt.width
+        height = opt.height
+
         for i in range(20):
-            sample = self.transforms(**{
-                'image': image,
-                'bboxes': bboxes,
-                'labels': labels
-            })
+            try:
+                sample = self.transforms(**{
+                    'image': image,
+                    'bboxes': bboxes,
+                    'labels': labels
+                })
+            except:
+                ipdb.set_trace()
 
             yolo5_boxes = np.zeros([len(sample['bboxes']), 5])
             sample['bboxes'] = torch.Tensor(sample['bboxes'])
 
             if len(sample['bboxes']) > 0:
                 bboxes = sample['bboxes']
+                labels = sample['labels']
                 for i, bbox in enumerate(bboxes):
-                    if i >= 50:
-                        break
-
                     x1, y1, x2, y2 = bbox
                     w, h = x2 - x1, y2 - y1
                     c_x, c_y = x1 + w / 2, y1 + h / 2
-                    w, c_x = w / 1024, c_x / 1024
-                    h, c_y = h / 512, c_y / 512
+                    w, c_x = w / width, c_x / width
+                    h, c_y = h / height, c_y / height
 
-                    yolo_boxes[i, :] = labels[i], c_x, c_y, w, h  # 中心点坐标、宽、高
                     if i < yolo5_boxes.shape[0]:
                         yolo5_boxes[i, :] = labels[i], c_x, c_y, w, h  # 中心点坐标、宽、高
+
+                    if i < 50:
+                        yolo_boxes[i, :] = labels[i], c_x, c_y, w, h  # 中心点坐标、宽、高
 
                 break
                 

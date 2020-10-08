@@ -10,6 +10,7 @@ from torchvision import transforms
 from options import opt
 import albumentations as A
 from mscv.summary import create_summary_writer, write_image
+import dataloader.dataloaders
 from dataloader.voc import VOCTrainValDataset
 
 import xml.etree.ElementTree as ET
@@ -37,7 +38,7 @@ colors = [(0.,1.,0.), (0.,0.,1.), (1.,0.,0.), (0.,1.,1.), (1.,0.,1.), (1.,1.,0.)
 
 
 if __name__ == '__main__':
-    voc_classes = classes = ["aeroplane", "bicycle", "bird", "boat", "bottle", "bus", "car", "cat", "chair", "cow", "diningtable", "dog", "horse", "motorbike", "person", "pottedplant", "sheep", "sofa", "train", "tvmonitor"]
+    voc_classes = ["aeroplane", "bicycle", "bird", "boat", "bottle", "bus", "car", "cat", "chair", "cow", "diningtable", "dog", "horse", "motorbike", "person", "pottedplant", "sheep", "sofa", "train", "tvmonitor"]
     cityscapes_classes = ['bus', 'bicycle', 'car', 'motorcycle', 'person', 'rider', 'train', 'truck']
     apollo_classes = ['bicycle', 'bicycle_group', 'bus', 'car', 'car_groups', 'motorbicycle',
     'motorbicycle_group', 'person', 'person_group', 'rider', 'rider_group', 'tricycle', 'truck']

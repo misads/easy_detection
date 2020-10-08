@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from dataloader import yolo_dataset
 from dataloader import paired_dataset
+from dataloader.custom import get_dataset
 from dataloader.voc import VOCTrainValDataset
 
 import albumentations as A
@@ -27,43 +28,28 @@ DATA_FOTMAT = 'VOC'  # 数据集格式
 
 if DATA_FOTMAT == 'VOC':
 
-    voc_root = 'datasets/cityscapes'
-    train_split = 'train.txt'
-    val_split = 'val.txt' 
-    class_names = ['bus', 'bicycle', 'car', 'motorcycle', 'person', 'rider', 'train', 'truck']
+    opt.dataset = 'wheat'
+
+    dataset = get_dataset(opt.dataset)
+    d = dataset()
+
+    variable_names = ['voc_root', 'train_split', 'val_split', 'class_names', 'img_format', 
+                      'width', 'height', 'train_transform', 'val_transform']
+
+    for v in variable_names:
+        # 等价于 exec(f'{v}=d.{v}')
+        locals()[v] = getattr(d, v)  # 把类的成员变量赋值给当前的局部变量
+
+    opt.class_names = class_names
     opt.num_classes = len(class_names)
 
-    train_transform = A.Compose(
-        [
-            # A.Resize(height=1024, width=1024, p=1),  # 896
-            A.RandomSizedCrop(min_max_height=(600, 800), height=1024, width=2048, w2h_ratio=2., p=0.5),
-            A.OneOf([
-                A.HueSaturationValue(hue_shift_limit=0.2, sat_shift_limit= 0.2, 
-                                        val_shift_limit=0.2, p=0.9),
-                A.RandomBrightnessContrast(brightness_limit=0.2, 
-                                            contrast_limit=0.2, p=0.9),
-            ],p=0.9),
-            A.ToGray(p=0.01),
-            A.HorizontalFlip(p=0.5),
-            # A.VerticalFlip(p=0.5),
-            A.Resize(height=512, width=1024, p=1),
-            # A.Cutout(num_holes=5, max_h_size=64, max_w_size=64, fill_value=0, p=0.5),
-            ToTensorV2(p=1.0),
-        ], 
-        p=1.0, 
-        bbox_params=A.BboxParams(
-            format='pascal_voc',
-            min_area=0, 
-            min_visibility=0,
-            label_fields=['labels']
-        ),
-    )
+    opt.width = width
+    opt.height = height
 
-
-    voc_train_dataset = VOCTrainValDataset(voc_root, 
+    train_dataset = VOCTrainValDataset(voc_root, 
             class_names,
             split=train_split,
-            format='png',
+            format=img_format,
             transforms=train_transform)
 
     def collate_fn(batch):
@@ -79,42 +65,25 @@ if DATA_FOTMAT == 'VOC':
                                     batch[i]['yolo5_boxes']], 1) for i in range(b)], 0)
         return target
 
-    voc_train_dataloader = torch.utils.data.DataLoader(voc_train_dataset,
+    train_dataloader = torch.utils.data.DataLoader(train_dataset,
         shuffle=True,
         collate_fn=collate_fn,
         batch_size=opt.batch_size,
         num_workers=opt.workers,
         drop_last=True)
 
-    val_transform = A.Compose(
-        [
-            A.Resize(height=512, width=1024, p=1.0),
-            ToTensorV2(p=1.0),
-        ], 
-        p=1.0, 
-        bbox_params=A.BboxParams(
-            format='pascal_voc',
-            min_area=0, 
-            min_visibility=0,
-            label_fields=['labels']
-        )
-    )
-
-    voc_val_dataset = VOCTrainValDataset(voc_root,
+    val_dataset = VOCTrainValDataset(voc_root,
             class_names,
             split=val_split,
-            format='png',
+            format=img_format,
             transforms=val_transform)
 
-    voc_val_dataloader = torch.utils.data.DataLoader(voc_val_dataset,
+    val_dataloader = torch.utils.data.DataLoader(val_dataset,
         shuffle=False,
         collate_fn=collate_fn,
         batch_size=opt.batch_size,
-        num_workers=opt.workers,
+        num_workers=opt.workers // 2,
         drop_last=False)
-
-    train_dataloader = voc_train_dataloader
-    val_dataloader = voc_val_dataloader
 
     if TEST_DATASET_HAS_OPEN:
         test_list = "./datasets/test.txt"  # 还没有

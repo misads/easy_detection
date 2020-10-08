@@ -13,7 +13,6 @@ from yolo3.darknet import Darknet
 from yolo3.utils import get_all_boxes, bbox_iou, nms, read_data_cfg, load_class_names
 from yolo3.image import correct_yolo_boxes
 from yolo3.utils import *
-from yolo3.image import correct_yolo_boxes
 from yolo3.eval_map import eval_detection_voc
 
 from .eval_yolo import eval_yolo
@@ -75,10 +74,10 @@ class Model(BaseModel):
     def update(self, sample, *arg):
         """
         Args:
-            sample: {'input': input_image [b, 3, height, width],
-                   'bboxes': bboxes [b, None, 4],
-                   'labels': labels [b, None],
-                   'path': paths}
+            sample: {'input': a Tensor [b, 3, height, width],
+                   'bboxes': a list of bboxes [[N1 × 4], [N2 × 4], ..., [Nb × 4]],
+                   'labels': a list of labels [[N1], [N2], ..., [Nb]],
+                   'path': a list of paths}
         """
         loss_layers = self.detector.loss_layers
         org_loss = []
@@ -120,7 +119,7 @@ class Model(BaseModel):
         if self.detector.net_name() == 'region':  # region_layer
             shape = (0, 0)
         else:
-            shape = (512, 512)
+            shape = (opt.width, opt.height)
 
         num_classes = self.detector.num_classes
 
@@ -131,34 +130,58 @@ class Model(BaseModel):
 
         for b in range(len(all_boxes)):
             boxes = all_boxes[b]
-            width = 1024
-            height = 512
+            width = opt.width
+            height = opt.height
             correct_yolo_boxes(boxes, width, height, width, height)
+
             boxes = nms(boxes, nms_thresh)
+            img_boxes = []
+            img_labels = []
+            img_scores = []
+            for box in boxes:
+                box[0] -= box[2] / 2
+                box[1] -= box[3] / 2
+                box[2] += box[0]
+                box[3] += box[1]
 
-            boxes = np.array([box[:7] for box in boxes])
+                box[0] *= width
+                box[2] *= width
+                box[1] *= height
+                box[3] *= height
 
-            """cxcywh转xyxy"""
-            boxes[:, 0] -= boxes[:, 2] / 2
-            boxes[:, 1] -= boxes[:, 3] / 2
-            boxes[:, 2] += boxes[:, 0]
-            boxes[:, 3] += boxes[:, 1]
+                for i in range(5, len(box), 2):
+                    img_boxes.append(box[:4])
+                    img_labels.append(box[i+1])
+                    score = box[4] * box[i]
+                    img_scores.append(score)
 
-            boxes[:, 0] *= width
-            boxes[:, 2] *= width
-            boxes[:, 1] *= height
-            boxes[:, 3] *= height
+            batch_bboxes.append(np.array(img_boxes))
+            batch_labels.append(np.array(img_labels).astype(np.int32))
+            batch_scores.append(np.array(img_scores))
 
-            score = boxes[:, 4] * boxes[:, 5]
+                
+            # boxes = np.array([box[:7] for box in boxes])
 
+            # """cxcywh转xyxy"""
+            # boxes[:, 0] -= boxes[:, 2] / 2
+            # boxes[:, 1] -= boxes[:, 3] / 2
+            # boxes[:, 2] += boxes[:, 0]
+            # boxes[:, 3] += boxes[:, 1]
 
-            conf_indics = score > 0.5
-            score = score[conf_indics]
-            boxes = boxes[conf_indics]
+            # boxes[:, 0] *= width
+            # boxes[:, 2] *= width
+            # boxes[:, 1] *= height
+            # boxes[:, 3] *= height
 
-            batch_bboxes.append(boxes[:, :4])
-            batch_labels.append(boxes[:, 6].astype(np.int32))
-            batch_scores.append(score)
+            # score = boxes[:, 4] * boxes[:, 5]
+
+            # # conf_indics = score > 0.5
+            # # score = score[conf_indics]
+            # # boxes = boxes[conf_indics]
+
+            # batch_bboxes.append(boxes[:, :4])
+            # batch_labels.append(boxes[:, 6].astype(np.int32))
+            # batch_scores.append(score)
 
         return batch_bboxes, batch_labels, batch_scores
 

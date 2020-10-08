@@ -17,7 +17,7 @@ source domain 是clear的
 """
 writer = create_summary_writer('logs/preview_dataset')
 
-cityscapes_classes = ['bus', 'bicycle', 'car', 'motorcycle', 'person', 'rider', 'train', 'truck']
+class_names = opt.class_names
 
 colors = [(0.,1.,0.), (0.,0.,1.), (1.,0.,0.), (0.,1.,1.), (1.,0.,1.), (1.,1.,0.), (1.,1.,1.), (0.,0.,0.), (.5,0.,0.), 
 (0.,.5,0.), (0.,0.,.5), (0.,.5,.5), (.5,0.,.5), (.5,.5,0.), (.5,.5,.5), (.5,1.,0.), (.5,0.,1.), (1.,.5,0.), 
@@ -28,7 +28,6 @@ for i, sample in enumerate(val_dataloader):
     # if i > 30:
     #     break
     utils.progress_bar(i, len(val_dataloader), 'Handling...')
-    continue
 
     if opt.debug:
         ipdb.set_trace()
@@ -45,7 +44,7 @@ for i, sample in enumerate(val_dataloader):
         x2 = int(round(x2.item()))
         y2 = int(round(y2.item()))
         label = int(labels[j].item())
-        label_name = cityscapes_classes[label]
+        label_name = class_names[label]
         cv2.rectangle(image, (x1, y1), (x2, y2), (0, 1., 0), 2)
         cv2.putText(image, label_name, (x1, y1-3), 0, 1, colors[label], 2)
 

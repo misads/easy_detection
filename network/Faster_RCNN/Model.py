@@ -26,12 +26,25 @@ from loss import get_default_loss
 import misc_utils as utils
 import ipdb
 
+from torchvision.models.detection.faster_rcnn import FasterRCNN
+from torchvision.models import vgg16
+
+def FasterRCNN_VGG():
+    backbone = vgg16(pretrained=True).features
+    backbone.out_channels = 512
+
+    # backbone = resnet_fpn_backbone('resnet50', pretrained_backbone)
+    model = FasterRCNN(backbone, num_classes=opt.num_classes + 1)
+
+    return model
+
+
 class Model(BaseModel):
     def __init__(self, opt):
         super(Model, self).__init__()
         self.opt = opt
-        cfgfile = 'yolo-voc.cfg'
         self.detector = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
+        self.detector = FasterRCNN_VGG()
         in_features = self.detector.roi_heads.box_predictor.cls_score.in_features
 
         # replace the pre-trained head with a new one
@@ -52,17 +65,17 @@ class Model(BaseModel):
     def update(self, sample, *arg):
         """
         Args:
-            sample: {'input': input_image [b, 3, height, width],
-                   'bboxes': bboxes [b, None, 4],
-                   'labels': labels [b, None],
-                   'path': paths}
+            sample: {'input': a Tensor [b, 3, height, width],
+                   'bboxes': a list of bboxes [[N1 × 4], [N2 × 4], ..., [Nb × 4]],
+                   'labels': a list of labels [[N1], [N2], ..., [Nb]],
+                   'path': a list of paths}
         """
         labels = sample['labels']
         for label in labels:
             label += 1.  # effdet的label从1开始
 
         image, bboxes, labels = sample['image'], sample['bboxes'], sample['labels']
-
+        
         image = image.to(opt.device)
         bboxes = [bbox.to(opt.device).float() for bbox in bboxes]
         labels = [label.to(opt.device).float() for label in labels]

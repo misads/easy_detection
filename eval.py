@@ -27,7 +27,7 @@ if __name__ == '__main__':
     import misc_utils as utils
     from mscv.summary import create_summary_writer
 
-    if not opt.load:
+    if not opt.load and not opt.weights:
         print('Usage: eval.py [--tag TAG] --load LOAD')
         raise_exception('eval.py: the following arguments are required: --load')
 
@@ -35,7 +35,10 @@ if __name__ == '__main__':
     model = Model(opt)
     model = model.to(device=opt.device)
 
-    opt.which_epoch = model.load(opt.load)
+    if opt.load:
+        opt.which_epoch = model.load(opt.load)
+    else:
+        opt.which_epoch = 0
 
     model.eval()
 

@@ -17,7 +17,7 @@ models = {
     'Yolo5': Yolo5,
     'SSD300': SSD300,
     'SSD512': SSD512,
-    'RetinaNet':RetinaNet
+    'RetinaNet': RetinaNet
 }
 
 def get_model(model: str):

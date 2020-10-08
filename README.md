@@ -9,7 +9,7 @@
 - 数据格式
   - [x] VOC
   - [ ] CSV文件
-  - [ ] COCO
+  - [ ] COCO(RetinaNet代码里有)
 
 - 网络模型
   - [x] EfficientDet(目前不支持训练过程中验证)
@@ -57,22 +57,22 @@ albumentations >= 0.4.0
 ```bash
 Code Usage:
 Training:
-    python train.py --tag your_tag --model Effdet --epochs 200 -b 3 --lr 0.0001 --gpu 0
+    python train.py --tag your_tag --model Yolo2 --epochs 200 -b 3 --lr 0.0001 --gpu 0
 
 Resume Training (or fine-tune):
-    python train.py --tag your_tag --model Effdet --epochs 20 -b 2 --load checkpoints/your_tag/9_Effdet.pt --resume --gpu 0
+    python train.py --tag your_tag --model Yolo2 --epochs 20 -b 2 --load checkpoints/your_tag/9_Effdet.pt --resume --gpu 0
 
 Eval:
-    python eval.py --model Effdet -b 2 --load checkpoints/your_tag/9_Effdet.pt --gpu 1
+    python eval.py --model Yolo2 -b 2 --load checkpoints/your_tag/9_Yolo2.pt --gpu 1 --vis
 
 Generate Submission:
-    python submit.py --model Effdet --load checkpoints/your_tag/9_Effdet.pt -b 2 --gpu 0
+    python submit.py --model Yolo2 --load checkpoints/your_tag/9_Yolo2.pt -b 2 --gpu 0
 
 See Running Log:
     cat logs/your_tag/log.txt
 
 Clear(delete all files with the tag, BE CAREFUL to use):
-    python clear.py --tag your_tag
+    python clear.py your_tag
 
 See ALL Running Commands:
     cat run_log.txt

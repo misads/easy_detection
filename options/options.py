@@ -38,7 +38,7 @@ def parse_args():
     parser.add_argument('--scheduler', choices=['cos', 'step', 'exp', 'cyclic', 'lambda', 'None'], default='cos')
 
     # data augmentation
-    parser.add_argument('--aug', action='store_true', help='Randomly scale, jitter, change hue, saturation and brightness')
+    # parser.add_argument('--aug', action='store_true', help='Randomly scale, jitter, change hue, saturation and brightness')
 
     # scale
     parser.add_argument('--scale', type=int, default=512, help='scale images to this size')
@@ -46,7 +46,7 @@ def parse_args():
     parser.add_argument('--workers', '-w', type=int, default=4, help='num of workers')
 
     # for datasets
-    parser.add_argument('--dataset', choices=['voc', 'cityscapes', 'apollo', 'wheat', 'widerface'], default='voc', help='training dataset')
+    parser.add_argument('--dataset', default='voc', help='training dataset')
     parser.add_argument('--val_set', type=str, default=None)
     parser.add_argument('--test_set', type=str, default=None)
 
@@ -55,6 +55,8 @@ def parse_args():
 
     # training options
     parser.add_argument('--debug', action='store_true', help='debug mode')
+    parser.add_argument('--vis', action='store_true', help='vis eval result')
+
     parser.add_argument('--load', type=str, default=None, help='load checkpoint')
     parser.add_argument('--weights', type=str, default=None, help='load checkpoint for Detector')
     

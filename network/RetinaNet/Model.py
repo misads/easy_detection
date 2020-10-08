@@ -1,8 +1,5 @@
 import pdb
 import sys
-sys.path.insert(0, "./timm-efficientdet-pytorch")
-sys.path.insert(0, "./omegaconf")
-
 import numpy as np
 import torch
 import cv2
@@ -54,10 +51,10 @@ class Model(BaseModel):
     def update(self, sample, *arg):
         """
         Args:
-            sample: {'input': input_image [b, 3, height, width],
-                   'bboxes': bboxes [b, None, 4],
-                   'labels': labels [b, None],
-                   'path': paths}
+            sample: {'input': a Tensor [b, 3, height, width],
+                   'bboxes': a list of bboxes [[N1 × 4], [N2 × 4], ..., [Nb × 4]],
+                   'labels': a list of labels [[N1], [N2], ..., [Nb]],
+                   'path': a list of paths}
         """
         images = sample['image'].to(opt.device)
 
@@ -66,7 +63,6 @@ class Model(BaseModel):
         inputs = images, annotations
 
         loss = sum(self.detector(inputs))
-
 
         self.avg_meters.update({'loss': loss.item()})
 
@@ -77,15 +73,27 @@ class Model(BaseModel):
         return {}
 
     def forward(self, image):  # test
-        conf_thresh = 0.5
+        conf_thresh = 0.  # 0.5 for vis result
 
-        batch_scores, batch_labels, batch_bboxes = self.detector(image)
-        conf = batch_scores > conf_thresh
-        batch_bboxes = batch_bboxes[conf].detach().cpu().numpy()
-        batch_labels = batch_labels[conf].detach().cpu().numpy()
-        batch_scores = batch_scores[conf].detach().cpu().numpy()
+        batch_bboxes = []
+        batch_labels = []
+        batch_scores = []
 
-        return [batch_bboxes], [batch_labels], [batch_scores]
+        for i in range(image.shape[0]):
+            single_image = image[i: i+1]
+
+            scores, labels, bboxes = self.detector(single_image)  # RetinaNet只支持单张检测
+
+            conf = scores > conf_thresh
+            bboxes = bboxes[conf].detach().cpu().numpy()
+            labels = labels[conf].detach().cpu().numpy()
+            scores = scores[conf].detach().cpu().numpy()
+
+            batch_bboxes.append(bboxes)
+            batch_labels.append(labels)
+            batch_scores.append(scores)
+
+        return batch_bboxes, batch_labels, batch_scores
 
     def inference(self, x, progress_idx=None):
         raise NotImplementedError

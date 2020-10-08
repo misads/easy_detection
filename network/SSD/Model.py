@@ -53,10 +53,10 @@ class Model(BaseModel):
     def update(self, sample, *arg):
         """
         Args:
-            sample: {'input': input_image [b, 3, height, width],
-                   'bboxes': bboxes [b, None, 4],
-                   'labels': labels [b, None],
-                   'path': paths}
+            sample: {'input': a Tensor [b, 3, height, width],
+                   'bboxes': a list of bboxes [[N1 × 4], [N2 × 4], ..., [Nb × 4]],
+                   'labels': a list of labels [[N1], [N2], ..., [Nb]],
+                   'path': a list of paths}
         """
         loss_dict = self.forward(sample)
 
