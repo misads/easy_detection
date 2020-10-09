@@ -107,3 +107,20 @@ ln -s /home/<abspath> mydataset
 
 3、修改dataloader目录下的`dataloaders.py`，需要修改的有数据集目录`voc_root`，类别的列表`class_names`以及训练和验证时的`transforms`。
 
+
+## Reference
+
+- SSD <https://github.com/lufficc/SSD>
+  
+- YoloV2、YoloV3 <https://github.com/andy-yun/pytorch-0.4-yolov3>
+
+- EfficientDet <https://github.com/rwightman/efficientdet-pytorch>
+
+- YoloV4 <https://github.com/argusswift/YOLOv4-pytorch>
+
+- YoloV5 <https://github.com/ultralytics/yolov5>
+
+- Faster_RCNN <https://github.com/pytorch/vision>
+
+- RetinaNet <https://github.com/yhenon/pytorch-retinanet>
+
