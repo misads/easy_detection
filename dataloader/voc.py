@@ -179,14 +179,11 @@ class VOCTrainValDataset(dataset.Dataset):
         height = opt.height
 
         for i in range(20):
-            try:
-                sample = self.transforms(**{
-                    'image': image,
-                    'bboxes': bboxes,
-                    'labels': labels
-                })
-            except:
-                ipdb.set_trace()
+            sample = self.transforms(**{
+                'image': image,
+                'bboxes': bboxes,
+                'labels': labels
+            })
 
             yolo5_boxes = np.zeros([len(sample['bboxes']), 5])
             sample['bboxes'] = torch.Tensor(sample['bboxes'])
