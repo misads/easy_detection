@@ -7,7 +7,7 @@ from .SSD.Model import Model as SSD512
 from .RetinaNet.Model import Model as RetinaNet
 from .Faster_RCNN.Model import Model as Faster_RCNN
 from .YoloV5.Model import Model as Yolo5
-
+from .YoloV4.Model import Model as Yolo4
 models = {
     'default': Default,  # if --model is not specified
     'Effdet': Effdet,
@@ -17,7 +17,8 @@ models = {
     'Yolo5': Yolo5,
     'SSD300': SSD300,
     'SSD512': SSD512,
-    'RetinaNet': RetinaNet
+    'RetinaNet':RetinaNet,
+    'Yolo4':Yolo4
 }
 
 def get_model(model: str):

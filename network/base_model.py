@@ -62,7 +62,6 @@ class BaseModel(torch.nn.Module):
                     gt_labels.append(labels[b].int().detach().cpu().numpy())
                     gt_difficults.append(np.array([False] * len(gt_bbox[b])))
 
-
                 if opt.vis:  # 可视化预测结果
                     img = tensor2im(image).copy()
                     for x1, y1, x2, y2 in gt_bbox[0]:
@@ -70,7 +69,7 @@ class BaseModel(torch.nn.Module):
 
                     num = len(batch_scores[0])
                     for n in range(num):
-                        if batch_scores[0][n] > 0.4:
+                        if batch_scores[0][n] > 0.05:
                             x1, y1, x2, y2 = batch_bboxes[0][n]
                             x1 = int(round(x1))
                             y1 = int(round(y1))

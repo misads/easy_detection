@@ -174,6 +174,7 @@ class VOCTrainValDataset(dataset.Dataset):
         # target['boxes'] = torch.stack(tuple(map(torch.tensor, zip(*sample['bboxes'])))).permute(1, 0)
 
         yolo_boxes = np.zeros([50, 5])
+        yolo4_boxes = np.zeros([50, 5])
 
         width = opt.width
         height = opt.height
@@ -203,6 +204,7 @@ class VOCTrainValDataset(dataset.Dataset):
 
                     if i < 50:
                         yolo_boxes[i, :] = labels[i], c_x, c_y, w, h  # 中心点坐标、宽、高
+                        yolo4_boxes[i, :] = x1, y1, x2, y2, labels[i]
 
                 break
                 
@@ -210,6 +212,7 @@ class VOCTrainValDataset(dataset.Dataset):
         sample['path'] = image_path
 
         sample['yolo_boxes'] = torch.Tensor(yolo_boxes).view([-1])  # labels, c_x, c_y, w, h (固定50×5)
+        sample['yolo4_boxes'] = torch.Tensor(yolo4_boxes)
         sample['yolo5_boxes'] = torch.Tensor(yolo5_boxes)  #labels, c_x, c_y, w, h (没有固定的bbox数量)
         return sample
 

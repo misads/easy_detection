@@ -60,6 +60,7 @@ if DATA_FOTMAT == 'VOC':
         target['labels'] = [sample['labels'] for sample in batch]
         target['path'] = [sample['path'] for sample in batch]
         target['yolo_boxes'] = torch.stack([sample['yolo_boxes'] for sample in batch])
+        target['yolo4_boxes'] = torch.stack([sample['yolo4_boxes'] for sample in batch])
         target['yolo5_boxes'] = torch.cat(  # [b*50, 6] batch中第几张图片, label, c_x, c_y, w, h
                                     [torch.cat([torch.ones([batch[i]['yolo5_boxes'].shape[0], 1]) * i,
                                     batch[i]['yolo5_boxes']], 1) for i in range(b)], 0)
