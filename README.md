@@ -13,9 +13,9 @@
 
 - 网络模型
   - [x] EfficientDet(目前不支持训练过程中验证)
-  - [x] YoloV2、V3
-  - [ ] YoloV4
-  - [x] YoloV5
+  - [x] YoloV2、V3  
+  - [x] YoloV4  
+  - [x] YoloV5  
   - [x] SSD300、SSD512(目前只支持vgg backbone,且不支持预训练模型)
   - [x] Faster-RCNN
   - [ ] Cascade-RCNN
