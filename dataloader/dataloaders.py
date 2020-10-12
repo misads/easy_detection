@@ -1,10 +1,6 @@
 # encoding=utf-8
-from dataloader.image_folder import FolderTrainValDataset, FolderTestDataset
-from dataloader.image_list import ListTrainValDataset, ListTestDataset
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
-from dataloader import yolo_dataset
-from dataloader import paired_dataset
 from dataloader.custom import get_dataset
 from dataloader.voc import VOCTrainValDataset
 from dataloader.coco import CocoDataset

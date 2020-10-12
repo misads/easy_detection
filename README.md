@@ -1,6 +1,6 @@
 # detection_template
 
-一个目标检测的Baseline(不需要cuda编译)，Kaggle小麦检测12/2245。
+一个目标检测的通用框架(不需要cuda编译)，支持Yolo全系列(v2~v5)、EfficientDet、RetinaNet、Cascade-RCNN等SOTA网络，Kaggle小麦检测12/2245。
 
 ![preview](http://www.xyu.ink/wp-content/uploads/2020/10/COCO2.png)
 
@@ -51,6 +51,7 @@ utils-misc >= 0.0.5
 mscv >= 0.0.3
 albumentations >= 0.4.0
 ```
+完整和最新的环境需求见`requirements.txt`。
 
 ## Code Usage
 

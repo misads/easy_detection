@@ -78,7 +78,7 @@ class BaseModel(torch.nn.Module):
 
                             cv2.rectangle(img, (x1,y1), (x2,y2), (255, 0, 0), 2)  # 红色的是预测的
 
-                    write_image(writer, f'preview/{i}', 'image', img, 0, 'HWC')
+                    write_image(writer, f'{data_name}/{i}', 'image', img, epoch, 'HWC')
 
             result = []
             for iou_thresh in [0.5, 0.55, 0.6, 0.65, 0.7, 0.75]:
