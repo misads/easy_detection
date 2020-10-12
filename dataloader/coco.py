@@ -3,9 +3,11 @@ import os
 import torch
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
+from options import opt
 from pycocotools.coco import COCO
 import cv2
 
+from dataloader.additional import voc_to_yolo_format
 
 class CocoDataset(Dataset):
     """Coco dataset."""
@@ -62,6 +64,8 @@ class CocoDataset(Dataset):
             })
         sample['bboxes']= torch.Tensor(sample['bboxes'])
         sample['labels']= torch.Tensor(sample['labels'])
+
+        sample.update(voc_to_yolo_format(sample), opt)  # yolo format
 
         return sample
 

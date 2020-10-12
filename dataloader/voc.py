@@ -18,8 +18,10 @@ import numpy as np
 import cv2
 
 from collections import defaultdict
+from dataloader.additional import voc_to_yolo_format
 
 limit = lambda x, minimum, maximum: min(max(minimum, x), maximum)
+
 
 class VOCTrainValDataset(dataset.Dataset):
     """VOC Dataset for training.
@@ -31,6 +33,7 @@ class VOCTrainValDataset(dataset.Dataset):
         format(str): 'jpg' or 'png'
         transforms(albumentations.transform): required, input images and bboxes will be applied simultaneously
         max_size(int): maximum data returned
+        use_cache(bool): whether use cached pickle file or load all xml annotations
 
     Example:
         import albumentations as A
@@ -56,7 +59,7 @@ class VOCTrainValDataset(dataset.Dataset):
 
     """
 
-    def __init__(self, voc_root, class_names, split='train.txt', format='jpg', transforms=None, max_size=None):
+    def __init__(self, voc_root, class_names, split='train.txt', format='jpg', transforms=None, max_size=None, use_cache=True):
         utils.color_print(f'Use dataset: {voc_root}, split: {split.rstrip(".txt")}', 3)
 
         im_list = os.path.join(voc_root, f'ImageSets/Main/{split}')
@@ -100,7 +103,7 @@ class VOCTrainValDataset(dataset.Dataset):
                         continue  # 忽略困难样本
 
                     if class_name not in class_names:
-                        continue
+                        continue  # class_names中没有的类别是忽略还是报错
                         raise Exception(f'"{class_name}" not in class names({class_names}).')
                     class_id = class_names.index(class_name)
                     bbox = obj.find('bndbox')
@@ -162,7 +165,10 @@ class VOCTrainValDataset(dataset.Dataset):
             {'image': image,
              'bboxes': bboxes,
              'label': label,
-             'path': path
+             'path': path,
+             'yolo_boxes': yolo_boxes,
+             'yolo4_boxes': yolo4_boxes,
+             'yolo5_boxes': yolo5_boxes
             }
 
         """
@@ -171,15 +177,6 @@ class VOCTrainValDataset(dataset.Dataset):
         if len(bboxes) == 0:
             raise RuntimeError(f'no bboxes found in {image_path}.')
 
-        target = {}
-        # target['boxes'] = torch.stack(tuple(map(torch.tensor, zip(*sample['bboxes'])))).permute(1, 0)
-
-        yolo_boxes = np.zeros([50, 5])
-        yolo4_boxes = np.zeros([50, 5])
-
-        width = opt.width
-        height = opt.height
-
         for i in range(20):
             sample = self.transforms(**{
                 'image': image,
@@ -187,34 +184,15 @@ class VOCTrainValDataset(dataset.Dataset):
                 'labels': labels
             })
 
-            yolo5_boxes = np.zeros([len(sample['bboxes']), 5])
-            sample['bboxes'] = torch.Tensor(sample['bboxes'])
-
             if len(sample['bboxes']) > 0:
-                bboxes = sample['bboxes']
-                labels = sample['labels']
-                for i, bbox in enumerate(bboxes):
-                    x1, y1, x2, y2 = bbox
-                    w, h = x2 - x1, y2 - y1
-                    c_x, c_y = x1 + w / 2, y1 + h / 2
-                    w, c_x = w / width, c_x / width
-                    h, c_y = h / height, c_y / height
-
-                    if i < yolo5_boxes.shape[0]:
-                        yolo5_boxes[i, :] = labels[i], c_x, c_y, w, h  # 中心点坐标、宽、高
-
-                    if i < 50:
-                        yolo_boxes[i, :] = labels[i], c_x, c_y, w, h  # 中心点坐标、宽、高
-                        yolo4_boxes[i, :] = x1, y1, x2, y2, labels[i]
-
                 break
-                
+
+        sample['bboxes'] = torch.Tensor(sample['bboxes']) 
         sample['labels'] = torch.Tensor(sample['labels'])  # <--- add this!
         sample['path'] = image_path
 
-        sample['yolo_boxes'] = torch.Tensor(yolo_boxes).view([-1])  # labels, c_x, c_y, w, h (固定50×5)
-        sample['yolo4_boxes'] = torch.Tensor(yolo4_boxes)
-        sample['yolo5_boxes'] = torch.Tensor(yolo5_boxes)  #labels, c_x, c_y, w, h (没有固定的bbox数量)
+        sample.update(voc_to_yolo_format(sample, opt))
+
         return sample
 
     def __len__(self):
