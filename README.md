@@ -2,7 +2,7 @@
 
 一个目标检测的Baseline(不需要cuda编译)，Kaggle小麦检测12/2245。
 
-![preview](http://www.xyu.ink/wp-content/uploads/2020/10/coco.png)
+![preview](http://www.xyu.ink/wp-content/uploads/2020/10/COCO2.png)
 
 ## Todo List
 
