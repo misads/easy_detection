@@ -51,11 +51,17 @@ class CocoDataset(Dataset):
 
         img = self.load_image(idx)
         annot = self.load_annotations(idx)
+        bboxes = annot[:, :4]
+        labels = annot[:, 4]
+
         if self.transform:
-            img = self.transform(image=img)
-
-        sample = {'img': img['image'], 'annot': annot}
-
+            sample = self.transform(**{
+                'image': img,
+                'bboxes': bboxes,
+                'labels': labels
+            })
+        sample['bboxes']= torch.Tensor(sample['bboxes'])
+        sample['labels']= torch.Tensor(sample['labels'])
 
         return sample
 

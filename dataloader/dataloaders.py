@@ -100,16 +100,23 @@ elif DATA_FOTMAT == 'COCO':
     def collate_fn(batch):
         target = {}
         b = len(batch)
-        target['image'] = torch.stack([sample['img'] for sample in batch])
-        target['bboxes'] = [sample['annot'][:, :4] for sample in batch]
-        target['labels'] = [sample['annot'][:, 4] for sample in batch]
-        #target['path'] = [sample['path'] for sample in batch]
+        target['image'] = torch.stack([sample['image'] for sample in batch])
+        target['bboxes'] = [sample['bboxes'] for sample in batch]
+        target['labels'] = [sample['labels'] for sample in batch]
 
         return target
     transform = A.Compose(
         [
+            A.Resize(height=512, width=512, p=1),
             ToTensorV2(p=1.0),
         ],
+        p=1.0,
+        bbox_params=A.BboxParams(
+            format='pascal_voc',
+            min_area=0,
+            min_visibility=0,
+            label_fields=['labels']
+        ),
     )
     train_dataset = CocoDataset(transform=transform)
     train_dataloader = torch.utils.data.DataLoader(train_dataset,
