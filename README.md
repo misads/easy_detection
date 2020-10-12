@@ -9,7 +9,7 @@
 - 数据格式
   - [x] VOC
   - [ ] CSV文件
-  - [ ] COCO(RetinaNet代码里有)
+  - [x] COCO(RetinaNet代码里有)
 
 - 网络模型
   - [x] EfficientDet(目前不支持训练过程中验证)
@@ -24,7 +24,7 @@
 - TTA
   - [ ] 多尺度融合
   - [x] nms
-  - [ ] Weighted Box Fusion
+  - [x] Weighted Box Fusion(WBF)
   - [ ] 伪标签
 
 - Scheduler
@@ -36,7 +36,7 @@
 - 可视化
   - [x] 数据集bbox预览
   - [x] dataloader数据增强预览
-  - [ ] 预测结果预览
+  - [x] 预测结果预览
 
 - 辅助工具
   - [ ] 手工标注工具
@@ -116,11 +116,10 @@ ln -s /home/<abspath> mydataset
 
 - EfficientDet <https://github.com/rwightman/efficientdet-pytorch>
 
-- YoloV4 <https://github.com/argusswift/YOLOv4-pytorch>
+- YoloV4 <https://github.com/Tianxiaomo/pytorch-YOLOv4> <https://github.com/argusswift/YOLOv4-pytorch>
 
 - YoloV5 <https://github.com/ultralytics/yolov5>
 
-- Faster_RCNN <https://github.com/pytorch/vision>
+- Faster_RCNN <https://github.com/pytorch/vision/tree/master/torchvision/models/detection>
 
 - RetinaNet <https://github.com/yhenon/pytorch-retinanet>
-

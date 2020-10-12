@@ -100,6 +100,7 @@ class VOCTrainValDataset(dataset.Dataset):
                         continue  # 忽略困难样本
 
                     if class_name not in class_names:
+                        continue
                         raise Exception(f'"{class_name}" not in class names({class_names}).')
                     class_id = class_names.index(class_name)
                     bbox = obj.find('bndbox')
