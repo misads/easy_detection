@@ -17,18 +17,36 @@ source domain 是clear的
 """
 writer = create_summary_writer('logs/preview_dataset')
 
-class_names = opt.class_names
+# class_names = opt.class_names
+class_names = [
+    'person', 'bicycle', 'car', 'motorcycle', 'airplane',
+    'bus', 'train', 'truck', 'boat', 'traffic light', 'fire hydrant',
+    'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse',
+    'sheep', 'cow', 'elephant', 'bear', 'zebra', 'giraffe', 'backpack',
+    'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee', 'skis',
+    'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove',
+    'skateboard', 'surfboard', 'tennis racket', 'bottle', 'wine glass',
+    'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple', 'sandwich',
+    'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake',
+    'chair', 'couch', 'potted plant', 'bed', 'dining table', 'toilet', 'tv',
+    'laptop', 'mouse', 'remote', 'keyboard', 'cell phone', 'microwave',
+    'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase',
+    'scissors', 'teddy bear', 'hair drier', 'toothbrush'
+]
 
 colors = [(0.,1.,0.), (0.,0.,1.), (1.,0.,0.), (0.,1.,1.), (1.,0.,1.), (1.,1.,0.), (1.,1.,1.), (0.,0.,0.), (.5,0.,0.), 
 (0.,.5,0.), (0.,0.,.5), (0.,.5,.5), (.5,0.,.5), (.5,.5,0.), (.5,.5,.5), (.5,1.,0.), (.5,0.,1.), (1.,.5,0.), 
+(0.,.5,1.), (1.,0.,.5), (0.,1.,.5), (.5,.5,1.), (.5,1.,.5), (1.,.5,.5), (1.,1.,.5), (1.,.5,1.), (.5,1.,1.),(0.,1.,0.), (0.,0.,1.), (1.,0.,0.), (0.,1.,1.), (1.,0.,1.), (1.,1.,0.), (1.,1.,1.), (0.,0.,0.), (.5,0.,0.),
+(0.,.5,0.), (0.,0.,.5), (0.,.5,.5), (.5,0.,.5), (.5,.5,0.), (.5,.5,.5), (.5,1.,0.), (.5,0.,1.), (1.,.5,0.),
+(0.,.5,1.), (1.,0.,.5), (0.,1.,.5), (.5,.5,1.), (.5,1.,.5), (1.,.5,.5), (1.,1.,.5), (1.,.5,1.), (.5,1.,1.),(0.,1.,0.), (0.,0.,1.), (1.,0.,0.), (0.,1.,1.), (1.,0.,1.), (1.,1.,0.), (1.,1.,1.), (0.,0.,0.), (.5,0.,0.),
+(0.,.5,0.), (0.,0.,.5), (0.,.5,.5), (.5,0.,.5), (.5,.5,0.), (.5,.5,.5), (.5,1.,0.), (.5,0.,1.), (1.,.5,0.),
 (0.,.5,1.), (1.,0.,.5), (0.,1.,.5), (.5,.5,1.), (.5,1.,.5), (1.,.5,.5), (1.,1.,.5), (1.,.5,1.), (.5,1.,1.)]
 
 
-for i, sample in enumerate(val_dataloader):
+for i, sample in enumerate(train_dataloader):
     # if i > 30:
     #     break
-    utils.progress_bar(i, len(val_dataloader), 'Handling...')
-
+    utils.progress_bar(i, len(train_dataloader), 'Handling...')
     if opt.debug:
         ipdb.set_trace()
 

@@ -7,7 +7,7 @@ from dataloader import yolo_dataset
 from dataloader import paired_dataset
 from dataloader.custom import get_dataset
 from dataloader.voc import VOCTrainValDataset
-
+from dataloader.coco import CocoDataset
 import albumentations as A
 from albumentations.pytorch.transforms import ToTensorV2
 
@@ -20,7 +20,7 @@ import pdb
 ###################
 
 TEST_DATASET_HAS_OPEN = False  # 有没有开放测试集
-DATA_FOTMAT = 'VOC'  # 数据集格式
+DATA_FOTMAT = 'COCO'  # 数据集格式
 
 ###################
 
@@ -94,3 +94,30 @@ if DATA_FOTMAT == 'VOC':
 
     else:
         test_dataloader = None
+
+elif DATA_FOTMAT == 'COCO':
+
+    def collate_fn(batch):
+        target = {}
+        b = len(batch)
+        target['image'] = torch.stack([sample['img'] for sample in batch])
+        target['bboxes'] = [sample['annot'][:, :4] for sample in batch]
+        target['labels'] = [sample['annot'][:, 4] for sample in batch]
+        #target['path'] = [sample['path'] for sample in batch]
+
+        return target
+    transform = A.Compose(
+        [
+            ToTensorV2(p=1.0),
+        ],
+    )
+    train_dataset = CocoDataset(transform=transform)
+    train_dataloader = torch.utils.data.DataLoader(train_dataset,
+                                                   shuffle=True,
+                                                   batch_size=opt.batch_size,
+                                                   num_workers=opt.workers,
+                                                   collate_fn=collate_fn,
+                                                   drop_last=True)
+
+    val_dataloader = None
+
