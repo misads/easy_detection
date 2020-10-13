@@ -15,24 +15,24 @@ import misc_utils as utils
 """
 source domain 是clear的
 """
-writer = create_summary_writer('logs/preview_dataset')
+writer = create_summary_writer('logs/preview_dataloader')
 
-# class_names = opt.class_names
-class_names = [
-    'person', 'bicycle', 'car', 'motorcycle', 'airplane',
-    'bus', 'train', 'truck', 'boat', 'traffic light', 'fire hydrant',
-    'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse',
-    'sheep', 'cow', 'elephant', 'bear', 'zebra', 'giraffe', 'backpack',
-    'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee', 'skis',
-    'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove',
-    'skateboard', 'surfboard', 'tennis racket', 'bottle', 'wine glass',
-    'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple', 'sandwich',
-    'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake',
-    'chair', 'couch', 'potted plant', 'bed', 'dining table', 'toilet', 'tv',
-    'laptop', 'mouse', 'remote', 'keyboard', 'cell phone', 'microwave',
-    'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase',
-    'scissors', 'teddy bear', 'hair drier', 'toothbrush'
-]
+class_names = opt.class_names
+# class_names = [
+#     'person', 'bicycle', 'car', 'motorcycle', 'airplane',
+#     'bus', 'train', 'truck', 'boat', 'traffic light', 'fire hydrant',
+#     'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse',
+#     'sheep', 'cow', 'elephant', 'bear', 'zebra', 'giraffe', 'backpack',
+#     'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee', 'skis',
+#     'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove',
+#     'skateboard', 'surfboard', 'tennis racket', 'bottle', 'wine glass',
+#     'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple', 'sandwich',
+#     'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake',
+#     'chair', 'couch', 'potted plant', 'bed', 'dining table', 'toilet', 'tv',
+#     'laptop', 'mouse', 'remote', 'keyboard', 'cell phone', 'microwave',
+#     'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase',
+#     'scissors', 'teddy bear', 'hair drier', 'toothbrush'
+# ]
 
 
 
@@ -51,9 +51,7 @@ for i, sample in enumerate(train_dataloader):
     labels = sample['labels'][0].cpu().numpy().astype(np.int32)
 
 
-    for j, (x1, y1, x2, y2) in enumerate(bboxes):
-
-        visualize_boxes(image=image, boxes=bboxes, labels=labels, probs=np.array(np.random.randint(85, 100,size=[len(bboxes)])/100), class_labels=class_names)
+    visualize_boxes(image=image, boxes=bboxes, labels=labels, probs=np.array(np.random.randint(85, 100,size=[len(bboxes)])/100), class_labels=class_names)
 
     write_image(writer, f'preview/{i}', 'image', image, 0, 'HWC')
 
