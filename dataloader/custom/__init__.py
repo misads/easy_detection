@@ -1,4 +1,4 @@
-from .voc import VOC
+from .real_voc import VOC
 from .apollo import Apollo
 from .cityscapes import Cityscapes
 from .wheat import Wheat

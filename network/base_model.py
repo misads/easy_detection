@@ -18,7 +18,7 @@ from mscv.image import tensor2im
 from mscv.aug_test import tta_inference, tta_inference_x8
 from mscv.summary import write_loss, write_image
 from mscv.image import tensor2im
-
+from utils.vis import visualize_boxes
 
 class BaseModel(torch.nn.Module):
     def __init__(self):
@@ -68,15 +68,8 @@ class BaseModel(torch.nn.Module):
                         cv2.rectangle(img, (x1,y1), (x2,y2), (0, 255, 0), 2)  # 绿色的是gt
 
                     num = len(batch_scores[0])
-                    for n in range(num):
-                        if batch_scores[0][n] > 0.05:
-                            x1, y1, x2, y2 = batch_bboxes[0][n]
-                            x1 = int(round(x1))
-                            y1 = int(round(y1))
-                            x2 = int(round(x2))
-                            y2 = int(round(y2))
-
-                            cv2.rectangle(img, (x1,y1), (x2,y2), (255, 0, 0), 2)  # 红色的是预测的
+                    visualize_boxes(image=img, boxes=batch_bboxes[0],
+                             labels=batch_labels[0].astype(np.int32), probs=batch_scores[0], class_labels=opt.class_names)
 
                     write_image(writer, f'{data_name}/{i}', 'image', img, epoch, 'HWC')
 

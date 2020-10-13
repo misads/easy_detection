@@ -16,7 +16,7 @@ import pdb
 ###################
 
 TEST_DATASET_HAS_OPEN = False  # 有没有开放测试集
-DATA_FOTMAT = 'COCO'  # 数据集格式
+DATA_FOTMAT = 'VOC'  # 数据集格式
 
 ###################
 
@@ -92,6 +92,8 @@ if DATA_FOTMAT == 'VOC':
         test_dataloader = None
 
 elif DATA_FOTMAT == 'COCO':
+    opt.width = 512
+    opt.height = 512
 
     def collate_fn(batch):
         target = {}
@@ -103,7 +105,7 @@ elif DATA_FOTMAT == 'COCO':
         return target
     transform = A.Compose(
         [
-            A.Resize(height=512, width=512, p=1),
+            A.Resize(height=opt.height, width=opt.width, p=1),
             ToTensorV2(p=1.0),
         ],
         p=1.0,
