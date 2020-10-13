@@ -12,7 +12,7 @@ from dataloader.additional import voc_to_yolo_format
 class CocoDataset(Dataset):
     """Coco dataset."""
 
-    def __init__(self, root_dir='/home/raid/public/datasets/coco', set_name='train2017', transform=None):
+    def __init__(self, root_dir, set_name, transform=None):
         """
         Args:
             root_dir (string): COCO directory.
@@ -51,7 +51,7 @@ class CocoDataset(Dataset):
 
     def __getitem__(self, idx):
 
-        img = self.load_image(idx)
+        img, path = self.load_image(idx)
         annot = self.load_annotations(idx)
         bboxes = annot[:, :4]
         labels = annot[:, 4]
@@ -64,6 +64,7 @@ class CocoDataset(Dataset):
             })
         sample['bboxes']= torch.Tensor(sample['bboxes'])
         sample['labels']= torch.Tensor(sample['labels'])
+        sample['path'] = path
 
         sample.update(voc_to_yolo_format(sample, opt))  # yolo format
 
@@ -79,7 +80,7 @@ class CocoDataset(Dataset):
         # if len(img.shape) == 2:
         #     img = skimage.color.gray2rgb(img)
 
-        return img.astype(np.float32)/255.0
+        return img.astype(np.float32)/255.0 , path
 
     def load_annotations(self, image_index):
         # get ground truth annotations

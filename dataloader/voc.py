@@ -14,6 +14,7 @@ import misc_utils as utils
 import xml.etree.ElementTree as ET
 import misc_utils as utils
 import random
+import pickle
 import numpy as np
 import cv2
 
@@ -60,7 +61,7 @@ class VOCTrainValDataset(dataset.Dataset):
     """
 
     def __init__(self, voc_root, class_names, split='train.txt', format='jpg', transforms=None, max_size=None, use_cache=True):
-        utils.color_print(f'Use dataset: {voc_root}, split: {split.rstrip(".txt")}', 3)
+        utils.color_print(f'Use dataset: {voc_root}, split: {split[:-4]}', 3)
 
         im_list = os.path.join(voc_root, f'ImageSets/Main/{split}')
         image_root = os.path.join(voc_root, 'JPEGImages')
@@ -74,54 +75,81 @@ class VOCTrainValDataset(dataset.Dataset):
         tot_bbox = 0
         difficult_bbox = 0
 
-        with open(im_list, 'r') as f:
-            lines = f.readlines()
-            for i, line in enumerate(lines):
-                utils.progress_bar(i, len(lines), 'Load Anno...')
-                image_id = line.rstrip('\n')
-                abspath = os.path.abspath(os.path.join(image_root, f'{image_id}.{format}'))
-                self.image_paths.append(abspath)
-                with open(os.path.join(voc_root, f'Annotations/{image_id}.xml'), 'r') as anno:
-                    tree = ET.parse(anno)
+        """
+        如果有缓存的pickle文件，就直接从pickle文件读取bboxes
+        """
+        os.makedirs('.cache', exist_ok=True)
 
-                # 解析xml标注
-                root = tree.getroot()
-                bboxes = []
-                labels = []
+        cache_file = os.path.join('.cache', f'{os.path.basename(voc_root)}_{split[:-4]}.pkl')
+        if use_cache and os.path.isfile(cache_file):
+            with open(cache_file, 'rb') as f:
+                data = pickle.load(f, encoding='bytes')
+            
+            utils.color_print(f'Use cached annoations.', 3)
 
-                size = root.find('size')
-                width = int(size.find('width').text)
-                height = int(size.find('height').text)
+            self.image_paths, self.bboxes, self.labels, self.difficults, \
+            counter, tot_bbox, difficult_bbox = data
+            
+        else:  # 没有缓存文件
+            with open(im_list, 'r') as f:
+                lines = f.readlines()
+                for i, line in enumerate(lines):
+                    utils.progress_bar(i, len(lines), 'Load Anno...')
+                    image_id = line.rstrip('\n')
+                    abspath = os.path.abspath(os.path.join(image_root, f'{image_id}.{format}'))
+                    self.image_paths.append(abspath)
+                    with open(os.path.join(voc_root, f'Annotations/{image_id}.xml'), 'r') as anno:
+                        tree = ET.parse(anno)
 
-                for obj in root.iter('object'):  # 多个元素
-                    # difficult = obj.find('difficult').text
-                    class_name = obj.find('name').text
+                    # 解析xml标注
+                    root = tree.getroot()
+                    bboxes = []
+                    labels = []
 
-                    difficult = obj.find('difficult').text
-                    if difficult != '0': 
-                        difficult_bbox += 1
-                        continue  # 忽略困难样本
+                    size = root.find('size')
+                    width = int(size.find('width').text)
+                    height = int(size.find('height').text)
 
-                    if class_name not in class_names:
-                        continue  # class_names中没有的类别是忽略还是报错
-                        raise Exception(f'"{class_name}" not in class names({class_names}).')
-                    class_id = class_names.index(class_name)
-                    bbox = obj.find('bndbox')
-                    x1 = limit(int(bbox.find('xmin').text), 0, width)
-                    y1 = limit(int(bbox.find('ymin').text), 0, height)
-                    x2 = limit(int(bbox.find('xmax').text), 0, width)
-                    y2 = limit(int(bbox.find('ymax').text), 0, height)
+                    for obj in root.iter('object'):  # 多个元素
+                        # difficult = obj.find('difficult').text
+                        class_name = obj.find('name').text
 
-                    if x2 - x1 <= 2 or y2 - y1 <= 2:  # 面积很小的标注
-                        continue
+                        difficult = obj.find('difficult').text
+                        if difficult != '0': 
+                            difficult_bbox += 1
+                            continue  # 忽略困难样本
 
-                    counter[class_name] += 1
-                    tot_bbox += 1
-                    bboxes.append([x1, y1, x2, y2])
-                    labels.append(class_id)
+                        if class_name not in class_names:
+                            continue  # class_names中没有的类别是忽略还是报错
+                            raise Exception(f'"{class_name}" not in class names({class_names}).')
+                            
+                        class_id = class_names.index(class_name)
+                        bbox = obj.find('bndbox')
+                        x1 = limit(int(bbox.find('xmin').text), 0, width)
+                        y1 = limit(int(bbox.find('ymin').text), 0, height)
+                        x2 = limit(int(bbox.find('xmax').text), 0, width)
+                        y2 = limit(int(bbox.find('ymax').text), 0, height)
 
-                self.bboxes.append(bboxes)
-                self.labels.append(labels)
+                        if x2 - x1 <= 2 or y2 - y1 <= 2:  # 面积很小的标注
+                            continue
+
+                        counter[class_name] += 1
+                        tot_bbox += 1
+                        bboxes.append([x1, y1, x2, y2])
+                        labels.append(class_id)
+
+                    self.bboxes.append(bboxes)
+                    self.labels.append(labels)
+
+            """
+            存放到缓存文件
+            """
+            data = [self.image_paths, self.bboxes, self.labels, self.difficults, \
+                counter, tot_bbox, difficult_bbox]
+
+            with open(cache_file, 'wb') as f:
+                pickle.dump(data, f)
+
 
         for name in class_names:
             utils.color_print(f'{name}: {counter[name]} ({counter[name]/tot_bbox*100:.2f}%)', 5)

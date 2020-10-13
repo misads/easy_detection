@@ -2,6 +2,7 @@ import albumentations as A
 from albumentations.pytorch.transforms import ToTensorV2
 
 class VOC(object):
+    data_format = 'VOC'
     voc_root = 'datasets/VOC'
     train_split = 'train.txt'
     val_split = 'test.txt' 

@@ -2,6 +2,7 @@ import albumentations as A
 from albumentations.pytorch.transforms import ToTensorV2
 
 class Wheat(object):
+    data_format = 'VOC'
     voc_root = 'datasets/wheat_detection'
     train_split = 'train.txt'
     val_split = 'val.txt' 

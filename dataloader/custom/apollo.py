@@ -2,13 +2,16 @@ import albumentations as A
 from albumentations.pytorch.transforms import ToTensorV2
 
 class Apollo(object):
+    data_format = 'VOC'
     voc_root = 'datasets/apollo'
     train_split = 'train.txt'
     val_split = 'val.txt' 
     class_names = ['bicycle', 'bicycle_group', 'bus', 'car', 'car_groups', 'motorbicycle',
     'motorbicycle_group', 'person', 'person_group', 'rider', 'rider_group', 'tricycle', 'truck']
+    class_names = ['bus', 'car', 'motorbicycle_group', 'person', 'tricycle',
+    'truck']
 
-    img_format = 'png'
+    img_format = 'jpg'
 
     width = 512
     height = 416
