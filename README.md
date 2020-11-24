@@ -9,7 +9,7 @@
 - 数据格式
   - [x] VOC
   - [ ] CSV文件
-  - [x] COCO(RetinaNet代码里有)
+  - [x] COCO
 
 - 网络模型
   - [x] EfficientDet(目前不支持训练过程中验证)
@@ -94,6 +94,13 @@ models = {
 ```
 
 3、尝试 `python train.py --model MyNet` 看能否成功运行
+
+
+## 预训练模型
+
+| Model | 数据集 | 论文指标 | 本repo指标 | 下载链接 | 密码 |
+| ----- | ------ | -------- | ---------- | -------- | ----- |
+| YoloV2 | VOC |76.8|76.46|   [0_voc_Yolo2.pt](https://pan.baidu.com/s/1UyWGG1kn5h1l_FHP3idurw) | mwik |
 
 
 ## 如何训练自己的数据集
