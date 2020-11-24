@@ -26,7 +26,7 @@ def parse_args():
     parser.add_argument('--result_dir', type=str, default='./results', help='results are saved here')
     #######################
 
-    parser.add_argument('--model', type=str, default='default', help='which model to use')
+    parser.add_argument('--model', type=str, default=None, help='which model to use')
     parser.add_argument('--norm', type=str, choices=['batch', 'instance', None], default=None,
                         help='[instance] normalization or [batch] normalization')
 
@@ -65,6 +65,12 @@ def parse_args():
 
     parser.add_argument('--epochs', '--max_epoch', type=int, default=500, help='epochs to train')
     parser.add_argument('--lr', type=float, default=0.0002, help='initial learning rate for adam')
+
+    # test time bbox settings
+    parser.add_argument('--conf_thresh', type=float, default=0.01, help='bboxes with conf < this threshold will be ignored')
+    parser.add_argument('--nms_thresh', type=float, default=0.45, help='nms threshold')
+    parser.add_argument('--wbf_thresh', type=float, default=0.5, help='wbf threshold')
+    parser.add_argument('--box_fusion', choices=['nms', 'wbf'], default='nms')
 
     parser.add_argument('--save_freq', type=int, default=10, help='freq to save models')
     parser.add_argument('--eval_freq', '--val_freq', type=int, default=10, help='freq to eval models')

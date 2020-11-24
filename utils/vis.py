@@ -235,7 +235,7 @@ def draw_bounding_box_on_image(image,
   else:
     (left, right, top, bottom) = (xmin, xmax, ymin, ymax)
   draw.line([(left, top), (left, bottom), (right, bottom),
-             (right, top), (left, top)], width=2, fill=color)
+             (right, top), (left, top)], width=thickness, fill=color)
   try:
     font = ImageFont.truetype('Arial.ttf', 24)
   except IOError:

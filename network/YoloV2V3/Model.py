@@ -36,31 +36,22 @@ nms_thresh = 0.45
 iou_thresh = 0.5
 
 
-def truths_length(truths):
-    for i in range(50):
-        if truths[i][1] == 0:
-            return i
-    return 50
-
-
 class Model(BaseModel):
     def __init__(self, opt):
         super(Model, self).__init__()
         self.opt = opt
         
+        # 根据YoloV2和YoloV3使用不同的配置文件
         if opt.model == 'Yolo2':
-            cfgfile = 'yolo-voc.cfg'
+            cfgfile = 'configs/yolo2-voc.cfg'
         elif opt.model == 'Yolo3':
-            cfgfile = 'yolo_v3.cfg'
+            cfgfile = 'configs/yolo3-coco.cfg'
 
+        # 初始化detector
         self.detector = Darknet(cfgfile, device=opt.device).to(opt.device)
-        #####################
-        #    Init weights
-        #####################
-        # normal_init(self.detector)
-
         print_network(self.detector)
 
+        # 在--load之前加载weights文件(可选)
         if opt.weights:
             utils.color_print('Load Yolo weights from %s.' % opt.weights, 3)
             self.detector.load_weights(opt.weights)
@@ -88,7 +79,6 @@ class Model(BaseModel):
         detection_output = self.detector(image)  # 在src domain上训练检测
 
         for i, l in enumerate(loss_layers):
-            # l.seen = l.seen + data.data.size(0)
             ol=l(detection_output[i]['x'], target)
             org_loss.append(ol)
 

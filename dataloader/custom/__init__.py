@@ -1,7 +1,6 @@
-from .real_voc import VOC
-from .real_coco import COCO
+from .origin_voc import VOC
+from .origin_coco import COCO
 from .apollo import Apollo
-# from .apollo_hazy import Apollo_hazy
 from .cityscapes import Cityscapes
 from .wheat import Wheat
 from .widerface import Wider_face

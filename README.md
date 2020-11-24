@@ -98,9 +98,10 @@ models = {
 
 ## 预训练模型
 
-| Model | 数据集 | 论文指标 | 本repo指标 | 下载链接 | 密码 |
+| Model | 数据集 | 论文AP50 | 复现AP50 | 下载链接 | 密码 |
 | ----- | ------ | -------- | ---------- | -------- | ----- |
 | YoloV2 | VOC |76.8|76.46|   <https://pan.baidu.com/s/1UyWGG1kn5h1l_FHP3idurw>| mwik |
+| YoloV3 | COCO |55.3|-| <https://pan.baidu.com/s/1SxmjpgCbwAEyRtwLNhG3xQ> | cf4j |
 
 
 ## 如何训练自己的数据集

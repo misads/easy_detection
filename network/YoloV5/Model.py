@@ -22,6 +22,7 @@ from .utils import *
 from loss import get_default_loss
 
 from torchvision.ops import nms
+from utils.ensemble_boxes.ensemble_boxes_wbf import weighted_boxes_fusion
 
 import misc_utils as utils
 
@@ -97,9 +98,6 @@ class Model(BaseModel):
         return {}
 
     def forward(self, image):  # test
-        nms_thresh = 0.45  # 0.3~0.5
-        conf_thresh = 0.4
-
         batch_bboxes = []
         batch_labels = []
         batch_scores = []
@@ -115,16 +113,27 @@ class Model(BaseModel):
         b = image.shape[0]  # batch有几张图
         for bi in range(b):
             bbox = bboxes[bi]
-            conf_bbox = bbox[bbox[:, 4] > conf_thresh]
+            conf_bbox = bbox[bbox[:, 4] > opt.conf_thresh]
             xyxy_bbox = conf_bbox[:, :4]  # x1y1x2y2坐标
             scores = conf_bbox[:, 4]
-            nms_indices = nms(xyxy_bbox, scores, nms_thresh)
+            nms_indices = nms(xyxy_bbox, scores, opt.nms_thresh)
 
             xyxy_bbox = xyxy_bbox[nms_indices]
             scores = scores[nms_indices]
-            batch_bboxes.append(xyxy_bbox.detach().cpu().numpy())
-            batch_labels.append(np.zeros([xyxy_bbox.shape[0]], dtype=np.int32))
-            batch_scores.append(scores.detach().cpu().numpy())
+
+            if opt.box_fusion == 'wbf':
+                boxes, scores, labels = weighted_boxes_fusion([xyxy_bbox.detach().cpu().numpy()], 
+                                                            [scores.detach().cpu().numpy()], 
+                                                            [np.zeros([xyxy_bbox.shape[0]], dtype=np.int32)], 
+                                                            iou_thr=0.5)
+            elif opt.box_fusion == 'nms':
+                boxes = xyxy_bbox.detach().cpu().numpy()
+                scores = scores.detach().cpu().numpy()
+                labels = np.zeros([xyxy_bbox.shape[0]], dtype=np.int32)
+
+            batch_bboxes.append(boxes)
+            batch_labels.append(labels)
+            batch_scores.append(scores)
 
         return batch_bboxes, batch_labels, batch_scores
 

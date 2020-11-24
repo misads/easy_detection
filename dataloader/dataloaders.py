@@ -12,8 +12,7 @@ from mscv.image import tensor2im
 import torch
 import pdb
 
-# opt.dataset = 'wheat'
-
+# 根据--opt.dataset获奖数据集
 dataset = get_dataset(opt.dataset)
 d = dataset()
 

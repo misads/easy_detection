@@ -50,8 +50,7 @@ for i, sample in enumerate(train_dataloader):
     bboxes = sample['bboxes'][0].cpu().numpy()
     labels = sample['labels'][0].cpu().numpy().astype(np.int32)
 
-
-    visualize_boxes(image=image, boxes=bboxes, labels=labels, probs=np.array(np.random.randint(85, 100,size=[len(bboxes)])/100), class_labels=class_names)
+    visualize_boxes(image=image, boxes=bboxes, labels=labels, probs=np.array(np.random.randint(100, 101, size=[len(bboxes)])/100), class_labels=class_names)
 
     write_image(writer, f'preview_{opt.dataset}/{i}', 'image', image, 0, 'HWC')
 

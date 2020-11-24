@@ -1,4 +1,6 @@
 # encoding=utf-8
+import torch
+torch.multiprocessing.set_sharing_strategy('file_system')
 
 from skimage.measure import compare_psnr as psnr
 from skimage.measure import compare_ssim as ski_ssim  # deprecated
