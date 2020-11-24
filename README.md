@@ -4,7 +4,7 @@
 
 ![preview](http://www.xyu.ink/wp-content/uploads/2020/10/COCO2.png)
 
-## Todo List
+## Functionalities
 
 - 数据格式
   - [x] VOC
