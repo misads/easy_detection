@@ -6,8 +6,6 @@ import os
 from .yolo import Model as Yolo5
 from torch import nn
 import gc
-from .eval_yolo import eval_yolo
-from yolo3.eval_map import eval_detection_voc
 
 from options import opt
 

@@ -64,7 +64,7 @@ def parse_args():
     parser.add_argument('--reset', action='store_true', help='reset training, only used when --load')
 
     parser.add_argument('--epochs', '--max_epoch', type=int, default=500, help='epochs to train')
-    parser.add_argument('--lr', type=float, default=0.0002, help='initial learning rate for adam')
+    parser.add_argument('--lr', type=float, default=0.0001, help='initial learning rate for adam')
 
     # test time bbox settings
     parser.add_argument('--conf_thresh', type=float, default=0.01, help='bboxes with conf < this threshold will be ignored')

@@ -9,13 +9,12 @@ import os
 
 from torch import nn
 import gc
-from yolo3.darknet import Darknet
-from yolo3.utils import get_all_boxes, bbox_iou, nms, read_data_cfg, load_class_names
-from yolo3.image import correct_yolo_boxes
-from yolo3.utils import *
-from yolo3.eval_map import eval_detection_voc
+from .yolo3.darknet import Darknet
+from .yolo3.utils import get_all_boxes, bbox_iou, nms, read_data_cfg, load_class_names
+from .yolo3.image import correct_yolo_boxes
+# from .yolo3.utils import *
+from .yolo3.eval_map import eval_detection_voc
 
-from .eval_yolo import eval_yolo
 
 from options import opt
 
