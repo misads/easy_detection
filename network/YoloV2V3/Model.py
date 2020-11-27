@@ -1,14 +1,11 @@
 import pdb
 import sys
-sys.path.insert(0, "./timm-efficientdet-pytorch")
-sys.path.insert(0, "./omegaconf")
-
 import numpy as np
 import torch
 import os
-
-from torch import nn
 import gc
+import torch.nn as nn
+
 from .yolo3.darknet import Darknet
 from .yolo3.utils import get_all_boxes, bbox_iou, nms, read_data_cfg, load_class_names
 from .yolo3.image import correct_yolo_boxes
@@ -29,7 +26,6 @@ import ipdb
 
 conf_thresh = 0.005
 nms_thresh = 0.45
-iou_thresh = 0.5
 
 
 class Model(BaseModel):
@@ -124,16 +120,19 @@ class Model(BaseModel):
             img_boxes = []
             img_labels = []
             img_scores = []
+
+            b, c, h, w = image.shape
+
             for box in boxes:
                 box[0] -= box[2] / 2
                 box[1] -= box[3] / 2
                 box[2] += box[0]
                 box[3] += box[1]
 
-                box[0] *= width
-                box[2] *= width
-                box[1] *= height
-                box[3] *= height
+                box[0] *= w
+                box[2] *= w
+                box[1] *= h
+                box[3] *= h
 
                 for i in range(5, len(box), 2):
                     img_boxes.append(box[:4])
@@ -144,30 +143,6 @@ class Model(BaseModel):
             batch_bboxes.append(np.array(img_boxes))
             batch_labels.append(np.array(img_labels).astype(np.int32))
             batch_scores.append(np.array(img_scores))
-
-                
-            # boxes = np.array([box[:7] for box in boxes])
-
-            # """cxcywh转xyxy"""
-            # boxes[:, 0] -= boxes[:, 2] / 2
-            # boxes[:, 1] -= boxes[:, 3] / 2
-            # boxes[:, 2] += boxes[:, 0]
-            # boxes[:, 3] += boxes[:, 1]
-
-            # boxes[:, 0] *= width
-            # boxes[:, 2] *= width
-            # boxes[:, 1] *= height
-            # boxes[:, 3] *= height
-
-            # score = boxes[:, 4] * boxes[:, 5]
-
-            # # conf_indics = score > 0.5
-            # # score = score[conf_indics]
-            # # boxes = boxes[conf_indics]
-
-            # batch_bboxes.append(boxes[:, :4])
-            # batch_labels.append(boxes[:, 6].astype(np.int32))
-            # batch_scores.append(score)
 
         return batch_bboxes, batch_labels, batch_scores
 
