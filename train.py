@@ -111,112 +111,97 @@ from mscv.image import tensor2im
 # from utils.send_sms import send_notification
 
 import misc_utils as utils
+import random
+import albumentations as A
 
-######################
-#       Paths
-######################
-save_root = os.path.join(opt.checkpoint_dir, opt.tag)
-log_root = os.path.join(opt.log_dir, opt.tag)
+from albumentations.pytorch.transforms import ToTensorV2
 
-utils.try_make_dir(save_root)
-utils.try_make_dir(log_root)
+# 初始化
+with torch.no_grad():
+    # 初始化路径
+    save_root = os.path.join(opt.checkpoint_dir, opt.tag)
+    log_root = os.path.join(opt.log_dir, opt.tag)
 
+    utils.try_make_dir(save_root)
+    utils.try_make_dir(log_root)
 
-######################
-#      DataLoaders
-######################
-train_dataloader = train_dataloader
-val_dataloader = val_dataloader
-# init log
-logger = init_log(training=True)
+    # dataloader
+    train_dataloader = train_dataloader
+    val_dataloader = val_dataloader
 
-######################
-#     Init model
-######################
-Model = get_model(opt.model)
-model = Model(opt)
+    # 初始化日志
+    logger = init_log(training=True)
 
-# 暂时还不支持多GPU
-# if len(opt.gpu_ids):
-#     model = torch.nn.DataParallel(model, device_ids=opt.gpu_ids)
-model = model.to(device=opt.device)
+    # 初始化模型
+    Model = get_model(opt.model)
+    model = Model(opt)
 
-if opt.load:
-    load_epoch = model.load(opt.load)
-    start_epoch = load_epoch + 1 if opt.resume else 1
-else:
-    start_epoch = 1
+    # 暂时还不支持多GPU
+    # if len(opt.gpu_ids):
+    #     model = torch.nn.DataParallel(model, device_ids=opt.gpu_ids)
+    model = model.to(device=opt.device)
 
-model.train()
+    if opt.load:
+        load_epoch = model.load(opt.load)
+        start_epoch = load_epoch + 1 if opt.resume else 1
+    else:
+        start_epoch = 1
 
-# Start training
-print('Start training...')
-start_step = (start_epoch - 1) * len(train_dataloader)
-global_step = start_step
-total_steps = opt.epochs * len(train_dataloader)
-start = time.time()
+    model.train()
 
-#####################
-#   定义scheduler
-#####################
+    # 开始训练
+    print('Start training...')
+    start_step = (start_epoch - 1) * len(train_dataloader)
+    global_step = start_step
+    total_steps = opt.epochs * len(train_dataloader)
+    start = time.time()
 
-scheduler = model.scheduler
+    # 定义scheduler
+    scheduler = model.scheduler
 
-######################
-#    Summary_writer
-######################
-writer = create_summary_writer(log_root)
+    # tensorboard日志
+    writer = create_summary_writer(log_root)
 
-start_time = time.time()
-######################
-#     Train loop
-######################
-# for iteration, data in enumerate(train_dataloader):
-#     rate = (iteration) / (time.time() - start)
-#     remaining = (len(train_dataloader) - iteration) / rate if rate else 9999999
-#     utils.progress_bar(iteration, len(train_dataloader), 'Step:', f'ETA: {utils.format_time(remaining)}')
+    start_time = time.time()
+
+    # 在日志记录transforms
+    logger.info('train_trasforms: ' +str(train_dataloader.dataset.transforms))
+    logger.info('===========================================')
+    if val_dataloader is not None:
+        logger.info('val_trasforms: ' +str(val_dataloader.dataset.transforms))
+    logger.info('===========================================')
 
 
-"""
-import cv2
-for dataname, dataloader in [('src', dl.src_data_loader), ('tgt', dl.tgt_data_loader)]:
-    for i, data in enumerate(dataloader):
-        if i >= 9:
-            break
-
-        input = data[0]
-        bboxes = data[1][0]
-        bboxes = bboxes.view([-1, 5])
-
-        img = tensor2im(input)
-
-        for line in bboxes:
-            label, cx, cy, lx, ly = line
-            x2 = int((cx+lx/2) * 416)
-            y2 = int((cy+ly/2) * 416)
-            x1 = int((cx-lx/2) * 416)
-            y1 = int((cy-ly/2) * 416)
-
-            img = img.copy()
-            cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 1)
-
-        write_image(writer, dataname, f'input/{i}', img, 1, 'HWC')
-
-import ipdb; ipdb.set_trace()
-"""
-
-# model.eval()
-# eval_yolo(model.DA.Yolo, dl.src_val_loader, 0, writer, logger)
-
-# model.train()
-
+# 训练循环
 try:
     eval_result = ''
 
     for epoch in range(start_epoch, opt.epochs + 1):
-        for iteration, data in enumerate(train_dataloader):
+        for iteration, sample in enumerate(train_dataloader):
             global_step += 1
-            # model.adjust_learning_rate(global_step)
+            
+            # if global_step % 10 == 0:
+            #     wh = (random.randint(0,9) + 10)*32  # 320, ..., 608
+
+            #     train_dataloader.dataset.transforms = A.Compose(
+            #         [
+            #             A.LongestMaxSize(wh, p=1.0),
+            #             A.PadIfNeeded(min_height=wh, min_width=wh, border_mode=0, value=(0.5,0.5,0.5), p=1.0),
+            #             A.ToGray(p=0.01),
+            #             A.HorizontalFlip(p=0.5),
+            #             # A.VerticalFlip(p=0.5),
+            #             # A.Resize(height=height, width=width, p=1),
+            #             # A.Cutout(num_holes=5, max_h_size=64, max_w_size=64, fill_value=0, p=0.5),
+            #             ToTensorV2(p=1.0),
+            #         ], 
+            #         p=1.0, 
+            #         bbox_params=A.BboxParams(
+            #             format='pascal_voc',
+            #             min_area=0, 
+            #             min_visibility=0,
+            #             label_fields=['labels']
+            #         )
+            #     )
 
             rate = (global_step - start_step) / (time.time() - start)
             remaining = (total_steps - global_step) / rate
@@ -224,20 +209,16 @@ try:
             if opt.debug and iteration > 10:
                 break
 
-            # img, label = data['image'], data['label']  # ['label'], data['image']  #
-            # img, label = data
-
-            # img_var = Variable(img, requires_grad=False).to(device=opt.device)
-            # label_var = Variable(label, requires_grad=False).to(device=opt.device)
+            sample['global_step'] = global_step
 
             ##############################
             #       Update parameters
             ##############################
-            updated = model.update(data)
+            updated = model.update(sample)
             predicted = updated.get('predicted')
 
             pre_msg = 'Epoch:%d' % epoch
-
+            # get_last_lr()
             msg = f'lr:{round(scheduler.get_lr()[0], 6) : .6f} (loss) {str(model.avg_meters)} ETA: {utils.format_time(remaining)}'
             utils.progress_bar(iteration, len(train_dataloader), pre_msg, msg)
             # print(pre_msg, msg)
@@ -251,6 +232,7 @@ try:
                 # write_image(writer, 'train', '2_dehazed', dehazed, global_step, 'HWC')
                 # write_image(writer, 'train', '3_label', gt, global_step, 'HWC')
 
+        # get_last_lr()
         logger.info(f'Train epoch: {epoch}, lr: {round(scheduler.get_lr()[0], 6) : .6f}, (loss) ' + str(model.avg_meters))
 
         if epoch % opt.save_freq == 0 or epoch == opt.epochs:  # 最后一个epoch要保存一下

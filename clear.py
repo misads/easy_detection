@@ -22,6 +22,9 @@ opt = parse_args()
 
 paths = ['checkpoints', 'logs', 'results']
 
+if opt.tag.startswith('logs/'):
+    opt.tag = opt.tag[5:]
+    
 if opt.rm:
     for path in paths:
         p = os.path.join(path, opt.tag)

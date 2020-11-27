@@ -112,6 +112,11 @@ class BaseModel(torch.nn.Module):
             utils.color_print('Load checkpoint from %s.' % ckpt_path, 3)
 
         ckpt_info = load_checkpoint(load_dict, ckpt_path, map_location=opt.device)
+
+        s = torch.load(ckpt_path)
+        if opt.resume:
+            self.optimizer.load_state_dict(s['optimizer'])
+
         epoch = ckpt_info.get('epoch', 0)
 
         return epoch

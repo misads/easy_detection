@@ -14,13 +14,34 @@ def get_scheduler(opt, optimizer):
                                                 step_size_down=opt.epochs // 10)
     elif opt.scheduler == 'lambda':
         def lambda_decay(step) -> float:
-            warm_steps = 500
-            if step <= warm_steps:
-                return step / warm_steps
-            else:
-                return 0.997 ** ((step - warm_steps) // 1000)
+            if step < 1:
+                return 0.0002  # 5个epoch
+            elif step < 9:
+                return 0.02
+            elif step < 12:
+                return 0.002
+            else:  # 15 epoch
+                return 0.0002
+            
+            # if step < 5:
+            #     return 0.00001  # 5个epoch
+            # elif step < 60:
+            #     return 0.001 / 24
+            # elif step < 90:
+            #     return 0.0001 / 24
+            # else:
+            #     return 0.00001 / 24
 
         scheduler = optim.lr_scheduler.LambdaLR(optimizer, lambda_decay)
+
+        # def lambda_decay(step) -> float:
+        #     warm_steps = 500
+        #     if step <= warm_steps:
+        #         return step / warm_steps
+        #     else:
+        #         return 0.997 ** ((step - warm_steps) // 1000)
+
+        # scheduler = optim.lr_scheduler.LambdaLR(optimizer, lambda_decay)
 
     else:
         scheduler = None

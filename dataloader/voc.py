@@ -60,7 +60,7 @@ class VOCTrainValDataset(dataset.Dataset):
 
     """
 
-    def __init__(self, voc_root, class_names, split='train.txt', format='jpg', transforms=None, max_size=None, use_cache=False):
+    def __init__(self, voc_root, class_names, split='train.txt', format='jpg', transforms=None, max_size=None, use_cache=False, use_difficult=False):
         utils.color_print(f'Use dataset: {voc_root}, split: {split[:-4]}', 3)
 
         im_list = os.path.join(voc_root, f'ImageSets/Main/{split}')
@@ -115,7 +115,7 @@ class VOCTrainValDataset(dataset.Dataset):
                         class_name = obj.find('name').text
 
                         difficult = obj.find('difficult').text
-                        if difficult != '0': 
+                        if difficult != '0' and not use_difficult: 
                             difficult_bbox += 1
                             continue  # 忽略困难样本
 
