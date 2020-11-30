@@ -19,7 +19,7 @@ pycocotools == 2.0
 ```
 都是很好装的包，不需要编译。 `pip -r requirements.txt` 或者手动一行行`pip`安装即可
 
-## 训练和验证模型
+<!-- ## 训练和验证模型
 
 ```bash
 Code Usage:
@@ -43,6 +43,22 @@ Clear(delete all files with the tag, BE CAREFUL to use):
 
 See ALL Running Commands:
     cat run_log.txt
+``` -->
+
+## 训练已有的模型
+
+#### Faster RCNN
+
+
+```bash
+python3 train.py --tag frcnn_voc --model Faster_RCNN -b1 --optimizer sgd --scheduler lambda --val_freq 1 --save_freq 1 --epochs 12 --lr 1
+```
+
+
+#### YOLOv2
+
+```bash
+python3 train.py --tag yolo2_voc --model Yolo2 -b24 --val_freq 5 --save_freq 5 --optimizer sgd --scheduler lambda --lr 1. --weights pretrained/darknet19_448.conv.23 --epochs 160
 ```
 
 
