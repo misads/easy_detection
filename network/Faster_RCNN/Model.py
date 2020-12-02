@@ -49,8 +49,8 @@ class Model(BaseModel):
     def __init__(self, opt):
         super(Model, self).__init__()
         self.opt = opt
-        # self.detector = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
-        self.detector = FasterRCNN_VGG()
+        self.detector = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=False)
+        # self.detector = FasterRCNN_VGG()
         in_features = self.detector.roi_heads.box_predictor.cls_score.in_features
 
         # replace the pre-trained head with a new one
