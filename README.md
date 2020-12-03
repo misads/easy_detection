@@ -56,6 +56,8 @@
 | YoloV3 | Darknet-19 | COCO |55.3|-| [[百度网盘]](https://pan.baidu.com/s/1SxmjpgCbwAEyRtwLNhG3xQ) | cf4j |
 | FRCNN | Res50+FPN | VOC | - |83.26 |  [[百度网盘]](https://pan.baidu.com/s/17NDNGeVRYxCG0vWqgaFDxQ) | isqt |
 | FRCNN | Res50+FPN |  COCO |  |48.81|  |  |
+| YoloV4 | CSPDarknet-53 | COCO| 62.8 | - | [[百度网盘]](https://pan.baidu.com/s/1keDDPyMvpX11jnXbJsoTrg) | nio7 |
+
 
 ## Reference
 
