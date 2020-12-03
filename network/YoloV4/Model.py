@@ -7,6 +7,7 @@ import torch
 import cv2
 import os
 
+import ipdb
 from torch import nn
 import torchvision
 # from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
@@ -38,7 +39,15 @@ class Model(BaseModel):
         #
         # # replace the pre-trained head with a new one
         # self.detector.roi_heads.box_predictor = FastRCNNPredictor(in_features, opt.num_classes + 1)
-        self.detector = yolov4(inference=True)
+        self.detector = yolov4(inference=True, n_classes=opt.num_classes)
+        
+        # """
+        # 预训练模型
+        # """
+        # pretrained_dict = torch.load('pretrained/yolov4.pth')
+        # self.detector.load_state_dict(pretrained_dict)
+
+
         self.yolov4loss = Yolo_loss(device=opt.device,batch=opt.batch_size)
         #####################
         #    Init weights
@@ -79,7 +88,7 @@ class Model(BaseModel):
         return {}
 
     def forward(self, image):  # test
-        conf_thresh = 0.005
+        conf_thresh = 0.001
         nms_thresh = 0.45
 
         batch_bboxes = []
@@ -108,6 +117,10 @@ class Model(BaseModel):
             l_max_conf = max_conf[i, argwhere]
             l_max_id = max_id[i, argwhere]
 
+            boxes = []
+            labels = []
+            scores = []
+
             for j in range(opt.num_classes):
 
                 cls_argwhere = l_max_id == j
@@ -127,13 +140,15 @@ class Model(BaseModel):
                     ll_max_conf = ll_max_conf[keep]
                     ll_max_id = ll_max_id[keep]
 
-                    batch_bboxes.append(ll_box_array.detach().cpu().numpy())
-                    batch_labels.append(ll_max_id.detach().cpu().numpy())
-                    batch_scores.append(ll_max_conf.detach().cpu().numpy())
+                    boxes.extend(ll_box_array.detach().cpu().numpy().tolist())
+                    labels.extend(ll_max_id.detach().cpu().numpy().tolist())
+                    scores.extend(ll_max_conf.detach().cpu().numpy().tolist())
                 else:
-                    batch_bboxes.append(np.array([]))
-                    batch_labels.append(np.array([]).astype(np.int32))
-                    batch_scores.append(np.array([]))
+                    pass
+
+            batch_bboxes.append(np.array(boxes))
+            batch_labels.append(np.array(labels).astype(np.int32))
+            batch_scores.append(np.array(scores))
 
         return batch_bboxes, batch_labels, batch_scores
 
@@ -146,5 +161,5 @@ class Model(BaseModel):
     def load(self, ckpt_path):
         return super(Model, self).load(ckpt_path)
 
-    def save(self, which_epoch):
-        super(Model, self).save(which_epoch)
+    def save(self, which_epoch, published=False):
+        super(Model, self).save(which_epoch, published=published)
