@@ -21,6 +21,7 @@ from .utils import *
 from loss import get_default_loss
 
 from torchvision.ops import nms
+from .utils import non_max_suppression
 from utils.ensemble_boxes.ensemble_boxes_wbf import weighted_boxes_fusion
 
 import misc_utils as utils
@@ -101,46 +102,51 @@ class Model(BaseModel):
         batch_labels = []
         batch_scores = []
 
-        pred = self.detector(image)
-        bboxes = pred[0]
+        inf_out, _ = self.detector(image)
+        
+        output = non_max_suppression(inf_out, conf_thres=0.001, iou_thres=0.65, merge=False)
+        ipdb.set_trace（）
         """xywh转x1y1x2y2"""
-        bboxes[:, :, 0] = bboxes[:, :, 0] - bboxes[:, :, 2] / 2
-        bboxes[:, :, 1] = bboxes[:, :, 1] - bboxes[:, :, 3] / 2
-        bboxes[:, :, 2] += bboxes[:, :, 0]
-        bboxes[:, :, 3] += bboxes[:, :, 1]
+        # bboxes[:, :, 0] = bboxes[:, :, 0] - bboxes[:, :, 2] / 2
+        # bboxes[:, :, 1] = bboxes[:, :, 1] - bboxes[:, :, 3] / 2
+        # bboxes[:, :, 2] += bboxes[:, :, 0]
+        # bboxes[:, :, 3] += bboxes[:, :, 1]
 
-        b = image.shape[0]  # batch有几张图
-        for bi in range(b):
-            bbox = bboxes[bi]
-            conf_bbox = bbox[bbox[:, 4] > opt.conf_thresh]
-            xyxy_bbox = conf_bbox[:, :4]  # x1y1x2y2坐标
-            scores = conf_bbox[:, 4]
+        # b = image.shape[0]  # batch有几张图
+        # for bi in range(b):
+        #     bbox = bboxes[bi]
+        #     conf_bbox = bbox[bbox[:, 4] > opt.conf_thresh]
+        #     xyxy_bbox = conf_bbox[:, :4]  # x1y1x2y2坐标
+        #     scores = conf_bbox[:, 4]
 
-            nms_indices = nms(xyxy_bbox, scores, opt.nms_thresh)
+        #     nms_indices = nms(xyxy_bbox, scores, opt.nms_thresh)
 
-            xyxy_bbox = xyxy_bbox[nms_indices]
-            scores = scores[nms_indices]  # 检测的置信度
-            classification = conf_bbox[nms_indices, 5:]
-            if len(classification) != 0:
-                prob, class_id = torch.max(classification, 1)
-                # scores = scores * prob  # 乘以最高类别的置信度
-            else:
-                class_id = torch.Tensor([])
+        #     xyxy_bbox = xyxy_bbox[nms_indices]
+        #     scores = scores[nms_indices]  # 检测的置信度
+        #     classification = conf_bbox[nms_indices, 5:]
 
-            if opt.box_fusion == 'wbf':
-                pass
-                # boxes, scores, labels = weighted_boxes_fusion([xyxy_bbox.detach().cpu().numpy()], 
-                #                                             [scores.detach().cpu().numpy()], 
-                #                                             [np.zeros([xyxy_bbox.shape[0]], dtype=np.int32)], 
-                #                                             iou_thr=0.5)
-            elif opt.box_fusion == 'nms':
-                boxes = xyxy_bbox.detach().cpu().numpy()
-                scores = scores.detach().cpu().numpy()
-                labels = class_id.detach().cpu().numpy()
+            
 
-            batch_bboxes.append(boxes)
-            batch_labels.append(labels)
-            batch_scores.append(scores)
+        #     if len(classification) != 0:
+        #         prob, class_id = torch.max(classification, 1)
+        #         # scores = scores * prob  # 乘以最高类别的置信度
+        #     else:
+        #         class_id = torch.Tensor([])
+
+        #     if opt.box_fusion == 'wbf':
+        #         pass
+        #         # boxes, scores, labels = weighted_boxes_fusion([xyxy_bbox.detach().cpu().numpy()], 
+        #         #                                             [scores.detach().cpu().numpy()], 
+        #         #                                             [np.zeros([xyxy_bbox.shape[0]], dtype=np.int32)], 
+        #         #                                             iou_thr=0.5)
+        #     elif opt.box_fusion == 'nms':
+        #         boxes = xyxy_bbox.detach().cpu().numpy()
+        #         scores = scores.detach().cpu().numpy()
+        #         labels = class_id.detach().cpu().numpy()
+
+        #     batch_bboxes.append(boxes)
+        #     batch_labels.append(labels)
+        #     batch_scores.append(scores)
 
         return batch_bboxes, batch_labels, batch_scores
 
