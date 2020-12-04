@@ -57,7 +57,7 @@
 | FRCNN | Res50+FPN | VOC | - |83.26 |  [[百度网盘]](https://pan.baidu.com/s/17NDNGeVRYxCG0vWqgaFDxQ) | isqt |
 | FRCNN | Res50+FPN |  COCO |  |48.81|  |  |
 | YoloV4 | CSPDarknet-53 | COCO| 62.8 | - | [[百度网盘]](https://pan.baidu.com/s/1keDDPyMvpX11jnXbJsoTrg) | nio7 |
-
+| YoloV5 | CSPDarknet | COCO | - |  64.30 | [[百度网盘]](https://pan.baidu.com/s/1j45qGCEu5_Tl0BlDF8ixnw) | cssw |
 
 ## Reference
 
