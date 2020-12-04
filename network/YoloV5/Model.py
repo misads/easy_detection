@@ -6,6 +6,7 @@ import os
 from .yolo import Model as Yolo5
 from torch import nn
 import gc
+import ipdb
 
 from options import opt
 
@@ -44,7 +45,7 @@ class Model(BaseModel):
         super(Model, self).__init__()
         self.opt = opt
         cfgfile = 'yolov5x.yaml'
-        self.detector = Yolo5(cfgfile).to(opt.device)
+        self.detector = Yolo5(cfgfile)
         self.detector.hyp = hyp
         self.detector.gr = 1.0
         self.detector.nc = opt.num_classes
@@ -114,20 +115,28 @@ class Model(BaseModel):
             conf_bbox = bbox[bbox[:, 4] > opt.conf_thresh]
             xyxy_bbox = conf_bbox[:, :4]  # x1y1x2y2坐标
             scores = conf_bbox[:, 4]
+
             nms_indices = nms(xyxy_bbox, scores, opt.nms_thresh)
 
             xyxy_bbox = xyxy_bbox[nms_indices]
-            scores = scores[nms_indices]
+            scores = scores[nms_indices]  # 检测的置信度
+            classification = conf_bbox[nms_indices, 5:]
+            if len(classification) != 0:
+                prob, class_id = torch.max(classification, 1)
+                # scores = scores * prob  # 乘以最高类别的置信度
+            else:
+                class_id = torch.Tensor([])
 
             if opt.box_fusion == 'wbf':
-                boxes, scores, labels = weighted_boxes_fusion([xyxy_bbox.detach().cpu().numpy()], 
-                                                            [scores.detach().cpu().numpy()], 
-                                                            [np.zeros([xyxy_bbox.shape[0]], dtype=np.int32)], 
-                                                            iou_thr=0.5)
+                pass
+                # boxes, scores, labels = weighted_boxes_fusion([xyxy_bbox.detach().cpu().numpy()], 
+                #                                             [scores.detach().cpu().numpy()], 
+                #                                             [np.zeros([xyxy_bbox.shape[0]], dtype=np.int32)], 
+                #                                             iou_thr=0.5)
             elif opt.box_fusion == 'nms':
                 boxes = xyxy_bbox.detach().cpu().numpy()
                 scores = scores.detach().cpu().numpy()
-                labels = np.zeros([xyxy_bbox.shape[0]], dtype=np.int32)
+                labels = class_id.detach().cpu().numpy()
 
             batch_bboxes.append(boxes)
             batch_labels.append(labels)
@@ -142,6 +151,12 @@ class Model(BaseModel):
         return self.eval_mAP(dataloader, epoch, writer, logger, data_name)
 
     def load(self, ckpt_path):
+        # state = torch.load(ckpt_path)
+        # utils.p(list(state['detector'].keys()))
+        # print('=========================================')
+        # utils.p(list(self.detector.state_dict().keys()))
+        # ipdb.set_trace()
+        # self.detector.load_state_dict(state)
         return super(Model, self).load(ckpt_path)
 
     def save(self, which_epoch):
