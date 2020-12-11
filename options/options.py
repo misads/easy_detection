@@ -47,6 +47,7 @@ def parse_args():
 
     # for datasets
     parser.add_argument('--dataset', default='voc', help='training dataset')
+    parser.add_argument('--transform', default=None, help='transform')
     parser.add_argument('--val_set', type=str, default=None)
     parser.add_argument('--test_set', type=str, default=None)
 

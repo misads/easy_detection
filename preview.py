@@ -20,18 +20,18 @@ from albumentations.pytorch.transforms import ToTensorV2
 """
 source domain 是clear的
 """
-writer = create_summary_writer('logs/preview_dataloader')
+writer = create_summary_writer('logs/preview')
 
 # class_names = opt.class_names
 class_names = opt.class_names
 
-preview_dataloader = val_dataloader  # train_dataloader, val_dataloader
+preview = val_dataloader  # train_dataloader, val_dataloader
 
 from utils.vis import visualize_boxes
-for i, sample in enumerate(preview_dataloader):
+for i, sample in enumerate(preview):
     # if i > 30:
     #     break
-    utils.progress_bar(i, len(preview_dataloader), 'Handling...')
+    utils.progress_bar(i, len(preview), 'Handling...')
     if opt.debug:
         ipdb.set_trace()
 

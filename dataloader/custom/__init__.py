@@ -5,7 +5,6 @@ from .cityscapes import Cityscapes
 from .wheat import Wheat
 from .widerface import Wider_face
 from .rtts import Rtts
-from .apollohazy import Apollo_hazy
 
 datasets = {
     'voc': VOC,  # if --dataset is not specified
@@ -15,7 +14,6 @@ datasets = {
     'wheat': Wheat,
     'widerface': Wider_face,
     'rtts': Rtts,
-    'apollohazy': Apollo_hazy
 }
 
 def get_dataset(dataset: str):

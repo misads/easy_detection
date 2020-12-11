@@ -13,6 +13,7 @@ models = {
     'Yolo2': Yolo2,
     'Yolo3': Yolo3,
     'Faster_RCNN': Faster_RCNN,
+    'FRCNN': Faster_RCNN,
     'Yolo5': Yolo5,
     'SSD300': SSD300,
     'SSD512': SSD512,

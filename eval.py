@@ -50,5 +50,11 @@ if __name__ == '__main__':
     writer = create_summary_writer(log_root)
 
     logger = init_log(training=False)
+
+    logger.info('===========================================')
+    if val_dataloader is not None:
+        logger.info('val_trasforms: ' +str(val_dataloader.dataset.transforms))
+    logger.info('===========================================')
+
     evaluate(model, val_dataloader, opt.which_epoch, writer, logger, 'val')
 

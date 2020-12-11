@@ -2,6 +2,8 @@
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from dataloader.custom import get_dataset
+from dataloader.transforms import get_transform
+
 from dataloader.voc import VOCTrainValDataset
 from dataloader.coco import CocoDataset
 import albumentations as A
@@ -16,13 +18,25 @@ import pdb
 dataset = get_dataset(opt.dataset)
 d = dataset()
 
-variable_names = ['voc_root', 'train_split', 'val_split', 'class_names', 'img_format', 
-                    'width', 'height', 'train_transform', 'val_transform', 'data_format']
+if not opt.transform:
+    opt.transform = opt.model.lower()
 
-for v in variable_names:
+transform = get_transform(opt.transform)
+t = transform()
+
+dataset_variables = ['voc_root', 'train_split', 'val_split', 'class_names', 'img_format', 'data_format']
+
+transform_variables = ['width', 'height', 'train_transform', 'val_transform']
+
+for v in dataset_variables:
     # 等价于 exec(f'{v}=d.{v}')
     if hasattr(d, v):
         locals()[v] = getattr(d, v)  # 把类的成员变量赋值给当前的局部变量
+
+for v in transform_variables:
+    if hasattr(t, v):
+        locals()[v] = getattr(t, v)  # 把类的成员变量赋值给当前的局部变量
+
 
 opt.class_names = class_names
 opt.num_classes = len(class_names)
