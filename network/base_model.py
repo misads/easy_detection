@@ -121,15 +121,19 @@ class BaseModel(torch.nn.Module):
 
         return epoch
 
-    def save(self, which_epoch):
+    def save(self, which_epoch, published=False):
         save_filename = f'{which_epoch}_{opt.model}.pt'
         save_path = os.path.join(self.save_dir, save_filename)
         save_dict = {
             'detector': self.detector,
-            'optimizer': self.optimizer,
-            'scheduler': self.scheduler,
             'epoch': which_epoch
         }
+        
+        if published:
+            save_dict['epoch'] = 0
+        else:
+            save_dict['optimizer'] = self.optimizer
+            save_dict['scheduler'] = self.scheduler
 
         save_checkpoint(save_dict, save_path)
         utils.color_print(f'Save checkpoint "{save_path}".', 3)

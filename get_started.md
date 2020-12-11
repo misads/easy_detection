@@ -7,6 +7,7 @@ torch >= 1.0
 tensorboardX >= 1.6
 utils-misc >= 0.0.5
 mscv >= 0.0.3
+matplotlib >= 3.1.1
 albumentations >= 0.4.0
 scikit-image >= 0.17.2
 torch-template >= 0.0.4
@@ -14,7 +15,9 @@ opencv-python >= 4.0.0.21
 timm == 0.1.30  # timm >= 0.2.0 
 typing_extensions == 3.7.2
 tqdm >= 4.49.0
-pycocotools == 2.0
+PyYAML >= 5.3.1
+Cython >= 0.29.16
+pycocotools >= 2.0  # 需要Cython
 
 ```
 都是很好装的包，不需要编译。 `pip -r requirements.txt` 或者手动一行行`pip`安装即可

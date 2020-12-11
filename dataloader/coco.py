@@ -20,16 +20,16 @@ def coco_90_to_80_classes(id):
 class CocoDataset(Dataset):
     """Coco dataset."""
 
-    def __init__(self, root_dir, set_name, transform=None):
+    def __init__(self, root_dir, set_name, transforms=None):
         """
         Args:
             root_dir (string): COCO directory.
-            transform (callable, optional): Optional transform to be applied
+            transforms (callable, optional): Optional transforms to be applied
                 on a sample.
         """
         self.root_dir = root_dir
         self.set_name = set_name
-        self.transform = transform
+        self.transforms = transforms
 
         self.coco = COCO(os.path.join(self.root_dir, 'annotations', 'instances_' + self.set_name + '.json'))
         self.image_ids = self.coco.getImgIds()
@@ -64,13 +64,17 @@ class CocoDataset(Dataset):
         bboxes = annot[:, :4]
         labels = annot[:, 4]
 
-        if self.transform:
-            sample = self.transform(**{
-                'image': img,
-                'bboxes': bboxes,
-                'labels': labels
-            })
-            
+        if self.transforms:           
+            for i in range(20):
+                sample = self.transforms(**{
+                    'image': img,
+                    'bboxes': bboxes,
+                    'labels': labels
+                })
+
+                if len(sample['bboxes']) > 0:
+                    break
+
         sample['bboxes']= torch.Tensor(sample['bboxes'])
         sample['labels']= torch.Tensor(sample['labels'])
         sample['path'] = path

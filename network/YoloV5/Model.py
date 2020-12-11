@@ -104,8 +104,24 @@ class Model(BaseModel):
 
         inf_out, _ = self.detector(image)
         
-        output = non_max_suppression(inf_out, conf_thres=0.001, iou_thres=0.65, merge=False)
-        ipdb.set_trace（）
+        bboxes = non_max_suppression(inf_out, conf_thres=0.001, iou_thres=0.65, merge=False)
+
+        b = len(bboxes)
+        for bi in range(b):
+            pred = bboxes[bi]
+            if pred is None:
+                batch_bboxes.append(np.array([[]]))
+                batch_labels.append(np.array([]))
+                batch_scores.append(np.array([]))
+            else:
+                boxes = pred[:,:4].cpu().detach().numpy()
+                scores = pred[:,4].cpu().detach().numpy()
+                labels = pred[:,5].cpu().detach().numpy().astype(np.int32)
+                batch_bboxes.append(boxes)
+                batch_labels.append(labels)
+                batch_scores.append(scores)
+
+        # ipdb.set_trace()
         """xywh转x1y1x2y2"""
         # bboxes[:, :, 0] = bboxes[:, :, 0] - bboxes[:, :, 2] / 2
         # bboxes[:, :, 1] = bboxes[:, :, 1] - bboxes[:, :, 3] / 2
