@@ -45,7 +45,7 @@ class Model(BaseModel):
     def __init__(self, opt):
         super(Model, self).__init__()
         self.opt = opt
-        cfgfile = 'yolov5x.yaml'
+        cfgfile = 'configs/yolov5x.yaml'
         self.detector = Yolo5(cfgfile)
         self.detector.hyp = hyp
         self.detector.gr = 1.0
