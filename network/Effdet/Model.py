@@ -1,14 +1,14 @@
 import pdb
 import sys
-sys.path.insert(0, "./timm-efficientdet-pytorch")
-sys.path.insert(0, "./omegaconf")
+#sys.path.insert(0, "./timm-efficientdet-pytorch")
+# sys.path.insert(0, "./omegaconf")
 
 import numpy as np
 import torch
 import os
 
-from effdet import get_efficientdet_config, EfficientDet, DetBenchTrain
-from effdet.efficientdet import HeadNet
+from .effdet import get_efficientdet_config, EfficientDet, DetBenchTrain
+from .effdet.efficientdet import HeadNet
 
 from options import opt
 
@@ -18,19 +18,19 @@ from scheduler import get_scheduler
 from network.base_model import BaseModel
 from mscv import ExponentialMovingAverage, print_network, load_checkpoint, save_checkpoint
 # from mscv.cnn import normal_init
-from loss import get_default_loss
 
 import misc_utils as utils
 
 
-def get_net():
+def get_net(pretrained=False):
     config = get_efficientdet_config('tf_efficientdet_d5')
     net = EfficientDet(config, pretrained_backbone=False)
-    checkpoint = torch.load('/home/ubuntu/.cache/torch/checkpoints/efficientdet_d5-ef44aea8.pth')
-    net.load_state_dict(checkpoint)
-    config.num_classes = 1
+    if pretrained:
+        checkpoint = torch.load('/home/ubuntu/.cache/torch/checkpoints/efficientdet_d5-ef44aea8.pth')
+        net.load_state_dict(checkpoint)
+    config.num_classes = opt.num_classes
     config.image_size = opt.scale
-    net.class_net = HeadNet(config, num_outputs=config.num_classes, norm_kwargs=dict(eps=.001, momentum=.01))
+    net.class_net = HeadNet(config, num_outputs=21, norm_kwargs=dict(eps=.001, momentum=.01))
     return DetBenchTrain(net, config)
 
 

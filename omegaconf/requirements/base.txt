@@ -1,4 +1,0 @@
-PyYAML
-# Use dataclasses backport for Python 3.6.
-dataclasses;python_version=='3.6'
-typing-extensions

@@ -18,7 +18,6 @@ from network.base_model import BaseModel
 from mscv import ExponentialMovingAverage, print_network, load_checkpoint, save_checkpoint
 from mscv.summary import write_image
 # from mscv.cnn import normal_init
-from loss import get_default_loss
 
 import misc_utils as utils
 

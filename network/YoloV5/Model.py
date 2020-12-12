@@ -18,7 +18,6 @@ from mscv import ExponentialMovingAverage, print_network, load_checkpoint, save_
 from mscv.summary import write_image, write_loss
 from .utils import *
 # from mscv.cnn import normal_init
-from loss import get_default_loss
 
 from torchvision.ops import nms
 from .utils import non_max_suppression

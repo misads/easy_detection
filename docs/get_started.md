@@ -12,7 +12,6 @@ mscv>=0.0.3
 matplotlib>=3.1.1
 albumentations>=0.5.1
 scikit-image>=0.17.2
-torch-template>=0.0.4
 opencv-python>=4.2.0.34
 opencv-python-headless>=4.2.0.34
 easydict>=1.9
@@ -22,6 +21,7 @@ tqdm>=4.49.0
 PyYAML>=5.3.1
 Cython>=0.29.16
 pycocotools>=2.0  # 需要Cython
+omegaconf>=2.0.0  # effdet依赖
 
 ```
 

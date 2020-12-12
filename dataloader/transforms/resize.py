@@ -3,7 +3,7 @@ from dataloader.transforms import custom_transform as C
 from albumentations.pytorch.transforms import ToTensorV2
 
 class Resize(object):
-    width = height = 544
+    width = height = 512
 
     train_transform = A.Compose(
         [
