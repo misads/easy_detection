@@ -1,95 +1,211 @@
-## 环境需求
+## 安装所需要的环境
 
 ```yaml
-python >= 3.6
-numpy >= 1.16.0
-torch >= 1.0
-tensorboardX >= 1.6
-utils-misc >= 0.0.5
-mscv >= 0.0.3
-matplotlib >= 3.1.1
-albumentations >= 0.4.0
-scikit-image >= 0.17.2
-torch-template >= 0.0.4
-opencv-python >= 4.0.0.21
-timm == 0.1.30  # timm >= 0.2.0 
-typing_extensions == 3.7.2
-tqdm >= 4.49.0
-PyYAML >= 5.3.1
-Cython >= 0.29.16
-pycocotools >= 2.0  # 需要Cython
+python>=3.6
+numpy>=1.16.0
+torch>=1.0  # effdet需要torch>=1.5
+tensorboardX>=1.6
+utils-misc>=0.0.5
+mscv>=0.0.3
+matplotlib>=3.1.1
+albumentations>=0.5.1
+scikit-image>=0.17.2
+torch-template>=0.0.4
+opencv-python>=4.2.0.34
+opencv-python-headless>=4.2.0.34
+easydict>=1.9
+timm==0.1.30  # timm >= 0.2.0 不兼容 
+typing_extensions==3.7.2
+tqdm>=4.49.0
+PyYAML>=5.3.1
+Cython>=0.29.16
+pycocotools>=2.0  # 需要Cython
 
 ```
-都是很好装的包，不需要编译。 `pip -r requirements.txt` 或者手动一行行`pip`安装即可
 
-<!-- ## 训练和验证模型
+　　都是很好装的包，使用`pip install`安装即可，不需要编译。
+
+## 训练和验证模型voc数据集
+
+### 克隆此项目
 
 ```bash
-Code Usage:
-Training:
-    python train.py --tag your_tag --model Yolo2 --epochs 200 -b 3 --lr 0.0001 --gpu 0
+git clone https://github.com/misads/detection_template
+cd detection_template
+```
 
-Resume Training (or fine-tune):
-    python train.py --tag your_tag --model Yolo2 --epochs 20 -b 2 --load checkpoints/your_tag/9_Effdet.pt --resume --gpu 0
+### 准备voc数据集
 
-Eval:
-    python eval.py --model Yolo2 -b 2 --load checkpoints/your_tag/9_Yolo2.pt --gpu 1 --vis
+1. 在项目目录下新建`datasets`目录：
 
-Generate Submission:
-    python submit.py --model Yolo2 --load checkpoints/your_tag/9_Yolo2.pt -b 2 --gpu 0
+   ```bash
+   mkdir datasets
+   ```
 
-See Running Log:
-    cat logs/your_tag/log.txt
+2. 将voc数据集的`VOC2007`或者`VOC2017`目录移动`datasets/voc`目录。（推荐使用软链接）
 
-Clear(delete all files with the tag, BE CAREFUL to use):
-    python clear.py your_tag
+   ```bash
+   ln -s <VOC的下载路径>/VOCdevkit/VOC2017 datasets/voc
+   ```
 
-See ALL Running Commands:
-    cat run_log.txt
-``` -->
+3. 数据准备好后，数据的目录结构看起来应该是这样的：
 
-## 训练已有的模型
+   ```yml
+   detection_template
+       └── datasets
+             ├── voc           
+             │    ├── Annotations
+             │    ├── JPEGImages
+             │    └── ImageSets/Main
+             │            ├── train.txt
+             │            └── test.txt
+             └── <其他数据集>
+   ```
+
+### 验证模型
+
+1. 以Faster-RCNN为例，下载[[预训练模型]](https://github.com/misads/detection_template#%E9%A2%84%E8%AE%AD%E7%BB%83%E6%A8%A1%E5%9E%8B)，并将其放在`pretrained`目录下：
+
+   ```yml
+   detection_template
+       └── pretrained
+             └── 0_voc_FasterRCNN.pt
+   ```
+
+2. 运行以下命令来验证模型的`mAP`指标：
+
+   ```bash
+   python3 eval.py --model Faster_RCNN --dataset voc --load pretrained/0_voc_FasterRCNN.pt -b1
+   ```
+
+3. 如果需要使用`Tensorboard`可视化预测结果，可以在上面的命令最后加上`—vis`参数。然后运行`tensorboard --logdir results/cache`查看检测的可视化结果。
+
+4. 使用其他的模型只需要修改`--model`参数即可。
+
+### 训练模型
 
 #### Faster RCNN
 
-
 ```bash
-python3 train.py --tag frcnn_voc --model Faster_RCNN -b1 --optimizer sgd --scheduler lambda --val_freq 1 --save_freq 1 --epochs 12 --lr 1
+python3 train.py --tag frcnn_voc --model Faster_RCNN -b1 --optimizer sgd --val_freq 1 --save_freq 1 --epochs 12 --lr 1
 ```
-
 
 #### YOLOv2
 
 ```bash
-python3 train.py --tag yolo2_voc --model Yolo2 -b24 --val_freq 5 --save_freq 5 --optimizer sgd --scheduler lambda --lr 1. --weights pretrained/darknet19_448.conv.23 --epochs 160
+python3 train.py --tag yolo2_voc --model Yolo2 -b24 --val_freq 5 --save_freq 5 --optimizer sgd --lr 1. --weights pretrained/darknet19_448.conv.23 --epochs 160
 ```
 
+`darknet19_448.conv.23`是Yolo2在`ImageNet`上的预训练模型，可以在yolo官网下载。[[下载地址]](https://pjreddie.com/media/files/darknet19_448.conv.23)。
 
-## 添加新的模型：
+### 参数说明
 
+`--tag`参数是一次操作(`train`或`eval`)的标签，日志会保存在`logs/标签`目录下，保存的模型会保存在`checkpoints/标签`目录下。  
 
-1、复制`network`目录下的`Default`文件夹，改成另外一个名字(比如`MyNet`)。
+`--model`是使用的模型，所有可用的模型定义在`network/__init__.py`中。  
 
-2、在`network/__init__.py`中`import`你模型的`Model`类并且在`models = {}`中添加它。
+`--epochs`是训练的代数。  
+
+`-b`参数是`batch_size`，可以根据显存的大小调整。  
+
+`-w`参数是`num_workers`，即读取数据的进程数，如果需要用pdb来debug，将这个参数设为0。  
+
+`--lr`是初始学习率(如果使用`lambda`自定义学习率，`—lr`设为1即可)。
+
+`--load`是加载预训练模型。  
+
+`--resume`配合`--load`使用，会恢复上次训练的`epoch`和优化器。  
+
+`--val_freq`和`--save_freq`分别是每几代验证一次和每几代保存一次`checkpoint`。
+
+## 训练和验证模型自定义数据集(voc格式)
+
+### 准备数据集
+
+1. 将自己的数据集制作成`VOC`格式，并放在`datasets`目录下(可以使用软链接)。目录结构如下：
+
+   ```yml
+   detection_template
+       └── datasets
+             └── mydata_dir    
+                  ├── Annotations
+                  ├── JPEGImages
+                  └── ImageSets/Main
+                          ├── train.txt
+                          └── val.txt
+   ```
+
+2. 在`dataloader/custom`目录下新建一个`my_data.py`，内容如下：
+
+   ```python
+   class MyData(object):
+       data_format = 'VOC'
+       voc_root = 'datasets/mydata_dir'
+       train_split = 'train.txt'
+       val_split = 'val.txt' 
+       class_names = ["car", "person", "bus"]  # 所有的类别名
+       
+       img_format = 'jpg'  # 根据图片文件是jpg还是png设为'jpg'或者'png'
+   ```
+
+3. 在`dataloader/custom/__init__.py`中添加自己的数据集类：
+
+   ```python
+   from .origin_voc import VOC  # 这是原始的VOC
+   from .my_data import MyData
+   
+   datasets = {
+       'voc': VOC,  # if --dataset is not specified
+       'mydata': MyData
+   }
+   ```
+
+4. 完成定义数据集后，训练和验证时就可以使用`--dataset mydata`参数来使用自己的数据集。
+
+### 预览数据集标注
+
+1. 运行`preview.py`：
+
+   ```bash
+   python3 preview.py --dataset mydata --transform none
+   ```
+
+2. 运行`tensorboard`：
+
+   ```bash
+   tensorboard --logdir logs/preview
+   ```
+
+3. 打开浏览器，查看标注是否正确。
+
+### 在自定义数据及上训练已有模型
+
+#### Faster RCNN
+
+```bash
+python3 train.py --tag frcnn_mydata --dataset mydata --model Faster_RCNN -b1 --optimizer sgd --val_freq 1 --save_freq 1 --epochs 12 --lr 1
+```
+
+#### YOLOv2
+
+```bash
+python3 train.py --tag yolo2_mydata --dataset mydata --model Yolo2 -b24 --val_freq 5 --save_freq 5 --optimizer sgd --lr 1. --weights pretrained/darknet19_448.conv.23 --epochs 160
+```
+
+## 添加新的检测模型
+
+1. 复制`network`目录下的`Faster_RCNN`文件夹，改成另外一个名字(比如`MyNet`)。
+2. 仿照`Faster_RCNN`的model.py，修改自己的网络结构、损失函数和优化过程。
+3. 在`network/__init__.py`中`import`你模型的`Model`类并且在`models = {}`中添加它。
+
 ```python
-from MyNet.Model import Model as MyNet
+from .Faster_RCNN.Model import Model as Faster_RCNN
+from .MyNet.Model import Model as MyNet
 models = {
-    'default': Default,
+    'Faster_RCNN': Faster_RCNN,
     'MyNet': MyNet,
 }
 ```
 
-3、尝试 `python train.py --model MyNet` 看能否成功运行
+4. 运行 `python train.py --model MyNet` 看能否成功运行
 
-
-## 如何训练自己的数据集
-
-1、将自己的数据集制作成VOC格式；
-
-2、在datasets目录一下建立数据集根目录的软链接：
-```bash
-cd datasets
-ln -s /home/<abspath> mydataset
-```
-
-3、修改dataloader目录下的`dataloaders.py`，需要修改的有数据集目录`voc_root`，类别的列表`class_names`以及训练和验证时的`transforms`。

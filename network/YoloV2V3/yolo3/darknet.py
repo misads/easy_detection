@@ -267,8 +267,8 @@ class Darknet(nn.Module):
                 model = nn.Sequential()
                 if batch_normalize:
                     model.add_module('conv{0}'.format(conv_id), nn.Conv2d(prev_filters, filters, kernel_size, stride, pad, bias=False))
-                    model.add_module('bn{0}'.format(conv_id), FrozenBatchNorm2d(filters))
-                    # model.add_module('bn{0}'.format(conv_id), nn.BatchNorm2d(filters))
+                    # model.add_module('bn{0}'.format(conv_id), FrozenBatchNorm2d(filters))
+                    model.add_module('bn{0}'.format(conv_id), nn.BatchNorm2d(filters))
                     
                     #model.add_module('bn{0}'.format(conv_id), BN2d(filters))
                 else:

@@ -6,7 +6,7 @@ from .yolo2 import Yolo2
 transforms = {
     'yolo2': Yolo2,
     'faster_rcnn': FRCNN,
-    'drcnn': FRCNN,
+    'frcnn': FRCNN,
     'none': No_Transform,
     'resize': Resize
 }

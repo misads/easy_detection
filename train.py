@@ -1,94 +1,4 @@
 # encoding = utf-8
-"""
-    一个检测的Baseline，目前包含YoloV2、YoloV3、YoloV5、FasterRCNN和Effdet。
-
-    如何添加新的模型：
-
-    ① 复制network目录下的Default文件夹，改成另外一个名字(比如MyNet)。
-
-    ② 在network/__init__.py中import你的Model并且在models = {}中添加它。
-        from MyNet.Model import Model as MyNet
-        models = {
-            'default': Default,
-            'MyNet': MyNet,
-        }
-
-    ③ 尝试 python train.py --model MyNet 看能否成功运行
-
-
-    File Structure:
-    cv_template
-        ├── train.py                :Train and evaluation loop, errors and outputs visualization (Powered by TensorBoard)
-        ├── eval.py                 :Evaluation and test (with visualization)
-        ├── test.py                 :Test
-        │
-        ├── clear.py                :Clear cache, be CAREFUL to use it
-        │
-        ├── run_log.txt             :Record your command logs (except --tag cache)
-        │
-        ├── network
-        │     ├── __init__.py       :Declare all models here so that `--model` can work properly
-        │     ├── Default
-        │     │      ├── Model.py   :Define default model, losses and parameter updating procedure
-        │     │      └── FFA.py
-        │     └── MyNet
-        │            ├── Model.py   :Define your model, losses and parameter updating procedure
-        │            └── mynet.py
-        ├── options
-        │     └── options.py        :Define options
-        │
-        │
-        ├── dataloader/             :Define Dataloaders
-        │     ├── __init__.py       :imports all dataloaders in dataloaders.py
-        │     ├── dataloaders.py    :Define all dataloaders here
-        │     └── my_dataset.py     :Custom Dataset
-        │
-        ├── checkpoints/<tag>       :Trained checkpoints
-        ├── logs/<tag>              :Logs and TensorBoard event files
-        └── results/<tag>           :Test results
-
-
-    Datasets:
-
-        datasets
-           ├── train
-           │     ├── 00001
-           │     ├── 00002
-           │     └── .....
-           ├──  val
-           │     ├── 00001
-           │     ├── 00002
-           │     └── .....
-           ├── train.txt
-           └── val.txt
-
-    Usage:
-
-    #### Train
-
-        python train.py --tag train_1 --epochs 500 -b 8 --gpu 1
-
-    #### Resume Training
-
-        python train.py --load checkpoints/train_1/500_checkpoint.pt --resume
-
-    #### Evaluation
-
-        python eval.py --tag eval_1 --model MyNet --load checkpoints/train_1/500_checkpoint.pt
-
-    #### Test
-
-        python test.py --tag test_1
-
-    #### Clear
-
-        python clear.py [my_tag]  # (DO NOT use this command unless you know what you are doing.)
-
-
-    License: MIT
-
-"""
-
 import os
 import pdb
 import time
@@ -104,6 +14,7 @@ from network import get_model
 from eval import evaluate
 
 from options import opt
+from scheduler import schedulers
 
 from utils import init_log
 from mscv.summary import create_summary_writer, write_meters_loss, write_image
@@ -171,6 +82,10 @@ with torch.no_grad():
         logger.info('val_trasforms: ' +str(val_dataloader.dataset.transforms))
     logger.info('===========================================')
 
+    # 在日志记录scheduler
+    if opt.scheduler in schedulers:
+        logger.info('scheduler: (Lambda scheduler)\n' + str(schedulers[opt.scheduler]))
+        logger.info('===========================================')
 
 # 训练循环
 try:

@@ -35,7 +35,7 @@ def parse_args():
 
     # optimizer and scheduler
     parser.add_argument('--optimizer', choices=['adam', 'sgd', 'radam', 'lookahead', 'ranger'], default='adam')
-    parser.add_argument('--scheduler', choices=['cos', 'step', 'exp', 'cyclic', 'lambda', 'None'], default='cos')
+    parser.add_argument('--scheduler', default=None)
 
     # data augmentation
     # parser.add_argument('--aug', action='store_true', help='Randomly scale, jitter, change hue, saturation and brightness')
