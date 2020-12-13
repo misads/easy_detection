@@ -5,15 +5,15 @@
 ```yaml
 python>=3.6
 numpy>=1.16.0
-torch>=1.0  # effdet需要torch>=1.5
+torch>=1.0  # effdet需要torch>=1.5，如果不使用effdet，在network/__init__.py下将其注释掉
 tensorboardX>=1.6
 utils-misc>=0.0.5
 mscv>=0.0.3
 matplotlib>=3.1.1
-albumentations>=0.5.1
-scikit-image>=0.17.2
-opencv-python>=4.2.0.34
+opencv-python>=4.2.0.34  # opencv>=4.4版本需要编译，耗时较长，建议安装4.2版本
 opencv-python-headless>=4.2.0.34
+albumentations>=0.5.1  # 需要opencv>=4.2
+scikit-image>=0.17.2
 easydict>=1.9
 timm==0.1.30  # timm >= 0.2.0 不兼容 
 typing_extensions==3.7.2
