@@ -25,7 +25,9 @@ def get_scheduler(opt, optimizer):
     if opt.scheduler == 'cos':
         scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=opt.epochs, eta_min=opt.lr * 0.1)
     elif opt.scheduler.lower() == 'none':
-        scheduler = None
+        def lambda_decay(step) -> float:
+            return 1.
+        scheduler = optim.lr_scheduler.LambdaLR(optimizer, lambda_decay)
     else:
         epochs = schedulers[opt.scheduler].epochs  # [1, 7, 10, 99999999]
         ratios = schedulers[opt.scheduler].ratios

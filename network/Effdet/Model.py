@@ -22,7 +22,7 @@ from mscv import ExponentialMovingAverage, print_network, load_checkpoint, save_
 import misc_utils as utils
 
 
-def get_net(pretrained=False):
+def get_net(pretrained=True):
     config = get_efficientdet_config('tf_efficientdet_d5')
     net = EfficientDet(config, pretrained_backbone=False)
     if pretrained:
@@ -30,7 +30,7 @@ def get_net(pretrained=False):
         net.load_state_dict(checkpoint)
     config.num_classes = opt.num_classes
     config.image_size = opt.scale
-    net.class_net = HeadNet(config, num_outputs=21, norm_kwargs=dict(eps=.001, momentum=.01))
+    net.class_net = HeadNet(config, num_outputs=config.num_classes, norm_kwargs=dict(eps=.001, momentum=.01))
     return DetBenchTrain(net, config)
 
 
@@ -72,8 +72,8 @@ class Model(BaseModel):
 
     def forward(self, sample):
         labels = sample['labels']
-        for label in labels: 
-            label += 1.  # effdet的label从1开始
+        for i in range(len(labels)):
+            labels[i] += 1   # effdet的label从1开始
 
         image, bboxes, labels = sample['image'], sample['bboxes'], sample['labels']
 
@@ -84,6 +84,8 @@ class Model(BaseModel):
         bboxes = [bbox.to(opt.device).float() for bbox in bboxes]
         labels = [label.to(opt.device).float() for label in labels]
 
+        # import ipdb
+        # ipdb.set_trace()
         loss, _, _ = self.detector(image, bboxes, labels)
 
         return loss

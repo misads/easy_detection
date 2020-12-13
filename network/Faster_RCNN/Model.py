@@ -1,7 +1,5 @@
 import pdb
 import sys
-sys.path.insert(0, "./timm-efficientdet-pytorch")
-sys.path.insert(0, "./omegaconf")
 
 import numpy as np
 import torch
