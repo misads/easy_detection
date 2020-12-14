@@ -25,7 +25,7 @@ omegaconf>=2.0.0  # effdet依赖
 
 ```
 
-　　都是很好装的包，使用`pip install`安装即可，不需要编译。
+　　都是很好装的包，使用`pip install`安装即可，不需要编译(最好逐行安装，因为存在前后依赖关系)。
 
 ## 训练和验证模型voc数据集
 
@@ -66,7 +66,14 @@ cd detection_template
 
 ### 验证模型
 
-1. 以Faster-RCNN为例，下载[[预训练模型]](https://github.com/misads/detection_template#%E9%A2%84%E8%AE%AD%E7%BB%83%E6%A8%A1%E5%9E%8B)，并将其放在`pretrained`目录下：
+
+1. 新建`pretrained`文件夹：
+
+   ```bash
+   mkdir pretrained
+   ```
+
+2. 以Faster-RCNN为例，下载[[预训练模型]](https://github.com/misads/detection_template#%E9%A2%84%E8%AE%AD%E7%BB%83%E6%A8%A1%E5%9E%8B)，并将其放在`pretrained`目录下：
 
    ```yml
    detection_template
@@ -74,13 +81,13 @@ cd detection_template
              └── 0_voc_FasterRCNN.pt
    ```
 
-2. 运行以下命令来验证模型的`mAP`指标：
+3. 运行以下命令来验证模型的`mAP`指标：
 
    ```bash
    python3 eval.py --model Faster_RCNN --dataset voc --load pretrained/0_voc_FasterRCNN.pt -b1
    ```
 
-3. 如果需要使用`Tensorboard`可视化预测结果，可以在上面的命令最后加上`—vis`参数。然后运行`tensorboard --logdir results/cache`查看检测的可视化结果。
+4. 如果需要使用`Tensorboard`可视化预测结果，可以在上面的命令最后加上`--vis`参数。然后运行`tensorboard --logdir results/cache`查看检测的可视化结果。
 
 4. 使用其他的模型只需要修改`--model`参数即可。
 
