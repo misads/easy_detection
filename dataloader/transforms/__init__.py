@@ -5,6 +5,7 @@ from .yolo2 import Yolo2
 
 transforms = {
     'yolo2': Yolo2,
+    'yolo3': Yolo2,
     'faster_rcnn': FRCNN,
     'frcnn': FRCNN,
     'none': No_Transform,

@@ -96,16 +96,24 @@ cd detection_template
 #### Faster RCNN
 
 ```bash
-python3 train.py --tag frcnn_voc --model Faster_RCNN -b1 --optimizer sgd --val_freq 1 --save_freq 1 --epochs 12 --lr 1
+python3 train.py --tag frcnn_voc --model Faster_RCNN -b1 --optimizer sgd --val_freq 1 --save_freq 1 --lr 0.001
 ```
 
 #### YOLOv2
 
 ```bash
-python3 train.py --tag yolo2_voc --model Yolo2 -b24 --val_freq 5 --save_freq 5 --optimizer sgd --lr 1. --weights pretrained/darknet19_448.conv.23 --epochs 160
+python3 train.py --tag yolo2_voc --model Yolo2  -b24 --val_freq 5 --save_freq 5 --optimizer sgd --lr 0.00005 --scheduler 10x --weights pretrained/darknet19_448.conv.23
 ```
 
 `darknet19_448.conv.23`是Yolo2在`ImageNet`上的预训练模型，可以在yolo官网下载。[[下载地址]](https://pjreddie.com/media/files/darknet19_448.conv.23)。
+
+#### YOLOv3
+
+```bash
+python3 train.py --tag yolo3_voc --model Yolo3  -b12 --val_freq 10 --save_freq 10 --optimizer sgd --lr 0.0001 --scheduler 10x --weights pretrained/darknet53.conv.74
+```
+
+`darknet53.conv.74`可以在yolo官网下载。[[下载地址]](https://pjreddie.com/media/files/darknet19_448.conv.23)。
 
 ### 参数说明
 
@@ -192,14 +200,22 @@ python3 train.py --tag yolo2_voc --model Yolo2 -b24 --val_freq 5 --save_freq 5 -
 #### Faster RCNN
 
 ```bash
-python3 train.py --tag frcnn_mydata --dataset mydata --model Faster_RCNN -b1 --optimizer sgd --val_freq 1 --save_freq 1 --epochs 12 --lr 1
+python3 train.py --tag frcnn_mydata --dataset mydata --model Faster_RCNN -b1 --optimizer sgd --val_freq 1 --save_freq 1 --lr 0.001
 ```
 
 #### YOLOv2
 
 ```bash
-python3 train.py --tag yolo2_mydata --dataset mydata --model Yolo2 -b24 --val_freq 5 --save_freq 5 --optimizer sgd --lr 1. --weights pretrained/darknet19_448.conv.23 --epochs 160
+python3 train.py --tag yolo2_mydata --dataset mydata --model Yolo2  -b24 --val_freq 5 --save_freq 5 --optimizer sgd --lr 0.00005 --scheduler 10x --weights pretrained/darknet19_448.conv.23
 ```
+
+#### YOLOv3
+
+```bash
+python3 train.py --tag yolo3_mydata --dataset mydata --model Yolo3  -b12 --val_freq 10 --save_freq 10 --optimizer sgd --lr 0.0001 --scheduler 10x --weights pretrained/darknet53.conv.74
+```
+
+　　学习率和`batch_size`可以视情况调整。
 
 ## 添加新的检测模型
 

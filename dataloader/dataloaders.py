@@ -19,7 +19,7 @@ dataset = get_dataset(opt.dataset)
 d = dataset()
 
 if not opt.transform:
-    opt.transform = opt.model.lower()
+    opt.transform = opt.model.lower() if opt.model else 'none'
 
 transform = get_transform(opt.transform)
 t = transform()

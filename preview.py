@@ -25,7 +25,7 @@ writer = create_summary_writer('logs/preview')
 # class_names = opt.class_names
 class_names = opt.class_names
 
-preview = val_dataloader  # train_dataloader, val_dataloader
+preview = train_dataloader  # train_dataloader, val_dataloader
 
 from utils.vis import visualize_boxes
 for i, sample in enumerate(preview):
