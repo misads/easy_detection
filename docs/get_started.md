@@ -83,13 +83,13 @@ cd detection_template
 
 3. 运行以下命令来验证模型的`mAP`指标：
 
-　　**Faster RCNN**
+**Faster RCNN**
 
    ```bash
    python3 eval.py --model Faster_RCNN --dataset voc --load pretrained/0_voc_FasterRCNN.pt -b1
    ```
 
-　　**YOLOv2**
+**YOLOv2**
 
    ```bash
    python3 eval.py --model Yolo2 --load pretrained/0_voc_Yolo2.pt -b24 
