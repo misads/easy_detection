@@ -6,9 +6,12 @@ import os
 import gc
 import torch.nn as nn
 
-from .yolo3.darknet import Darknet
-from .yolo3.utils import get_all_boxes, bbox_iou, nms, read_data_cfg, load_class_names
-from .yolo3.image import correct_yolo_boxes
+from .yolo.darknet import Darknet
+from .yolo.utils import get_all_boxes
+from .yolo.image import correct_yolo_boxes
+from utils import to_numpy, xywh_to_xyxy, keep
+
+from torchvision.ops import nms
 
 from options import opt
 
@@ -24,8 +27,9 @@ import misc_utils as utils
 import ipdb
 
 conf_thresh = 0.005
+cls_thresh = 0.01
 nms_thresh = 0.45
-
+DO_FAST_EVAL = False  # 只保留概率最高的类，能够加快eval速度但会降低精度
 
 class Model(BaseModel):
     def __init__(self, opt):
@@ -53,7 +57,7 @@ class Model(BaseModel):
         self.avg_meters = ExponentialMovingAverage(0.95)
         self.save_dir = os.path.join(opt.checkpoint_dir, opt.tag)
 
-    def update(self, sample, *arg):
+    def update(self, sample, *args):
         """
         Args:
             sample: {'input': a Tensor [b, 3, height, width],
@@ -104,55 +108,65 @@ class Model(BaseModel):
 
         num_classes = self.detector.num_classes
 
-        output = self.detector(image)
-        all_boxes = get_all_boxes(output, shape, conf_thresh, num_classes,
-                                  device=opt.device, only_objectness=0,
+        outputs = self.detector(image)
+
+        outputs = get_all_boxes(outputs, shape, conf_thresh, num_classes,
+                                  device=opt.device, only_objectness=False,
                                   validation=True)
 
-        for b in range(len(all_boxes)):
-            boxes = all_boxes[b]
-            width = opt.width
-            height = opt.height
-            correct_yolo_boxes(boxes, width, height, width, height)
+        # ipdb.set_trace()
 
-            boxes = nms(boxes, nms_thresh)
-            img_boxes = []
-            img_labels = []
-            img_scores = []
+        for b in range(image.shape[0]):
+            preds = outputs[b]
+            preds = preds[preds[:, 4] > conf_thresh]
+
+            boxes = preds[:, :4]
+            det_conf = preds[:, 4]
+            cls_conf = preds[:, 5:]
 
             b, c, h, w = image.shape
 
-            for box in boxes:
-                box[0] -= box[2] / 2
-                box[1] -= box[3] / 2
-                box[2] += box[0]
-                box[3] += box[1]
+            boxes = xywh_to_xyxy(boxes, w, h)  # yolo的xywh转成输出的xyxy
 
-                box[0] *= w
-                box[2] *= w
-                box[1] *= h
-                box[3] *= h
+            nms_indices = nms(boxes, det_conf, nms_thresh)
+            if len(nms_indices) == 0:
+                batch_bboxes.append(np.array([[]], np.float32))
+                batch_labels.append(np.array([], np.int32))
+                batch_scores.append(np.array([], np.float32))
+                continue
 
-                for i in range(5, len(box), 2):
-                    img_boxes.append(box[:4])
-                    img_labels.append(box[i+1])
-                    score = box[4] * box[i]
-                    img_scores.append(score)
+            boxes, det_conf, cls_conf = keep(nms_indices, [boxes, det_conf, cls_conf])
+            max_conf, labels = torch.max(cls_conf, 1)
 
-            batch_bboxes.append(np.array(img_boxes))
-            batch_labels.append(np.array(img_labels).astype(np.int32))
-            batch_scores.append(np.array(img_scores))
+            scores = det_conf * max_conf
+
+            if not DO_FAST_EVAL:  # 只保留概率最高的类，能够加快eval速度但会降低精度
+                repeat_boxes = boxes.repeat([num_classes, 1])
+                repeat_det_conf = det_conf.repeat(num_classes)
+                repeat_conf = cls_conf.transpose(1, 0).contiguous().view(-1)
+                repeat_labels = torch.linspace(0, num_classes-1, num_classes).repeat(boxes.shape[0], 1).transpose(1, 0).contiguous().view(-1)
+
+                boxes, det_conf, cls_conf, labels = keep(repeat_conf>cls_thresh, [repeat_boxes, repeat_det_conf, repeat_conf, repeat_labels])
+                scores = det_conf * cls_conf
+
+            batch_bboxes.append(to_numpy(boxes))
+            batch_labels.append(to_numpy(labels, np.int32))
+            batch_scores.append(to_numpy(scores))
 
         return batch_bboxes, batch_labels, batch_scores
 
-    def inference(self, x, progress_idx=None):
-        raise NotImplementedError
 
     def evaluate(self, dataloader, epoch, writer, logger, data_name='val'):
         return self.eval_mAP(dataloader, epoch, writer, logger, data_name)
 
     def load(self, ckpt_path):
-        return super(Model, self).load(ckpt_path)
+        state_dict = torch.load(ckpt_path, map_location='cpu')
+        d = state_dict['detector']
+
+        self.detector.load_state_dict(d)
+        # self.mydetector.load_state_dict(d)
+        # return super(Model, self).load(ckpt_path)
+        return 0
 
     def save(self, which_epoch):
         super(Model, self).save(which_epoch)

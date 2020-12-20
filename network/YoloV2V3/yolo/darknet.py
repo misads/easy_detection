@@ -139,7 +139,7 @@ class Darknet(nn.Module):
         self.header = torch.IntTensor([0,1,0,0])
         self.seen = 0
 
-    def forward(self, x):
+    def forward(self, x, return_outputs=False):
         ind = -2
         #self.loss_layers = None
         outputs = dict()
@@ -184,60 +184,19 @@ class Darknet(nn.Module):
                 continue
             else:
                 print('unknown type %s' % (block['type']))
-        return x if outno == 0 else out_boxes
-        
 
-    def get_outputs(self, x):
-        ind = -2
-        #self.loss_layers = None
-        outputs = dict()
-        out_boxes = dict()
-        outno = 0
-        for block in self.blocks:
-            ind = ind + 1
-
-            if block['type'] == 'net':
-                continue
-            elif block['type'] in ['convolutional', 'maxpool', 'reorg', 'upsample', 'avgpool', 'softmax', 'connected']:
-                x = self.models[ind](x)
-                outputs[ind] = x
-            elif block['type'] == 'route':
-                layers = block['layers'].split(',')
-                layers = [int(i) if int(i) > 0 else int(i)+ind for i in layers]
-                if len(layers) == 1:
-                    x = outputs[layers[0]]
-                elif len(layers) == 2:
-                    x1 = outputs[layers[0]]
-                    x2 = outputs[layers[1]]
-                    x = torch.cat((x1,x2),1)
-                outputs[ind] = x
-            elif block['type'] == 'shortcut':
-                from_layer = int(block['from'])
-                activation = block['activation']
-                from_layer = from_layer if from_layer > 0 else from_layer + ind
-                x1 = outputs[from_layer]
-                x2 = outputs[ind-1]
-                x  = x1 + x2
-                if activation == 'leaky':
-                    x = F.leaky_relu(x, 0.1, inplace=True)
-                elif activation == 'relu':
-                    x = F.relu(x, inplace=True)
-                outputs[ind] = x
-            elif block['type'] in [ 'region', 'yolo']:
-                boxes = self.models[ind].get_mask_boxes(x)
-                out_boxes[outno]= boxes
-                outno += 1
-                outputs[ind] = None
-            elif block['type'] == 'cost':
-                continue
-            else:
-                print('unknown type %s' % (block['type']))
-        return outputs
+        if return_outputs:
+            return outputs
+        else:
+            return x if outno == 0 else out_boxes
 
     def print_network(self):
         print_cfg(self.blocks)
 
     def create_network(self, blocks):
+        """
+        根据cfg文件初始化网络结构
+        """
         models = nn.ModuleList()
     
         prev_filters = 3
@@ -405,6 +364,9 @@ class Darknet(nn.Module):
         return models
 
     def load_binfile(self, weightfile):
+        """
+        读取.weights文件
+        """
         fp = open(weightfile, 'rb')
        
         version = np.fromfile(fp, count=3, dtype=np.int32)
@@ -420,6 +382,9 @@ class Darknet(nn.Module):
         return body
 
     def load_weights(self, weightfile):
+        """
+        从c语言版的weights文件加载网络权重
+        """
         buf = self.load_binfile(weightfile)
 
         start = 0
@@ -467,6 +432,9 @@ class Darknet(nn.Module):
                 print('unknown type %s' % (block['type']))
 
     def save_weights(self, outfile, cutoff=0):
+        """
+        保存网络权重到c语言版的weights文件
+        """
         if cutoff <= 0:
             cutoff = len(self.blocks)-1
 
