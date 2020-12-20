@@ -41,7 +41,7 @@ def parse_args():
     # parser.add_argument('--aug', action='store_true', help='Randomly scale, jitter, change hue, saturation and brightness')
 
     # scale
-    parser.add_argument('--scale', type=int, default=512, help='scale images to this size')
+    parser.add_argument('--scale', type=int, default=None, help='scale images to this size')
     parser.add_argument('--crop', type=int, default=None, help='then crop to this size')
     parser.add_argument('--workers', '-w', type=int, default=4, help='num of workers')
 

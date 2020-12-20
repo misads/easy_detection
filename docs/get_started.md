@@ -83,8 +83,16 @@ cd detection_template
 
 3. 运行以下命令来验证模型的`mAP`指标：
 
+　　**Faster RCNN**
+
    ```bash
    python3 eval.py --model Faster_RCNN --dataset voc --load pretrained/0_voc_FasterRCNN.pt -b1
+   ```
+
+　　**YOLOv2**
+
+   ```bash
+   python3 eval.py --model Yolo2 --load pretrained/0_voc_Yolo2.pt -b24 
    ```
 
 4. 如果需要使用`Tensorboard`可视化预测结果，可以在上面的命令最后加上`--vis`参数。然后运行`tensorboard --logdir results/cache`查看检测的可视化结果。

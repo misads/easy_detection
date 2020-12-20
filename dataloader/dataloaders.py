@@ -79,10 +79,10 @@ if data_format == 'VOC':
 
 elif data_format == 'COCO':
     if hasattr(d, 'train_split'):
-        train_dataset = CocoDataset(voc_root, train_split, transform=train_transform)
+        train_dataset = CocoDataset(voc_root, train_split, transforms=train_transform)
 
     if hasattr(d, 'val_split'):
-        val_dataset = CocoDataset(voc_root, val_split, transform=val_transform)
+        val_dataset = CocoDataset(voc_root, val_split, transforms=val_transform)
 
 """
 Dataloaders

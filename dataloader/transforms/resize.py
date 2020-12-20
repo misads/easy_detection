@@ -1,9 +1,10 @@
 import albumentations as A
 from dataloader.transforms import custom_transform as C
 from albumentations.pytorch.transforms import ToTensorV2
+from options import opt
 
 class Resize(object):
-    width = height = 512
+    width = height = opt.scale if opt.scale else 416
 
     train_transform = A.Compose(
         [

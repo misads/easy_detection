@@ -41,9 +41,18 @@ def get_scheduler(opt, optimizer):
             return 1.
         scheduler = optim.lr_scheduler.LambdaLR(optimizer, lambda_decay)
     else:
+        if opt.scheduler not in schedulers:
+            if opt.scheduler[-1] == 'x': 
+                times = int(opt.scheduler[:-1])
+                schedulers[opt.scheduler] = {
+                    'epochs': [s * times for s in schedulers['1x'].epochs],
+                    'ratios': [0.1, 1, 0.1, 0.01],
+                }
+
         epochs = schedulers[opt.scheduler].epochs  # [1, 7, 10, 99999999]
         opt.epochs = epochs[-1]
         ratios = schedulers[opt.scheduler].ratios
+        
         def lambda_decay(step) -> float:
             for epoch, ratio in zip(epochs, ratios):
                 if step < epoch:

@@ -12,12 +12,9 @@ from misc_utils import color_print, progress_bar
 from options import opt
 import misc_utils as utils
 import numpy as np
-from utils import deprecated
 from mscv import load_checkpoint, save_checkpoint
 from mscv.image import tensor2im
-from mscv.aug_test import tta_inference, tta_inference_x8
 from mscv.summary import write_loss, write_image
-from mscv.image import tensor2im
 from utils.vis import visualize_boxes
 
 class BaseModel(torch.nn.Module):
@@ -25,14 +22,33 @@ class BaseModel(torch.nn.Module):
         super(BaseModel, self).__init__()
 
     @abstractmethod
-    def forward(self, x):
+    def update(self, sample: dict, *args, **kwargs):
+        """
+        这个函数会计算loss并且通过optimizer.step()更新网络权重。
+        """
         pass
 
-    def inference(self, x, progress_idx=None):
-        raise NotImplementedError
-
     @abstractmethod
-    def update(self, *args, **kwargs):
+    def forward(self, image, *args):
+        """
+        这个函数会由输入图像给出一个batch的预测结果。
+
+        Args:
+            image: [b, 3, h, w] Tensor
+
+        Returns:
+            tuple: (batch_bboxes, batch_labels, batch_scores)
+            
+            batch_bboxes: [ [Ni, 4] * batch_size ] 
+                一个batch的预测框，xyxy格式
+                batch_bboxes[i]，i ∈ [0, batch_size-1]
+
+            batch_labels: [[N1], [N2] ,... [N_bs]]
+                一个batch的预测标签，np.int32格式
+
+            batch_scores: [[N1], [N2] ,... [N_bs]]
+                一个batch的预测分数，np.float格式
+        """
         pass
 
     def eval_mAP(self, dataloader, epoch, writer, logger, data_name='val'):

@@ -185,9 +185,7 @@ class Darknet(nn.Module):
             else:
                 print('unknown type %s' % (block['type']))
         return x if outno == 0 else out_boxes
-
-    def common_feature(self, x):
-        return self.get_outputs(x)
+        
 
     def get_outputs(self, x):
         ind = -2
