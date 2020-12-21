@@ -25,6 +25,16 @@ paths = ['checkpoints', 'logs', 'results']
 if opt.tag.startswith('logs/'):
     opt.tag = opt.tag[5:]
     
+with open('run_log.txt', 'r') as f:
+    run_logs = f.readlines()
+
+with open('run_log.txt', 'w') as f:
+    for line in run_logs:
+        if f'--tag {opt.tag}' not in line:
+            f.writelines(line)
+
+    print("'tag=%s' in 'run_log.txt' cleared." % opt.tag)
+
 if opt.rm:
     for path in paths:
         p = os.path.join(path, opt.tag)

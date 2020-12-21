@@ -1,5 +1,6 @@
 import argparse
 import sys
+import os
 
 import torch
 
@@ -99,10 +100,16 @@ def get_command_run():
     args = sys.argv.copy()
     args[0] = args[0].split('/')[-1]
 
-    if sys.version[0] == '3':
-        command = 'python3'
+    if 'CUDA_VISIBLE_DEVICES' in os.environ:
+        gpu_id = os.environ['CUDA_VISIBLE_DEVICES']
+        command = f'CUDA_VISIBLE_DEVICES={gpu_id} '
     else:
-        command = 'python'
+        command = ''
+
+    if sys.version[0] == '3':
+        command += 'python3'
+    else:
+        command += 'python'
 
     for i in args:
         command += ' ' + i
@@ -110,7 +117,8 @@ def get_command_run():
 
 
 if opt.tag != 'cache':
+    pid = f'[PID:{os.getpid()}]'
     with open('run_log.txt', 'a') as f:
-        f.writelines(utils.get_time_str(fmt="%Y-%m-%d %H:%M:%S") + ' ' + get_command_run() + '\n')
+        f.writelines(utils.get_time_str(fmt="%Y-%m-%d %H:%M:%S") + ' ' + pid + ' ' + get_command_run() + '\n')
 
 # utils.print_args(opt)

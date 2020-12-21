@@ -160,13 +160,7 @@ class Model(BaseModel):
         return self.eval_mAP(dataloader, epoch, writer, logger, data_name)
 
     def load(self, ckpt_path):
-        state_dict = torch.load(ckpt_path, map_location='cpu')
-        d = state_dict['detector']
-
-        self.detector.load_state_dict(d)
-        # self.mydetector.load_state_dict(d)
-        # return super(Model, self).load(ckpt_path)
-        return 0
+        return super(Model, self).load(ckpt_path)
 
     def save(self, which_epoch):
         super(Model, self).save(which_epoch)
