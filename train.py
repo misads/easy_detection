@@ -94,68 +94,39 @@ try:
     for epoch in range(start_epoch, opt.epochs + 1):
         for iteration, sample in enumerate(train_dataloader):
             global_step += 1
-            
-            # if global_step % 10 == 0:
-            #     wh = (random.randint(0,9) + 10)*32  # 320, ..., 608
 
-            #     train_dataloader.dataset.transforms = A.Compose(
-            #         [
-            #             A.LongestMaxSize(wh, p=1.0),
-            #             A.PadIfNeeded(min_height=wh, min_width=wh, border_mode=0, value=(0.5,0.5,0.5), p=1.0),
-            #             A.ToGray(p=0.01),
-            #             A.HorizontalFlip(p=0.5),
-            #             # A.VerticalFlip(p=0.5),
-            #             # A.Resize(height=height, width=width, p=1),
-            #             # A.Cutout(num_holes=5, max_h_size=64, max_w_size=64, fill_value=0, p=0.5),
-            #             ToTensorV2(p=1.0),
-            #         ], 
-            #         p=1.0, 
-            #         bbox_params=A.BboxParams(
-            #             format='pascal_voc',
-            #             min_area=0, 
-            #             min_visibility=0,
-            #             label_fields=['labels']
-            #         )
-            #     )
-
+            # 计算剩余时间
             rate = (global_step - start_step) / (time.time() - start)
             remaining = (total_steps - global_step) / rate
 
+            # --debug模式下只训练10个batch
             if opt.debug and iteration > 10:
                 break
 
             sample['global_step'] = global_step
-
-            ##############################
-            #       Update parameters
-            ##############################
+     
+            #  更新网络参数
             updated = model.update(sample)
             predicted = updated.get('predicted')
 
             pre_msg = 'Epoch:%d' % epoch
-            # get_last_lr()
+
+            # 显示进度条
             msg = f'lr:{round(scheduler.get_lr()[0], 6) : .6f} (loss) {str(model.avg_meters)} ETA: {utils.format_time(remaining)}'
             utils.progress_bar(iteration, len(train_dataloader), pre_msg, msg)
             # print(pre_msg, msg)
 
-            if global_step % 1000 == 0:
+            if global_step % 1000 == 0:  # 每1000个step将loss写到tensorboard
                 write_meters_loss(writer, 'train', model.avg_meters, global_step)
-                # hazy = tensor2im(img)
-                # dehazed = tensor2im(recovered)
-                # gt = tensor2im(label)
-                # write_image(writer, 'train', '1_hazy', hazy, global_step, 'HWC')
-                # write_image(writer, 'train', '2_dehazed', dehazed, global_step, 'HWC')
-                # write_image(writer, 'train', '3_label', gt, global_step, 'HWC')
 
-        # get_last_lr()
+        # 记录训练日志
         logger.info(f'Train epoch: {epoch}, lr: {round(scheduler.get_lr()[0], 6) : .6f}, (loss) ' + str(model.avg_meters))
 
         if epoch % opt.save_freq == 0 or epoch == opt.epochs:  # 最后一个epoch要保存一下
             model.save(epoch)
 
-        ####################
-        #     Validation
-        ####################
+  
+        # 训练时验证
         if not opt.no_eval and epoch % opt.eval_freq == 0:
 
             model.eval()

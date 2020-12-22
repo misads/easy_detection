@@ -59,6 +59,7 @@ class Model(BaseModel):
 
     def update(self, sample, *args):
         """
+        给定一个batch的图像和gt, 更新网络权重, 仅在训练时使用.
         Args:
             sample: {'input': a Tensor [b, 3, height, width],
                    'bboxes': a list of bboxes [[N1 × 4], [N2 × 4], ..., [Nb × 4]],
@@ -92,8 +93,9 @@ class Model(BaseModel):
         gc.collect()
         return {}
 
-    def forward(self, image):
+    def forward_test(self, image):
         """
+        给定一个batch的图像, 输出预测的[bounding boxes, labels和scores], 仅在验证和测试时使用
         Args:
             image: [b, 3, h, w] Tensor
         """

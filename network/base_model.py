@@ -29,7 +29,7 @@ class BaseModel(torch.nn.Module):
         pass
 
     @abstractmethod
-    def forward(self, image, *args):
+    def forward_test(self, image, *args):
         """
         这个函数会由输入图像给出一个batch的预测结果。
 
@@ -68,7 +68,7 @@ class BaseModel(torch.nn.Module):
                 labels = sample['labels']
                 paths = sample['path']
 
-                batch_bboxes, batch_labels, batch_scores = self.forward(image)
+                batch_bboxes, batch_labels, batch_scores = self.forward_test(image)
                 pred_bboxes.extend(batch_bboxes)
                 pred_labels.extend(batch_labels)
                 pred_scores.extend(batch_scores)

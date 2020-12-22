@@ -1,0 +1,8 @@
+{"model": "Yolo2", 
+ "dataset": "voc",
+ "batch_size": 24, 
+ "optimizer": "sgd", 
+ "lr": 5e-05, 
+ "scheduler": "10x", 
+ "weights": "pretrained/darknet19_448.conv.23", 
+ "scale": 544}

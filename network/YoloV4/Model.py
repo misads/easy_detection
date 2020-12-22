@@ -64,6 +64,7 @@ class Model(BaseModel):
 
     def update(self, sample, *arg):
         """
+        给定一个batch的图像和gt, 更新网络权重, 仅在训练时使用.
         Args:
             sample: {'input': input_image [b, 3, height, width],
                    'bboxes': bboxes [b, None, 4],
@@ -87,7 +88,8 @@ class Model(BaseModel):
 
         return {}
 
-    def forward(self, image):  # test
+    def forward_test(self, image):
+        """给定一个batch的图像, 输出预测的[bounding boxes, labels和scores], 仅在验证和测试时使用"""
         conf_thresh = 0.001
         nms_thresh = 0.45
 

@@ -55,12 +55,13 @@ class Model(BaseModel):
     def update(self, sample, *arg):
         """
         Args:
+            给定一个batch的图像和gt, 更新网络权重, 仅在训练时使用.
             sample: {'input': a Tensor [b, 3, height, width],
                    'bboxes': a list of bboxes [[N1 × 4], [N2 × 4], ..., [Nb × 4]],
                    'labels': a list of labels [[N1], [N2], ..., [Nb]],
                    'path': a list of paths}
         """
-        loss = self.forward(sample)
+        loss = self.forward_train(sample)
 
         self.avg_meters.update({'loss': loss.item()})
 
@@ -70,7 +71,7 @@ class Model(BaseModel):
 
         return {}
 
-    def forward(self, sample):
+    def forward_train(self, sample):
         labels = sample['labels']
         for i in range(len(labels)):
             labels[i] += 1   # effdet的label从1开始

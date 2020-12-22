@@ -51,13 +51,14 @@ class Model(BaseModel):
 
     def update(self, sample, *arg):
         """
+        给定一个batch的图像和gt, 更新网络权重, 仅在训练时使用.
         Args:
             sample: {'input': a Tensor [b, 3, height, width],
                    'bboxes': a list of bboxes [[N1 × 4], [N2 × 4], ..., [Nb × 4]],
                    'labels': a list of labels [[N1], [N2], ..., [Nb]],
                    'path': a list of paths}
         """
-        loss_dict = self.forward(sample)
+        loss_dict = self.forward_train(sample)
 
         loss = sum(loss for loss in loss_dict.values())
         self.avg_meters.update({'loss': loss.item()})
@@ -67,12 +68,6 @@ class Model(BaseModel):
         self.optimizer.step()
 
         return {}
-
-    def forward(self, sample):
-        if self.training:
-            return self.forward_train(sample)
-        else:
-            return self.forward_test(sample)
 
     def forward_train(self, sample):
         labels = sample['labels']
@@ -99,6 +94,7 @@ class Model(BaseModel):
         return loss_dict
 
     def forward_test(self, image):
+        """给定一个batch的图像, 输出预测的[bounding boxes, labels和scores], 仅在验证和测试时使用"""
         conf_thresh = 0.5
 
         batch_bboxes = []

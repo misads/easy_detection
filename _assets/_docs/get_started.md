@@ -66,7 +66,7 @@ cd detection_template
              └── <其他数据集>
    ```
 
-### 验证模型
+### 使用预训练模型验证
 
 
 1. 新建`pretrained`文件夹：
