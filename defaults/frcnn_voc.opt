@@ -1,8 +1,0 @@
-{"model": "Faster_RCNN", 
- "dataset": "voc",
- "batch_size": 12, 
- "optimizer": "sgd", 
- "lr": 5e-05, 
- "scheduler": "1x", 
- "weights": "pretrained/darknet19_448.conv.23", 
- "scale": 544}
