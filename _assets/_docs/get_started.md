@@ -97,7 +97,10 @@ cd detection_template
    python3 eval.py --model Yolo2 --load pretrained/0_voc_Yolo2.pt -b24 
    ```
 
-4. 如果需要使用`Tensorboard`可视化预测结果，可以在上面的命令最后加上`--vis`参数。然后运行`tensorboard --logdir results/cache`查看检测的可视化结果。
+4. 如果需要使用`Tensorboard`可视化预测结果，可以在上面的命令最后加上`--vis`参数。然后运行`tensorboard --logdir results/cache`查看检测的可视化结果。如下图所示：
+
+　　<img alt="visualize" src="https://raw.githubusercontent.com/misads/detection_template/master/_assets/_imgs/vis.png" style="zoom:50%;" />
+
 
 4. 使用其他的模型只需要修改`--model`参数即可。
 
@@ -109,11 +112,15 @@ cd detection_template
 python3 train.py --tag frcnn_voc --model Faster_RCNN -b1 --optimizer sgd --val_freq 1 --save_freq 1 --lr 0.001
 ```
 
+[训练日志](https://raw.githubusercontent.com/misads/detection_template/master/_assets/_logs/frcnn_voc.txt)
+
 #### YOLOv2
 
 ```bash
 python3 train.py --tag yolo2_voc --model Yolo2  -b24 --val_freq 5 --save_freq 5 --optimizer sgd --lr 0.00005 --scheduler 10x --weights pretrained/darknet19_448.conv.23 --scale 544
 ```
+
+[训练日志](https://raw.githubusercontent.com/misads/detection_template/master/_assets/_logs/yolo2_voc.txt.txt)
 
 `darknet19_448.conv.23`是Yolo2在`ImageNet`上的预训练模型，可以在yolo官网下载。[[下载地址]](https://pjreddie.com/media/files/darknet19_448.conv.23)。
 
