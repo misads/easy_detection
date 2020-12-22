@@ -112,7 +112,7 @@ cd detection_template
 python3 train.py --tag frcnn_voc --model Faster_RCNN -b1 --optimizer sgd --val_freq 1 --save_freq 1 --lr 0.001
 ```
 
-[训练日志](https://raw.githubusercontent.com/misads/detection_template/master/_assets/_logs/frcnn_voc.txt)
+【[训练日志](https://raw.githubusercontent.com/misads/detection_template/master/_assets/_logs/frcnn_voc.txt)】
 
 #### YOLOv2
 
@@ -120,7 +120,7 @@ python3 train.py --tag frcnn_voc --model Faster_RCNN -b1 --optimizer sgd --val_f
 python3 train.py --tag yolo2_voc --model Yolo2  -b24 --val_freq 5 --save_freq 5 --optimizer sgd --lr 0.00005 --scheduler 10x --weights pretrained/darknet19_448.conv.23 --scale 544
 ```
 
-[训练日志](https://raw.githubusercontent.com/misads/detection_template/master/_assets/_logs/yolo2_voc.txt)
+【[训练日志](https://raw.githubusercontent.com/misads/detection_template/master/_assets/_logs/yolo2_voc.txt)】
 
 `darknet19_448.conv.23`是Yolo2在`ImageNet`上的预训练模型，可以在yolo官网下载。[[下载地址]](https://pjreddie.com/media/files/darknet19_448.conv.23)。
 
