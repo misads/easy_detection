@@ -1,9 +1,10 @@
 import albumentations as A
 from dataloader.transforms import custom_transform as C
 from albumentations.pytorch.transforms import ToTensorV2
+from options import opt
 
 class FRCNN(object):
-    width = height = short_side = 600
+    width = height = short_side = opt.scale if opt.scale else 600
 
     divisor = 32
     train_transform = A.Compose(  # FRCNN

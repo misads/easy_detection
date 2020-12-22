@@ -132,6 +132,7 @@ class BaseModel(torch.nn.Module):
         s = torch.load(ckpt_path)
         if opt.resume:
             self.optimizer.load_state_dict(s['optimizer'])
+            self.scheduler.step()
 
         epoch = ckpt_info.get('epoch', 0)
 

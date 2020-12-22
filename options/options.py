@@ -1,4 +1,5 @@
 import argparse
+import json
 import sys
 import os
 
@@ -18,6 +19,10 @@ def parse_args():
 
     parser.add_argument('--tag', type=str, default='cache',
                         help='folder name to save the outputs')
+
+    parser.add_argument('--opt', type=str, default=None,
+                        help='parse options from .opt file')
+
     parser.add_argument('--gpu_ids', '--gpu', type=str, default='0', help='gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU')
 
     # dirs (NOT often Changed)
@@ -89,6 +94,14 @@ def parse_args():
 opt = parse_args()
 
 opt.device = 'cuda:' + opt.gpu_ids if torch.cuda.is_available() and opt.gpu_ids != '-1' else 'cpu'
+
+if opt.opt:
+    with open(opt.opt, 'r') as f:
+        a = json.load(f)
+
+    for k, v in a.items():
+        setattr(opt, k, v)
+        
 
 if opt.debug:
     opt.save_freq = 1

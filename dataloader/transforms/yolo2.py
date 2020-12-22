@@ -4,7 +4,7 @@ from albumentations.pytorch.transforms import ToTensorV2
 from options import opt
 
 class Yolo2(object):
-    width = height = opt.scale if opt.scale else 416
+    width = height = opt.scale if opt.scale else 544
 
     train_transform = A.Compose(  # Yolo
         [
