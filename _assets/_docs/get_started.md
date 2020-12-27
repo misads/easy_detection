@@ -134,23 +134,21 @@ python3 train.py --tag yolo3_voc --model Yolo3  -b12 --val_freq 10 --save_freq 1
 
 ### 参数说明
 
-`--tag`参数是一次操作(`train`或`eval`)的标签，日志会保存在`logs/标签`目录下，保存的模型会保存在`checkpoints/标签`目录下。  
+| 作用                        | 参数                       | 示例                         | 说明                                                         |
+| --------------------------- | -------------------------- | ---------------------------- | ------------------------------------------------------------ |
+| 指定训练标签                | `--tag`                    | `--tag yolo2_voc`            | 日志会保存在`logs/标签`目录下，模型会保存在`checkpoints/标签`目录下。 |
+| 选择模型                    | `--model`                  | `--model Yolo2`              | **必须明确给定**。                                           |
+| 选择backbone                | `--backbone`               | `--backbone res50`           | 目前仅Faster RCNN支持选择backbone。                          |
+| 选择数据集                  | `--dataset`                | `--dataset voc`              | 支持voc、coco等数据集，也支持`dataloader/custom`中自定义的数据集。 |
+| 指定batch_size              | `-b`                       | `-b24`                       | 设置batch_size为24。                                         |
+| 指定学习率                  | `--lr`                     | `--lr 0.001`                 | 设置初始学习率为0.001。                                      |
+| 设置训练总代数和周期        | `--scheduler`              | `--checuler 10x`             | `1x`总共训练`12`个epoch，`10x`总共训练`120`个epoch。         |
+| 指定优化器                  | `-- optimizer`             | `--optimizer sgd`            | 指定优化器为sgd。                                            |
+| 指定dataloader的进程数      | `-w`                       | `-w4`                        | 如果需要用pdb调试，须设为`-w0`。                             |
+| 加载之前的模型/恢复训练     | `--load`       | `--load pretrained/yolo2.pt` | `--resume`配合`--load`使用，会恢复上次训练的`epoch`和优化器。 |
+| 指定每几代验证/保存一次模型 | `--val_freq`、`--save_freq` | `--val_freq 5`               | 每5代验证一次模型。                                          |
+| 调试模式                    | `--debug`                  | `--debug`                    | 调试模式下只会训练几个batch就会开始验证。      
 
-`--model`是使用的模型，所有可用的模型定义在`network/__init__.py`中。  
-
-`--epochs`是训练的代数。  
-
-`-b`参数是`batch_size`，可以根据显存的大小调整。  
-
-`-w`参数是`num_workers`，即读取数据的进程数，如果需要用pdb来debug，将这个参数设为0。  
-
-`--lr`是初始学习率(如果使用`lambda`自定义学习率，`—lr`设为1即可)。
-
-`--load`是加载预训练模型。  
-
-`--resume`配合`--load`使用，会恢复上次训练的`epoch`和优化器。  
-
-`--val_freq`和`--save_freq`分别是每几代验证一次和每几代保存一次`checkpoint`。
 
 ## 训练和验证模型自定义数据集(voc格式)
 
