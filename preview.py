@@ -10,6 +10,9 @@ from mscv.image import tensor2im
 
 from dataloader.dataloaders import train_dataloader, val_dataloader
 from dataloader import voc
+
+from utils.vis import visualize_boxes
+
 import misc_utils as utils
 
 import random
@@ -27,7 +30,6 @@ class_names = opt.class_names
 
 preview = train_dataloader  # train_dataloader, val_dataloader
 
-from utils.vis import visualize_boxes
 for i, sample in enumerate(preview):
     # if i > 30:
     #     break

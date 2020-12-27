@@ -33,6 +33,7 @@ def parse_args():
     #######################
 
     parser.add_argument('--model', type=str, default=None, help='which model to use')
+    parser.add_argument('--backbone', type=str, default=None, help='which backbone to use')
     parser.add_argument('--norm', type=str, choices=['batch', 'instance', None], default=None,
                         help='[instance] normalization or [batch] normalization')
 
@@ -72,6 +73,7 @@ def parse_args():
 
     parser.add_argument('--epochs', '--max_epoch', type=int, default=500, help='epochs to train')
     parser.add_argument('--lr', type=float, default=0.0001, help='initial learning rate for adam')
+    parser.add_argument('--seed', type=int, default=None, help='random seed')
 
     # test time bbox settings
     parser.add_argument('--conf_thresh', type=float, default=0.01, help='bboxes with conf < this threshold will be ignored')

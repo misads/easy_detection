@@ -24,34 +24,40 @@ import misc_utils as utils
 import ipdb
 
 from torchvision.models.detection.faster_rcnn import FasterRCNN
-from torchvision.models import vgg16
 from dataloader.coco import coco_90_to_80_classes
 
-def FasterRCNN_VGG():
-    backbone = vgg16(pretrained=True).features
-    backbone._modules.pop('30')  # 去掉最后一层Max_Pool层
-
-    # for layer in range(10):  # 冻结conv3之前的层
-    #     for p in backbone[layer].parameters():
-    #         p.requires_grad = False
-
-    backbone.out_channels = 512
-    # backbone = resnet_fpn_backbone('resnet50', pretrained_backbone)
-    model = FasterRCNN(backbone, num_classes=opt.num_classes + 1)
-
-    return model
+from .backbones import vgg16_backbone
 
 
 class Model(BaseModel):
     def __init__(self, opt):
         super(Model, self).__init__()
         self.opt = opt
-        self.detector = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=False)
-        # self.detector = FasterRCNN_VGG()
-        in_features = self.detector.roi_heads.box_predictor.cls_score.in_features
 
-        # replace the pre-trained head with a new one
-        self.detector.roi_heads.box_predictor = FastRCNNPredictor(in_features, opt.num_classes + 1)
+        kargs = {}
+        if opt.scale:
+            min_size = opt.scale
+            max_size = int(min_size / 3 * 4)
+            kargs = {'min_size': min_size,
+                     'max_size': max_size
+                    }
+
+        # 定义backbone和Faster RCNN模型
+        if opt.backbone is None or opt.backbone.lower() in ['res50', 'resnet', 'resnet50']:
+            self.detector = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=False, **kargs)
+
+            in_features = self.detector.roi_heads.box_predictor.cls_score.in_features
+
+            # replace the pre-trained head with a new one
+            self.detector.roi_heads.box_predictor = FastRCNNPredictor(in_features, opt.num_classes + 1)
+
+        elif opt.backbone.lower() in ['vgg16', 'vgg']:
+            backbone = vgg16_backbone()
+            self.detector = FasterRCNN(backbone, num_classes=opt.num_classes + 1, , **kargs)
+        else:
+            raise NotImplementedError, f'no such backbone: {opt.backbone }'
+
+
         print_network(self.detector)
 
         self.optimizer = get_optimizer(opt, self.detector)

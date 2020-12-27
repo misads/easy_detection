@@ -16,7 +16,7 @@ from eval import evaluate
 from options import opt
 from scheduler import schedulers
 
-from utils import init_log
+from utils import init_log, seed_everything
 from mscv.summary import create_summary_writer, write_meters_loss, write_image
 from mscv.image import tensor2im
 # from utils.send_sms import send_notification
@@ -29,6 +29,10 @@ from albumentations.pytorch.transforms import ToTensorV2
 
 # 初始化
 with torch.no_grad():
+    # 设置随机种子
+    if opt.seed is not None:
+        seed_everything(opt.seed)
+    
     # 初始化路径
     save_root = os.path.join(opt.checkpoint_dir, opt.tag)
     log_root = os.path.join(opt.log_dir, opt.tag)
