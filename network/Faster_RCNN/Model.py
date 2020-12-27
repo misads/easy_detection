@@ -53,9 +53,9 @@ class Model(BaseModel):
 
         elif opt.backbone.lower() in ['vgg16', 'vgg']:
             backbone = vgg16_backbone()
-            self.detector = FasterRCNN(backbone, num_classes=opt.num_classes + 1, , **kargs)
+            self.detector = FasterRCNN(backbone, num_classes=opt.num_classes + 1, **kargs)
         else:
-            raise NotImplementedError, f'no such backbone: {opt.backbone }'
+            raise NotImplementedError(f'no such backbone: {opt.backbone }')
 
 
         print_network(self.detector)
