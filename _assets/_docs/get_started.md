@@ -146,7 +146,8 @@ python3 train.py --tag yolo3_voc --model Yolo3  -b12 --val_freq 10 --save_freq 1
 | 指定优化器                  | `-- optimizer`             | `--optimizer sgd`            | 指定优化器为sgd。                                            |
 | 指定dataloader的进程数      | `-w`                       | `-w4`                        | 如果需要用pdb调试，须设为`-w0`。                             |
 | 加载之前的模型/恢复训练     | `--load`       | `--load pretrained/yolo2.pt` | `--resume`配合`--load`使用，会恢复上次训练的`epoch`和优化器。 |
-| 指定每几代验证/保存一次模型 | `--val_freq`、`--save_freq` | `--val_freq 5`               | 每5代验证一次模型。                                          |
+| 指定每几代验证一次模型 | `--val_freq` | `--val_freq 5`               | 每5代验证一次模型。                                          |
+| 指定每几代保存一次模型 | `--save_freq` | `--save_freq 5`               | 每5代保存一次模型。                                          |
 | 调试模式                    | `--debug`                  | `--debug`                    | 调试模式下只会训练几个batch就会开始验证。      
 
 
