@@ -7,8 +7,6 @@ import cv2
 import os
 
 from torch import nn
-import torchvision
-from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 
 from options import opt
 
@@ -23,10 +21,12 @@ from mscv.summary import write_image
 import misc_utils as utils
 import ipdb
 
-from torchvision.models.detection.faster_rcnn import FasterRCNN
+from .frcnn.faster_rcnn import FasterRCNN, FastRCNNPredictor
+from .frcnn import fasterrcnn_resnet50_fpn
+
 from dataloader.coco import coco_90_to_80_classes
 
-from .backbones import vgg16_backbone
+from .backbones import vgg16_backbone, res101_backbone
 
 
 class Model(BaseModel):
@@ -43,8 +43,9 @@ class Model(BaseModel):
                     }
 
         # 定义backbone和Faster RCNN模型
-        if opt.backbone is None or opt.backbone.lower() in ['res50', 'resnet', 'resnet50']:
-            self.detector = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=False, **kargs)
+        if opt.backbone is None or opt.backbone.lower() in ['res50', 'resnet50']:
+            # 默认是带fpn的resnet50
+            self.detector = fasterrcnn_resnet50_fpn(pretrained=False, **kargs)
 
             in_features = self.detector.roi_heads.box_predictor.cls_score.in_features
 
@@ -54,8 +55,17 @@ class Model(BaseModel):
         elif opt.backbone.lower() in ['vgg16', 'vgg']:
             backbone = vgg16_backbone()
             self.detector = FasterRCNN(backbone, num_classes=opt.num_classes + 1, **kargs)
+
+        elif opt.backbone.lower() in ['res101', 'resnet101']:
+            # 不带FPN的resnet101
+            backbone = res101_backbone()
+            self.detector = FasterRCNN(backbone, num_classes=opt.num_classes + 1, **kargs)
+
+        elif opt.backbone.lower() in ['res', 'resnet']:
+            raise RuntimeError(f'backbone "{opt.backbone}" is ambiguous, please specify layers.')
+
         else:
-            raise NotImplementedError(f'no such backbone: {opt.backbone }')
+            raise NotImplementedError(f'no such backbone: {opt.backbone}')
 
 
         print_network(self.detector)
@@ -144,9 +154,6 @@ class Model(BaseModel):
             batch_scores.append(scores.detach().cpu().numpy())
 
         return batch_bboxes, batch_labels, batch_scores
-
-    def inference(self, x, progress_idx=None):
-        raise NotImplementedError
 
     def evaluate(self, dataloader, epoch, writer, logger, data_name='val'):
         return self.eval_mAP(dataloader, epoch, writer, logger, data_name)
