@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MsBoard</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="{{ request.script_root }}/html/user/static/css/bootstrap.min.css">
+{#    <link rel="stylesheet" href="{{ request.script_root }}/html/user/static/css/navbar.less">#}
+{#    <link rel="stylesheet" href="{{ request.script_root }}/html/user/static/css/navs.less">#}
+{#    <link rel="stylesheet" href="{{ request.script_root }}/html/user/static/css/glyphicons.less">#}
+
+    <link rel="stylesheet" href="{{ request.script_root }}/html/user/static/css/user.css">
+
+
+    {% block stylesheets %}{% endblock %}
+
+    <script type="text/javascript">
+        var script_root = "{{ request.script_root }}";
+        var csrf_nonce = "{{ nonce }}";
+        var model_box = "";
+    </script>
+    <script src="{{ request.script_root }}/html/user/static/js/jquery.min.js"></script>
+    <script src="{{ request.script_root }}/html/user/static/js/bootstrap.min.js"></script>
+
+</head>
+<body>
+{#<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">#}
+{##}
+{#</nav>#}
+
+<nav class="navbar navbar-default" role="navigation">
+	<div class="container">
+	<div class="navbar-header">
+		<a class="navbar-brand" href="/">MsBoard</a>
+	</div>
+	<div>
+		<ul class="nav navbar-nav">
+			<li class="active"><a href="/">主页</a></li>
+			<!-- <li><a href="/query">Query</a></li>
+            <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                    Toggle
+                    <b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu">
+                    <li><a href="#">jmeter</a></li>
+                    <li><a href="#">EJB</a></li>
+                    <li><a href="#">Jasper Report</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#">分离的链接</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#">另一个分离的链接</a></li>
+                </ul>
+            </li> -->
+            <li class="dropdown">
+
+
+                    <a href="#" class="dropbtn nav-link">Summary <b class="caret"></b><span class="ico_down"></span></a>
+
+                    <div class="dropdown-content topmost">
+                        <a href="/">Train</a>
+                        <a href="/val">Val</a>
+
+                    </div>
+
+
+            </li>
+		</ul>
+
+        <p class="navbar-text navbar-right">　　　</p>
+
+        <ul class="nav navbar-nav navbar-right">
+            {%if not username %}
+                <li><a id="register" href="#">注册</a></li>
+                <li><a style="padding-left: 5px; padding-right: 5px;">|</a></li>
+            {% endif %}
+            {%if username %}
+                <li class="dropdown">
+
+                    <a href="#" class="dropbtn nav-link">{{ username }} <b class="caret"></b><span class="ico_down"></span></a>
+
+                    <div class="dropdown-content topmost">
+                        <a href="#">我的主页</a>
+                        <a href="#">积分</a>
+                        <a href="#">设置</a>
+                        <a href="/logout">退出</a>
+
+                    </div>
+
+                </li>
+            {% else %}
+                <li><a id="login" href="#">登录</a></li>
+            {% endif %}
+
+		</ul>
+	</div>
+	</div>
+</nav>
+
+
+<main role="main">
+
+<div class="modal fade" id="registerModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span style="font-size:20px;">Flask</span>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="display: inline"><span
+                        aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+
+                <h4 class="modal-title">注册</h4>
+                <br/>
+{#                col-sm-offset-2 col-sm-8" style="margin-top: 40px;"#}
+                <div class="site-login" style="margin-left:20%; width: 60%;">
+                    <div class="showerror">
+
+                    </div>
+{#                    <form id="login-form" class="form-signin" style="margin-left:20%; width: 60%;" action="/register" method="post">#}
+                        <input type="hidden" name="nonce"
+                               value="{{ nonce }}">
+                        <div class="form-group field-loginform-username required">
+                            <div class="input-group"><span class="input-group-addon"><i
+                                    class="glyphicon glyphicon-user"></i></span><input
+                                    type="text" id="loginform-username" class="form-control" name="reg_username"
+                                    placeholder="用户名" aria-required="true"></div>
+                            <p class="help-block help-block-error"></p>
+                        </div>
+                        <div class="form-group field-loginform-email required">
+                            <div class="input-group"><span class="input-group-addon"><i
+                                    class="glyphicon glyphicon-envelope"></i></span><input
+                                    type="text" id="loginform-email" class="form-control" name="reg_email"
+                                    placeholder="邮箱" aria-required="true"></div>
+                            <p class="help-block help-block-error"></p>
+                        </div>
+                        <div class="form-group field-loginform-password required">
+                            <div class="input-group"><span class="input-group-addon"><i
+                                    class="glyphicon glyphicon-lock"></i></span><input
+                                    type="password" id="loginform-password" class="form-control" name="reg_password"
+                                    placeholder="密码" aria-required="true"></div>
+                            <p class="help-block help-block-error"></p>
+                        </div>
+                        <div class="form-group">
+                            <a class="btn btn-primary" name="login-button" onclick="register();">注册</a>
+                        </div>
+
+{#                    </form>#}
+                </div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+<div class="modal fade" id="loginModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span style="font-size:20px;">Flask</span>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="display: inline"><span
+                        aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+
+                <h4 class="modal-title">登录</h4>
+                <br/>
+{#                col-sm-offset-2 col-sm-8" style="margin-top: 40px;"#}
+                <div class="site-login" style="margin-left:20%; width: 60%;">
+{#                    <form id="login-form" class="form-signin" style="margin-left:20%; width: 60%;" action="/login" method="post">#}
+                        <div class="showerror">
+
+                        </div>
+                        <input type="hidden" name="nonce"
+                               value="{{ nonce }}">
+                        <div class="form-group field-loginform-username required">
+                            <div class="input-group"><span class="input-group-addon"><i
+                                    class="glyphicon glyphicon-user"></i></span><input
+                                    type="text" id="loginform-username" class="form-control" name="login_username"
+                                    placeholder="用户名或邮箱" aria-required="true"></div>
+                            <p class="help-block help-block-error"></p>
+                        </div>
+                        <div class="form-group field-loginform-password required">
+                            <div class="input-group"><span class="input-group-addon"><i
+                                    class="glyphicon glyphicon-lock"></i></span><input
+                                    type="password" id="loginform-password" class="form-control" name="login_password"
+                                    placeholder="密码" aria-required="true"></div>
+                            <p class="help-block help-block-error"></p>
+                        </div>
+                        <div class="form-group field-loginform-rememberme">
+                            <div class="checkbox">
+                                <label for="loginform-rememberme">
+                                    <input type="checkbox"
+                                           id="loginform-rememberme"
+                                           name="rememberMe"
+                                           value="1" checked="">
+                                    保持登录状态
+                                </label>
+                                <p class="help-block help-block-error"></p>
+
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <a class="btn btn-primary" name="login-button" onclick="login();">登录</a>
+                            <a class="pull-right" href="/site/request-password-reset">忘记密码</a></div>
+
+{#                    </form>#}
+                </div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+    {% block content %}
+    {% endblock %}
+</main>
+
+<footer class="footer pt-2">
+    <div class="container text-center">
+        <a href="http://www.xyu.ink/about/">
+            <small class="text-muted">Copyright © 2020 xuhaoyu@tju.edu.cn All Rights Reserved.</small><br></a>
+
+    </div>
+</footer>
+
+
+<!-- /scripts -->
+<script type="text/javascript">
+$(function () {
+    {%if login %}
+        $('#loginModal').modal('show');
+        model_box = "login";
+    {% endif %}
+
+    $("#login").click(function () {
+        model_box = "login";
+        $('#loginModal').modal('show') //显示模态框
+    });
+
+    $("#register").click(function () {
+        model_box = "register";
+        $('#registerModal').modal('show') //显示模态框
+    });
+
+    $(document).keydown(function (event){
+        if (event.keyCode == 13) {
+          {#$('#Submit').triggerHandler('click');#}
+            if(model_box=="login"){
+                login();
+            }else if(model_box=="register"){
+                register();
+            }
+        }
+    });
+});
+
+function showerror(msg) {
+    $('.showerror').empty();
+    $('.showerror').hide();
+    $('.showerror').append('<div class="alert alert-danger alert-dismissable" role="alert">' +
+            '<span class="sr-only">Error:</span>'+
+            msg +
+            '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span'+
+                   ' aria-hidden="true">×</span></button></div>');
+    $('.showerror').fadeIn();
+    setTimeout(function () {
+            $('.showerror').fadeOut();
+        }, 2500);
+}
+
+function register(){
+
+    const username = $(" input[ name='reg_username' ] ").val();
+    const email = $(" input[ name='reg_email' ] ").val();
+    const password = $(" input[ name='reg_password' ] ").val();
+
+
+    if (username.length==0){
+        showerror('用户名不能为空');
+        return;
+    }
+    if (email.length==0){
+        showerror('邮箱不能为空');
+        return;
+    }
+    if (password.length==0){
+        showerror('密码不能为空');
+        return;
+    }
+
+    $('.showerror').empty();
+
+    $.post(script_root + '/register', {
+        'username': username,
+        'email': email,
+        'password': password,
+        'nonce': $(" input[ name='nonce' ] ").val(),
+    }, function (data) {
+        //document.location.href = "/team";
+        if (data.length==0) {
+            document.location.href = "/"
+        }
+        else {
+           showerror(data[0]);
+           return;
+        }
+
+    });
+
+}
+
+function login(){
+
+    const username = $(" input[ name='login_username' ] ").val();
+    const password = $(" input[ name='login_password' ] ").val();
+
+
+    if (username.length==0){
+        showerror('用户名不能为空');
+        return;
+    }
+    if (password.length==0){
+        showerror('密码不能为空');
+        return;
+    }
+
+    $('#showerror').empty();
+
+    $.post(script_root + '/login', {
+        'username': username,
+        'password': password,
+        'nonce': $(" input[ name='nonce' ] ").val(),
+    }, function (data) {
+        //document.location.href = "/team";
+        if (data.length==0) {
+            {% if url %}
+                document.location.href = "{{ url }}"
+            {% else %}
+                document.location.href = "/"
+            {% endif %}
+        }
+        else {
+           showerror(data[0]);
+           return;
+        }
+
+    });
+
+}
+</script>
+<!-- /scripts -->
+
+{% block scripts %}
+{% endblock %}
+
+</body>
+</html>

@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+
+{#<script type="text/javascript" src="js/jquery-1.12.4.min.js"></script>#}
+{#<script type="text/javascript" src="js/bootstrap.min.js"></script>#}
+{##}
+{#<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />#}
+{% block content %}
+
+<a style="display:block;width:200px;height:42px;line-height:42px;font-size:18px;text-align:center;margin:40px auto;font-weight:800;"
+   href="#" class="tbox">点击弹出</a>
+
+<div class="modal fade" id="myModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span style="font-size:20px;">Flask</span>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="display: inline"><span
+                        aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+
+                <h4 class="modal-title">登录</h4>
+                <br/>
+{#                col-sm-offset-2 col-sm-8" style="margin-top: 40px;"#}
+                <div class="site-login">
+                    <form id="login-form" class="form-signin" style="margin-left:20%; width: 60%;" action="/login" method="post">
+                        <input type="hidden" name="nonce"
+                               value="{{ nonce }}">
+                        <div class="form-group field-loginform-username required">
+                            <div class="input-group"><span class="input-group-addon"><i
+                                    class="glyphicon glyphicon-user"></i></span><input
+                                    type="text" id="loginform-username" class="form-control" name="username"
+                                    placeholder="用户名或邮箱" aria-required="true"></div>
+                            <p class="help-block help-block-error"></p>
+                        </div>
+                        <div class="form-group field-loginform-password required">
+                            <div class="input-group"><span class="input-group-addon"><i
+                                    class="glyphicon glyphicon-lock"></i></span><input
+                                    type="password" id="loginform-password" class="form-control" name="password"
+                                    placeholder="密码" aria-required="true"></div>
+                            <p class="help-block help-block-error"></p>
+                        </div>
+                        <div class="form-group field-loginform-rememberme">
+                            <div class="checkbox">
+                                <label for="loginform-rememberme">
+                                    <input type="checkbox"
+                                           id="loginform-rememberme"
+                                           name="rememberMe"
+                                           value="1" checked="">
+                                    保持登录状态
+                                </label>
+                                <p class="help-block help-block-error"></p>
+
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary" name="login-button">登录</button>
+                            <a class="pull-right" href="/site/request-password-reset">忘记密码</a></div>
+
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+
+{% endblock %}
+
+{% block scripts %}
+
+    <script type="text/javascript">
+    $(function () {
+
+        $(".tbox").click(function () {
+            $('#myModal').modal('show') //显示模态框
+        })
+
+    });
+    </script>
+
+{% endblock %}

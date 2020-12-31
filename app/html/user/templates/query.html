@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block stylesheets %}
+
+{% endblock %}
+
+{% block content %}
+
+    <div class="jumbotron">
+        <div class="container">
+            <h3 class="q-awards">'{{ q }}' 的搜索结果
+
+                <span class="create-team" role="button" data-toggle="tooltip" title="Create Award">
+				<a href="/admin/users">
+					<i class="btn-fa fas fa-plus-circle black"></i>
+				</a>
+			</span>
+            </h3>
+
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <table class="table table-striped table-bordered">
+                    <caption>表1</caption>
+                    <colgroup>
+                        <col width="50px">
+                        <col>
+                        <col width="160px">
+                        <col width="180px">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>name</th>
+                            <th style="text-align: center;">value</th>
+                            <th style="text-align: center;">time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in data %}
+                            <tr>
+                                <td>{{ d.id }}</td>
+                                <td>{{ d.name }}</td>
+                                <td style="text-align: center;">{{ d.value }}</td>
+                                <td style="text-align: center;">{{ d.time }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        var nonce = "{{ nonce }}";
+
+        $(document).ready(function () {
+            $('.delete-award').click(function () {
+                var tr = this.parentNode.parentNode;
+                var awardid = $(this).attr('award-id').trim();
+                var reason = $(this).attr('award-reason').trim();
+
+                ezq({
+                    title: "Delete Confirmation",
+                    body: 'Are you sure you want to <span class="text-danger">Delete</span> the <b>' + reason + '</b> award?',
+                    success: function () {
+                        var action = '/admin/awards/' + awardid + '/delete';
+                        $.post(script_root + action, {
+                            'nonce': nonce
+                        }, function (data) {
+                            //document.location.href = "/team";
+                            if (data == '1') {
+                                tr.parentNode.removeChild(tr);
+                            } else {
+                                var content = data;
+                                ezal({
+                                    title: "错误",
+                                    body: '发生了一个错误，请刷新页面后重试。',
+                                    button: "确定"
+                                });
+                            }
+
+                        });
+
+
+                    }
+
+                });
+
+
+            });
+        });
+    </script>
+{% endblock %}

@@ -16,7 +16,7 @@ from eval import evaluate
 from options import opt
 from scheduler import schedulers
 
-from utils import init_log, seed_everything
+from utils import init_log, seed_everything, load_meta, save_meta
 from mscv.summary import create_summary_writer, write_meters_loss, write_image
 from mscv.image import tensor2im
 # from utils.send_sms import send_notification
@@ -46,6 +46,10 @@ with torch.no_grad():
 
     # 初始化日志
     logger = init_log(training=True)
+
+    # 初始化训练的meta信息
+    meta = load_meta()
+    save_meta(meta)
 
     # 初始化模型
     Model = get_model(opt.model)
@@ -140,11 +144,13 @@ try:
         if scheduler is not None:
             scheduler.step()
 
-    # send_notification([opt.tag[:12], '', '', eval_result])
-
+    # 保存结束信息
     if opt.tag != 'cache':
         with open('run_log.txt', 'a') as f:
             f.writelines('    Accuracy:' + eval_result + '\n')
+
+    meta[-1]['finishtime'] = utils.get_time_stamp()
+    save_meta(meta)
 
 except Exception as e:
 
@@ -155,5 +161,11 @@ except Exception as e:
         with open('run_log.txt', 'a') as f:
             f.writelines('    Error: ' + str(e)[:120] + '\n')
 
+    meta[-1]['finishtime'] = utils.get_time_stamp()
+    save_meta(meta)
     # print(e)
     raise Exception('Error')  # 再引起一个异常，这样才能打印之前的trace back信息
+
+except:  # 其他异常，如键盘中断等
+    meta[-1]['finishtime'] = utils.get_time_stamp()
+    save_meta(meta)

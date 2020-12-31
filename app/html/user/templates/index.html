@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-7">
+        <h3>Runs ({{ metas | length }})</h3>
+        <table class="table table-striped" id="table1">
+            <!-- <caption>Runs (127)</caption> -->
+            <colgroup>
+                <col width="20px">
+                <col width="100px">
+                <col width="50px">
+                <col width="90px">
+                <col width="50px">
+                <col width="70px">
+                <col>
+            </colgroup>
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="checkall" name="checkall" value=""></th>
+                    <th onclick="$.sortTable.sort('table1',1)">
+                        <a class="cursor-pointer">Tag</a>
+                    </th>
+                    <th onclick="$.sortTable.sort('table1',2)">
+                        <a class="cursor-pointer">State</a>
+                    </th>
+                    <th onclick="$.sortTable.sort('table1',3)">
+                        <a class="cursor-pointer">Model</a>
+                    </th>
+                    <th onclick="$.sortTable.sort('table1',4)">
+                        <a class="cursor-pointer">acc</a>
+                    </th>
+                    <th onclick="$.sortTable.sort('table1',5)">
+                        <a class="cursor-pointer">Runtime</a>
+                    </th>
+                    <th onclick="$.sortTable.sort('table1',6)">
+                        <a class="cursor-pointer">备注</a>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- <tr>
+                    <td class="no-border"><input type="checkbox" name="" value=""></td>
+                    <td class="no-border"><a href='#'>faster_rcnn_voc</a></td>
+                    <td class="no-border"><span class="badge badge-success">cuda:0</span> </td>
+                    <td class="no-border">Faster_RCNN</td>
+                    <td class="no-border">46.8</td>
+                    <td class="no-border">12h 32m 9s</td>
+                    <td class="no-border">scale 512 200个epoch <span class="btn-fa glyphicon glyphicon-edit"></span></td>
+                </tr>
+                <tr>
+                    <td class="no-border"><input type="checkbox" name="" value=""></td>
+                    <td class="no-border"><a href='#'>yolo2_coco</a></td>
+                    <td class="no-border"><span class="badge">finished</span> </td>
+                    <td class="no-border">Yolo2</td>
+                    <td class="no-border">46.8</td>
+                    <td class="no-border">1d 17h 56m</td>
+                    <td class="no-border">bs=18 100个epoch <span class="btn-fa glyphicon glyphicon-edit"></span></td>
+                </tr>
+                <tr>
+                    <td class="no-border"><input type="checkbox" name="" value=""></td>
+                    <td class="no-border"><a href='#'>faster_rcnn_voc</a></td>
+                    <td class="no-border"><span class="badge badge-success">cpu</span> </td>
+                    <td class="no-border">Effdet</td>
+                    <td class="no-border">46.8</td>
+                    <td class="no-border">12h 32m 9s</td>
+                    <td class="no-border">yolo3 voc <span class="btn-fa glyphicon glyphicon-edit"></span></td>
+                </tr> -->
+                {% for meta in metas %}
+                    <tr>
+                        <td class="no-border"><input type="checkbox" class="item" name="item" tag="{{ meta.tag }}"></td>
+                        <td class="no-border"><a class='tag' tag="{{ meta.tag }}" href='#'>{{ meta.tag }}</a></td>
+                        <td class="no-border">
+                            {%if meta.state == '-' or meta.state == 'finished' %}
+                                <span class="badge">{{ meta.state }}</span> 
+                            {% else %}
+                                <span class="badge badge-success">{{ meta.state }}</span> 
+                            {% endif %}
+                            
+                        
+                        </td>
+                        <td class="no-border">{{ meta.model }}</td>
+                        <td class="no-border">{{ meta.acc }}</td>
+                        <td class="no-border">{{ meta.runtime }}</td>
+                        <td title="{{ meta.remarks }}" class="no-border">{{ meta.remarks }} <span tag="{{ meta.tag }}" remark="{{ meta.remarks }}" class="btn-fa glyphicon glyphicon-edit"></span></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if val %}
+
+        {% else %}
+            <button id='del' type="button" class="btn btn-sm btn-danger float-right" style="margin-right: 20px;">
+                删除所选Tag
+            </button>
+
+            <button id='rename' type="button" class="btn btn-sm btn-warning  float-right" style="margin-right: 8px;">
+                重命名
+            </button>
+        {% endif %}
+
+
+        {%if tensorboard_not_open%}
+            <button id='tensorboardon' type="button" class="btn btn-sm  btn-info float-right" style="margin-right: 8px;">
+                打开Tensorboard
+            </button>
+        {%else%}
+            <button id='tensorboardoff' type="button" class="btn btn-sm  btn-default float-right" style="margin-right: 8px;">
+                关闭Tensorboard
+            </button>
+        {%endif%}
+
+
+    </div>
+    <div id='command' class="col-sm-5">
+      <h3>执行命令</h3>
+
+      <p style="color: darkgray;">点击tag以显示详情</p>
+
+      <!-- <span class="label label-default">默认标签</span>
+      <span class="label label-primary">主要标签</span>
+      <span class="label label-success">成功标签</span>
+      <span class="label label-info">信息标签</span>
+      <span class="label label-warning">警告标签</span>
+      <span class="label label-danger">危险标签</span> -->
+    </div>
+  </div>
+
+    <!-- <div>
+        <ul class="pagination" style="margin-top: 0px;">
+        <li><a href="#">&laquo;</a></li>
+        <li><a href="#">1</a></li>
+        <li><a href="#">2</a></li>
+        <li><a href="#">3</a></li>
+        <li><a href="#">4</a></li>
+        <li><a href="#">5</a></li>
+        <li><a href="#">&raquo;</a></li>
+        </ul>
+    </div> -->
+
+</div>
+
+
+<div class="modal fade" id="editremark">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span style="font-size:20px;">备注</span>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="display: inline"><span
+                        aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+
+                <h4 id="edittitle" class="modal-title">备注</h4>
+                <br/>
+                <div class="site-login" style="margin-left:20%; width: 60%;">
+                    <div class="showerror">
+
+                    </div>
+{#                    <form id="login-form" class="form-signin" style="margin-left:20%; width: 60%;" action="/register" method="post">#}
+                        <input type="hidden" name="nonce"
+                               value="{{ nonce }}">
+                        <input type="hidden" name="tag" id="tag"
+                        value="">
+                        <div class="form-group field-loginform-username required">
+                            <!-- <div class="input-group"><span class="input-group-addon"><i
+                                    class="glyphicon glyphicon-comment"></i></span><input
+                                    type="text" id="remark" class="form-control" name="reg_username"
+                                    placeholder="备注" aria-required="true"></div> -->
+                            <textarea id="remark" name="remark" rows=3 class="form-control"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <a class="btn btn-primary" name="remark-buttom" onclick="editremark();">确认</a>
+                        </div>
+
+{#                    </form>#}
+                </div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+
+<div class="modal fade" id="renamemodal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span style="font-size:20px;">重命名</span>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="display: inline"><span
+                        aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+
+                <h4 id="renametitle" class="modal-title">备注</h4>
+                <br/>
+                <div class="site-login" style="margin-left:20%; width: 60%;">
+                    <div class="showerror">
+
+                    </div>
+{#                    <form id="login-form" class="form-signin" style="margin-left:20%; width: 60%;" action="/register" method="post">#}
+                        <input type="hidden" name="nonce"
+                               value="{{ nonce }}">
+                        <input type="hidden" name="renametag" id="renametag"
+                        value="">
+                        <div class="form-group field-loginform-username required">
+                            <div class="input-group"><span class="input-group-addon"><i
+                                    class="glyphicon glyphicon-tag"></i></span><input
+                                    type="text" id="renameinput" class="form-control" name="renameinput"
+                                    placeholder="" aria-required="true"></div>
+                            
+                        </div>
+                        <div class="form-group">
+                            <a class="btn btn-primary" name="remark-buttom" onclick="renametag();">确认</a>
+                        </div>
+
+{#                    </form>#}
+                </div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<div class="modal fade" id="info">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span style="font-size:16px;">提示</span>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="display: inline"><span
+                        aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+
+                <p id="infotitle" class="modal-title" style="margin-top: 20px; margin-bottom: 10px; font-size:16px;"></p>
+                <br/>
+                <div class="site-login" style="margin-left:20%; width: 60%;">
+                <div class="form-group">
+                    <a class="btn btn-primary btn-sm" name="dismiss" data-dismiss="modal" onclick=";">确认</a>
+                </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+<div class="modal fade" id="comfirm">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span style="font-size:16px;">确认</span>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="display: inline"><span
+                        aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" name="nonce"
+                value="{{ nonce }}">
+                <input type="hidden" name="deltag" id="deltag"
+                value="">
+                <p style="margin-top: 20px; margin-bottom: 10px; font-size:16px;"><span id="confirmtitle" class="modal-title"></span><b class='text-danger'>该操作不可恢复。</b></p>
+                <br/>
+                <div class="site-login" style="margin-left:20%; width: 60%;">
+                <div class="showerror">
+
+                </div>
+                <div class="form-group">
+                    <a class="btn btn-danger btn-sm" name="dismiss" onclick="deltag();" style="width: 60px;">删除</a>
+                    <a class="btn btn-primary btn-sm" name="dismiss" data-dismiss="modal" onclick=";" style="margin-left: 5px; width: 60px;">取消</a>
+                </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+<script>
+
+
+function showinfo(info=""){
+    $("#infotitle").text(info);
+    $('#info').modal('show');
+}
+
+function deltag(){
+    const tag = $(" input[ name='deltag' ] ").val();
+    const nonce = $(" input[ name='nonce' ] ").val();
+
+    $.post('/del', {
+        'tag': tag,
+        'nonce': nonce,
+    }, function (data) {
+        //document.location.href = "/team";
+        if (data == 'ok') {
+            document.location.href = "/";
+            // document.location.reload();
+        }
+        else {
+           showerror(data);
+           return;
+        }
+
+    });
+
+
+}
+
+function renametag(){
+    const tag = $(" input[ name='renametag' ] ").val();
+    const newtag = $(" input[ name='renameinput' ] ").val();
+    const nonce = $(" input[ name='nonce' ] ").val();
+
+    if (newtag.length == 0){
+        showerror('Tag不能为空。')
+        return;
+    }
+    $.post('/rename', {
+        'tag': tag,
+        'newtag': newtag,
+        'nonce': nonce,
+    }, function (data) {
+        //document.location.href = "/team";
+        if (data == 'ok') {
+            document.location.href = "/";
+            // document.location.reload();
+        }
+        else {
+           showerror(data);
+           return;
+        }
+
+    });
+
+
+}
+
+function editremark(){
+    const tag = $(" input[ name='tag' ] ").val();
+    const remark = $(" textarea[ name='remark' ] ").val();
+    const nonce = $(" input[ name='nonce' ] ").val();
+
+    $.post(script_root + '/editremark', {
+        'tag': tag,
+        'remark': remark,
+        'nonce': nonce,
+    }, function (data) {
+        //document.location.href = "/team";
+        if (data == 'ok') {
+            document.location.href = "/";
+            // document.location.reload();
+        }
+        else {
+           showerror(data);
+           return;
+        }
+
+    });
+
+}
+
+function loadlog(tag){
+    window.location.href="/log?tag=" + tag;  // /log?tag=cache
+};
+
+$(document).ready(function () {
+
+
+$("#tensorboardoff").click(function(){
+    $.get(script_root + "/tensorboardoff", function (data) {
+        if (data=='ok'){
+            showinfo('Tensorboard已关闭，3s后将自动刷新页面。');
+            setTimeout(function(){
+                document.location.href = "/";
+            }, 3000);
+        }else{
+            showinfo('未知错误');
+        }
+    });
+})
+    
+
+$("#tensorboardon").click(function(){
+    var i = 0;
+    if ($('input[name="checkall"]').prop('checked')){
+        {% if val %}
+            var geturl = script_root + "/tensorboardon?val=1" ;
+        {% else %}
+            var geturl = script_root + "/tensorboardon" ;
+        {% endif %}
+        $.get(geturl, function (data) {
+            if (data=='ok'){
+                showinfo('Tensorboard已启动，3s后将自动跳转。');
+                setTimeout(function(){
+                    window.open("{{ tensorboard_url }}"); 
+                    {% if val %}
+                        document.location.href = "/val";
+                    {% else %}
+                        document.location.href = "/";
+                    {% endif %}
+                }, 3000);
+            }else{
+                showinfo('失败，请关闭已打开的Tensorboard后重试。');
+            }
+        });
+        return;
+    }
+    
+
+    $('input[name="item"]').each(function(){
+        var checked = $(this).prop('checked');
+        if (checked) i+=1 ;
+    });
+    if (i==0) showinfo('没有选中的Tag。');
+    else if (i>1) showinfo('只能选中一个Tag。');
+    else{
+
+        $('input[name="item"]').each(function(){
+            var checked = $(this).prop('checked');
+            if (checked){
+                var tag = $(this).attr('tag');
+                {% if val %}
+                    var geturl = script_root + "/tensorboardon?tag=" + tag + "&val=1" ;
+                {% else %}
+                    var geturl = script_root + "/tensorboardon?tag=" + tag  ;
+                {% endif %}
+                $.get(geturl , function (data) {
+                    if (data=='ok'){
+                        showinfo('Tensorboard已启动，3s后将自动跳转。');
+                        setTimeout(function(){
+                            window.open("{{ tensorboard_url }}");  
+                            {% if val %}
+                                document.location.href = "/val";
+                            {% else %}
+                                document.location.href = "/";
+                            {% endif %}
+                            
+                        }, 3000);
+                    }else{
+                        showinfo('失败，请关闭已打开的Tensorboard后重试。');
+                    }
+                });
+            }
+        });
+
+
+    }
+    // $('#editremark').modal('show');
+})
+
+$("#del").click(function(){
+    var i = 0;
+    $('input[name="item"]').each(function(){
+        var checked = $(this).prop('checked');
+        if (checked) i+=1 ;
+    });
+    if (i==0) showinfo('没有选中的Tag。');
+    else{
+        var arr=[];
+        $('input[name="item"]').each(function(){
+            var checked = $(this).prop('checked');
+            if (checked){
+                var tag = $(this).attr('tag');
+                arr.push(tag);
+            }
+        });
+        if (arr.length<2){
+            $("#confirmtitle").text('是否确认删除'+ arr.toString() +'，');
+        }else{
+            $("#confirmtitle").text('是否确认删除所选项，');
+        }
+
+        $("#deltag").attr("value", arr.toString());
+        $('#comfirm').modal('show');
+    }
+    // $('#editremark').modal('show');
+})
+
+$("#rename").click(function(){
+    var i = 0;
+    $('input[name="item"]').each(function(){
+        var checked = $(this).prop('checked');
+        if (checked) i+=1 ;
+    });
+    if (i==0) showinfo('没有选中的Tag。');
+    else if (i>1) showinfo('重命名只能选中一个Tag。');
+    else{
+
+        $('input[name="item"]').each(function(){
+            var checked = $(this).prop('checked');
+            if (checked){
+                var tag = $(this).attr('tag');
+                $("#renametag").attr("value", tag);
+                $('#renameinput').val(tag);
+                $("#renametitle").text('重命名' + tag + '');
+                $('#renamemodal').modal('show');
+            }
+        });
+
+
+    }
+    // $('#editremark').modal('show');
+})
+
+
+$("#checkall").click(function(){
+    var checked = $(this).prop('checked');
+    $(".item").prop("checked", checked);
+    // $('#editremark').modal('show');
+})
+
+
+$(".glyphicon-edit").click(function(){
+    var tag = $(this).attr('tag');
+    var remark = $(this).attr('remark');
+    $("#tag").attr("value", tag);
+    $("#remark").text(remark);
+    $("#edittitle").text('' + tag + '的备注');
+    $('#editremark').modal('show');
+})
+
+
+
+$(".tag").click(function(){
+    var tag = $(this).attr('tag');
+
+    $.get("/api?tag=" + tag, function (data) {
+        runs = $.parseJSON(JSON.stringify(data));
+        text =  '      <h3>执行命令</h3>' +
+                '<p><span class="badge badge-success">' + tag + '</span> </p>';
+
+        for (i = 0; i < runs.length; i++) { 
+            run = runs[i];
+            text += '<hr style="border-top: 2px solid #ccc;">';
+            text += "<p>命令: <br>" + runs[i]['command'] + "</p>";
+            text += "<p>开始时间: <br>" + runs[i]['starttime'] + "</p>";
+            text += "<p>运行时长: <br>" + runs[i]['runtime'] + "</p>";
+        }
+
+        if (runs.length == 0){
+            text += '<hr style="border-top: 2px solid #ccc;">';
+            text += '<p>没有可以显示的内容</p>';
+        }
+
+        text += '<button id="log" type="button" onclick="loadlog(' + "'"+ tag +"'" + ');" tag="'+ tag +'" class="btn btn-sm btn-default float-right" style="margin-right: 20px;">' +
+            '查看'+tag+'的日志' +
+        '</button>';
+
+
+        $("#command").html(text)
+    });
+ })
+
+//  $("button").click(function(){
+//      $("#link1").attr("href","http://www.xyu.ink/"); //设置属性
+//  });
+
+
+});
+
+(function ($) {
+//插件
+$.extend($, {
+        //命名空间
+        sortTable: {
+        sort: function (tableId, Idx) {
+        var table = document.getElementById(tableId);
+        var tbody = table.tBodies[0];
+        var tr = tbody.rows;
+
+        var trValue = new Array();
+        for (var i = 0; i < tr.length; i++) {
+        trValue[i] = tr[i];  //将表格中各行的信息存储在新建的数组中
+        }
+
+        if (tbody.sortCol == Idx) {
+        trValue.reverse(); //如果该列已经进行排序过了，则直接对其反序排列
+        } else {
+        //trValue.sort(compareTrs(Idx));  //进行排序
+        trValue.sort(function (tr1, tr2) {
+                    var value1 = tr1.cells[Idx].innerHTML;
+                    var value2 = tr2.cells[Idx].innerHTML;
+                    return value1.localeCompare(value2);
+                    });
+        }
+
+        var fragment = document.createDocumentFragment();  //新建一个代码片段，用于保存排序后的结果
+        for (var i = 0; i < trValue.length; i++) {
+        fragment.appendChild(trValue[i]);
+        }
+
+        tbody.appendChild(fragment); //将排序的结果替换掉之前的值
+        tbody.sortCol = Idx;
+        }
+        }
+        });
+})(jQuery);
+
+</script>
+
+{% endblock %}

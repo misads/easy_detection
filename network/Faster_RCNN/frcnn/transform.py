@@ -37,7 +37,7 @@ class GeneralizedRCNNTransform(nn.Module):
             if image.dim() != 3:
                 raise ValueError("images is expected to be a list of 3d tensors "
                                  "of shape [C, H, W], got {}".format(image.shape))
-            # image = self.normalize(image)
+            image = self.normalize(image)
             image, target = self.resize(image, target)
             images[i] = image
             if targets is not None:

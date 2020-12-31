@@ -2,9 +2,11 @@ import os
 import random
 import sys
 from options import opt
+from options import get_command_run
 import misc_utils as utils
 import warnings
 import torch
+import json
 import numpy as np
 
 def seed_everything(seed: int):
@@ -33,6 +35,37 @@ def init_log(training=True):
     logger.info('===========================================')
     return logger
 
+def get_gpu_id():
+    if 'CUDA_VISIBLE_DEVICES' in os.environ:
+        gpu_id = os.environ['CUDA_VISIBLE_DEVICES']
+        gpu_id = str(gpu_id)
+    else:
+        gpu_id = str(opt.gpu_ids)
+
+    return gpu_id
+
+def load_meta():
+    path = os.path.join(opt.log_dir, opt.tag, 'meta.json')
+    if os.path.isfile(path):
+        with open(path, 'r') as f:
+            meta = json.load(f)
+    else:
+        meta = []
+
+    new_meta = {
+        'command': get_command_run(),
+        'starttime': utils.get_time_stamp(),
+        'best_acc': 0.,
+        'gpu': get_gpu_id(),
+        'opt': opt.__dict__,
+    }
+    meta.append(new_meta)
+    return meta
+
+def save_meta(meta):
+    path = os.path.join(opt.log_dir, opt.tag, 'meta.json')
+    with open(path, 'w', encoding='utf-8') as f:
+        json.dump(meta, f, ensure_ascii=False)
 
 def raise_exception(msg, error_code=1):
     utils.color_print('Exception: ' + msg, 1)
