@@ -59,8 +59,6 @@ def resnet_fpn_backbone(backbone_name, pretrained):
         in_channels_stage2 * 8,
     ]
     out_channels = 256
-    import ipdb
-    ipdb.set_trace()
 
     out = BackboneWithFPN(backbone, return_layers, in_channels_list, out_channels)
     return out
