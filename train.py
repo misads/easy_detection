@@ -48,7 +48,7 @@ with torch.no_grad():
     logger = init_log(training=True)
 
     # 初始化训练的meta信息
-    meta = load_meta()
+    meta = load_meta(new=True)
     save_meta(meta)
 
     # 初始化模型
@@ -149,6 +149,7 @@ try:
         with open('run_log.txt', 'a') as f:
             f.writelines('    Accuracy:' + eval_result + '\n')
 
+    meta = load_meta()
     meta[-1]['finishtime'] = utils.get_time_stamp()
     save_meta(meta)
 
@@ -161,11 +162,13 @@ except Exception as e:
         with open('run_log.txt', 'a') as f:
             f.writelines('    Error: ' + str(e)[:120] + '\n')
 
+    meta = load_meta()
     meta[-1]['finishtime'] = utils.get_time_stamp()
     save_meta(meta)
     # print(e)
     raise Exception('Error')  # 再引起一个异常，这样才能打印之前的trace back信息
 
 except:  # 其他异常，如键盘中断等
+    meta = load_meta()
     meta[-1]['finishtime'] = utils.get_time_stamp()
     save_meta(meta)

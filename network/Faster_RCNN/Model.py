@@ -91,8 +91,9 @@ class Model(BaseModel):
 
         image, bboxes, labels = sample['image'], sample['bboxes'], sample['labels']
         
-        if len(bboxes[0]) == 0:  # 没有bbox，不更新参数
-            return {}
+        for b in range(len(image)):
+            if len(bboxes[b]) == 0:  # 没有bbox，不更新参数
+                return {}
 
         image = image.to(opt.device)
         bboxes = [bbox.to(opt.device).float() for bbox in bboxes]

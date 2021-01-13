@@ -2,9 +2,6 @@
 import torch
 torch.multiprocessing.set_sharing_strategy('file_system')  # ulimit -SHn 51200
 
-from skimage.measure import compare_psnr as psnr
-from skimage.measure import compare_ssim as ski_ssim  # deprecated
-
 from dataloader.dataloaders import val_dataloader
 from options import opt
 from mscv.summary import write_loss, write_image

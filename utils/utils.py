@@ -44,7 +44,7 @@ def get_gpu_id():
 
     return gpu_id
 
-def load_meta():
+def load_meta(new=False):
     path = os.path.join(opt.log_dir, opt.tag, 'meta.json')
     if os.path.isfile(path):
         with open(path, 'r') as f:
@@ -52,14 +52,15 @@ def load_meta():
     else:
         meta = []
 
-    new_meta = {
-        'command': get_command_run(),
-        'starttime': utils.get_time_stamp(),
-        'best_acc': 0.,
-        'gpu': get_gpu_id(),
-        'opt': opt.__dict__,
-    }
-    meta.append(new_meta)
+    if new:
+        new_meta = {
+            'command': get_command_run(),
+            'starttime': utils.get_time_stamp(),
+            'best_acc': 0.,
+            'gpu': get_gpu_id(),
+            'opt': opt.__dict__,
+        }
+        meta.append(new_meta)
     return meta
 
 def save_meta(meta):
