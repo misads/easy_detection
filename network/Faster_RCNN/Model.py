@@ -29,6 +29,9 @@ from dataloader.coco import coco_90_to_80_classes
 from .backbones import vgg16_backbone, res101_backbone
 
 
+nms_thresh = 0.5  # 测试时的nms iou阈值
+conf_thresh = 0.05  # 测试时置信度小于多少的去掉
+
 class Model(BaseModel):
     def __init__(self, opt, logger=None):
         super(Model, self).__init__()
@@ -40,7 +43,8 @@ class Model(BaseModel):
             min_size = opt.scale
             max_size = int(min_size / 3 * 4)
             kargs = {'min_size': min_size,
-                     'max_size': max_size
+                     'max_size': max_size,
+                     'box_nms_thresh': nms_thresh
                     }
 
         # 定义backbone和Faster RCNN模型
@@ -69,7 +73,7 @@ class Model(BaseModel):
             raise NotImplementedError(f'no such backbone: {opt.backbone}')
 
 
-        print_network(self.detector, logger=logger)
+        print_network(self.detector)
 
         self.optimizer = get_optimizer(opt, self.detector)
         self.scheduler = get_scheduler(opt, self.optimizer)
@@ -126,8 +130,6 @@ class Model(BaseModel):
 
     def forward_test(self, image):  # test
         """给定一个batch的图像, 输出预测的[bounding boxes, labels和scores], 仅在验证和测试时使用"""
-        conf_thresh = 0.5
-
         image = list(im for im in image)
 
         batch_bboxes = []

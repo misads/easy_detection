@@ -23,7 +23,7 @@ import misc_utils as utils
 
 
 class Model(BaseModel):
-    def __init__(self, opt, logger):
+    def __init__(self, opt, logger=None):
         super(Model, self).__init__()
         self.opt = opt
         self.detector = SSDDetector(opt).to(device=opt.device)

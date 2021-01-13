@@ -12,6 +12,7 @@ from .yolo.image import correct_yolo_boxes
 from utils import to_numpy, xywh_to_xyxy, keep
 
 from torchvision.ops import nms
+from torchvision.ops import boxes as box_ops
 
 from options import opt
 
@@ -32,7 +33,7 @@ nms_thresh = 0.45
 DO_FAST_EVAL = False  # 只保留概率最高的类，能够加快eval速度但会降低精度
 
 class Model(BaseModel):
-    def __init__(self, opt, logger):
+    def __init__(self, opt, logger=None):
         super(Model, self).__init__()
         self.opt = opt
         self.logger = logger
@@ -126,12 +127,14 @@ class Model(BaseModel):
             boxes = preds[:, :4]
             det_conf = preds[:, 4]
             cls_conf = preds[:, 5:]
+            _, labels = torch.max(cls_conf, 1)
 
             b, c, h, w = image.shape
 
             boxes = xywh_to_xyxy(boxes, w, h)  # yolo的xywh转成输出的xyxy
 
-            nms_indices = nms(boxes, det_conf, nms_thresh)
+            nms_indices = box_ops.batched_nms(boxes, det_conf, labels, nms_thresh)
+            # nms_indices = nms(boxes, det_conf, nms_thresh)
             if len(nms_indices) == 0:
                 batch_bboxes.append(np.array([[]], np.float32))
                 batch_labels.append(np.array([], np.int32))

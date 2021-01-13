@@ -41,7 +41,7 @@ hyp = {'momentum': 0.937,  # SGD momentum
        'shear': 0.0}  # image shear (+/- deg)
 
 class Model(BaseModel):
-    def __init__(self, opt, logger):
+    def __init__(self, opt, logger=None):
         super(Model, self).__init__()
         self.opt = opt
         cfgfile = 'configs/yolov5x.yaml'
