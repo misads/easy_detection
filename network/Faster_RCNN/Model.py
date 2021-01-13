@@ -30,9 +30,10 @@ from .backbones import vgg16_backbone, res101_backbone
 
 
 class Model(BaseModel):
-    def __init__(self, opt):
+    def __init__(self, opt, logger=None):
         super(Model, self).__init__()
         self.opt = opt
+        self.logger = logger
 
         kargs = {}
         if opt.scale:
@@ -68,7 +69,7 @@ class Model(BaseModel):
             raise NotImplementedError(f'no such backbone: {opt.backbone}')
 
 
-        print_network(self.detector)
+        print_network(self.detector, logger=logger)
 
         self.optimizer = get_optimizer(opt, self.detector)
         self.scheduler = get_scheduler(opt, self.optimizer)

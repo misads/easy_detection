@@ -23,7 +23,7 @@ import misc_utils as utils
 
 
 class Model(BaseModel):
-    def __init__(self, opt):
+    def __init__(self, opt, logger):
         super(Model, self).__init__()
         self.opt = opt
         # cfgfile = 'yolo-voc.cfg'

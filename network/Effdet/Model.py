@@ -35,7 +35,7 @@ def get_net(pretrained=True):
 
 
 class Model(BaseModel):
-    def __init__(self, opt):
+    def __init__(self, opt, logger):
         super(Model, self).__init__()
         self.opt = opt
         self.detector = get_net().to(device=opt.device)

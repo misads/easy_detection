@@ -32,9 +32,10 @@ nms_thresh = 0.45
 DO_FAST_EVAL = False  # 只保留概率最高的类，能够加快eval速度但会降低精度
 
 class Model(BaseModel):
-    def __init__(self, opt):
+    def __init__(self, opt, logger):
         super(Model, self).__init__()
         self.opt = opt
+        self.logger = logger
         
         # 根据YoloV2和YoloV3使用不同的配置文件
         if opt.model == 'Yolo2':
@@ -44,7 +45,7 @@ class Model(BaseModel):
 
         # 初始化detector
         self.detector = Darknet(cfgfile, device=opt.device).to(opt.device)
-        print_network(self.detector)
+        print_network(self.detector, logger=logger)
 
         # 在--load之前加载weights文件(可选)
         if opt.weights:
