@@ -135,6 +135,7 @@ class Model(BaseModel):
 
             nms_indices = box_ops.batched_nms(boxes, det_conf, labels, nms_thresh)
             # nms_indices = nms(boxes, det_conf, nms_thresh)
+
             if len(nms_indices) == 0:
                 batch_bboxes.append(np.array([[]], np.float32))
                 batch_labels.append(np.array([], np.int32))

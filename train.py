@@ -53,7 +53,7 @@ with torch.no_grad():
 
     # 初始化模型
     Model = get_model(opt.model)
-    model = Model(opt)
+    model = Model(opt, logger)
 
     # 暂时还不支持多GPU
     # if len(opt.gpu_ids):

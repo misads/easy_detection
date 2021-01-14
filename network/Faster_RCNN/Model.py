@@ -44,8 +44,9 @@ class Model(BaseModel):
             max_size = int(min_size / 3 * 4)
             kargs = {'min_size': min_size,
                      'max_size': max_size,
-                     'box_nms_thresh': nms_thresh
                     }
+        
+        kargs.update({'box_nms_thresh': nms_thresh})
 
         # 定义backbone和Faster RCNN模型
         if opt.backbone is None or opt.backbone.lower() in ['res50', 'resnet50']:
