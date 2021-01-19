@@ -210,7 +210,7 @@ python3 train.py --tag yolo3_voc --model Yolo3  -b12 --val_freq 10 --save_freq 1
 
 3. 打开浏览器，查看标注是否正确。
 
-### 在自定义数据及上训练已有模型
+### 在自定义数据集上训练已有模型
 
 #### Faster RCNN
 
