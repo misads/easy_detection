@@ -140,8 +140,12 @@ class BaseModel(torch.nn.Module):
 
                 write_loss(writer, f'val/{data_name}', 'mAP', mAP, epoch)
 
+            mean_map = sum(result)/len(result)
             logger.info(
-                f'Eva({data_name}) epoch {epoch}, mean of (AP50-AP75): {sum(result)/len(result)}')
+                f'Eva({data_name}) epoch {epoch}, mean of (AP50-AP75): {mean_map}')
+
+            logger.info(
+                f'Eva({data_name}) epoch {epoch}, [0.8 mAP + 0.2 acc](假设acc是75分): {mean_map*80+15:.2f}(%)')
 
 
     def load(self, ckpt_path):
