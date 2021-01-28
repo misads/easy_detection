@@ -2,7 +2,7 @@
 
 　　初赛小白入门级baseline(基于pytorch, 线上单模70+)。
 
-　　代码开源在：<https://github.com/misads/detection_template/tree/tile>。基于一个非常简单的检测框架[detection_template](https://github.com/misads/detection_template)，模型为Faster_RCNN+ResNet50FPN。线上线下能够很好的对应，欢迎大家来star~。
+　　代码开源在: <https://github.com/misads/detection_template/tree/tile>。基于一个非常简单的检测框架[detection_template](https://github.com/misads/detection_template)，模型为Faster_RCNN+ResNet50FPN。线上线下能够很好的对应，欢迎大家来star~。
 
 | 方法                                | 线上分数       |
 | ----------------------------------- | -------------- |
@@ -177,6 +177,6 @@ python wbf.py result_1.0.json result_1.143.json result_1.286.json result_1.429.j
 
 
 
-最后，代码开源在<https://github.com/misads/detection_template/tree/tile>：。欢迎大家来star~~
+最后，代码开源在: <https://github.com/misads/detection_template/tree/tile>。欢迎大家来star~~
 
 
