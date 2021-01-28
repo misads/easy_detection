@@ -3,6 +3,10 @@ from easydict import EasyDict
 from options import opt
 
 schedulers = {
+    'tile': {  # Faster_RCNN
+        'epochs': [1, 25, 40],  # 40个epoch   7:3:2
+        'ratios': [0.1, 1, 0.1],
+    },
     '1x': {  # Faster_RCNN
         'epochs': [1, 7, 10, 12],  # 12个epoch   7:3:2
         'ratios': [0.1, 1, 0.1, 0.01],

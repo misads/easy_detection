@@ -6,6 +6,7 @@ from dataloader.transforms import get_transform
 
 from dataloader.voc import VOCTrainValDataset
 from dataloader.coco import CocoDataset
+from dataloader.tile import TILETrainValDataset, TILETestDataset
 import albumentations as A
 from albumentations.pytorch.transforms import ToTensorV2
 
@@ -26,7 +27,7 @@ t = transform()
 
 dataset_variables = ['voc_root', 'train_split', 'val_split', 'class_names', 'img_format', 'data_format']
 
-transform_variables = ['width', 'height', 'train_transform', 'val_transform']
+transform_variables = ['width', 'height', 'train_transform', 'val_transform', 'test_transform']
 
 for v in dataset_variables:
     # 等价于 exec(f'{v}=d.{v}')
@@ -62,6 +63,8 @@ def collate_fn(batch):
 """
 Datasets
 """
+test_dataset = None
+
 if data_format == 'VOC':
     if hasattr(d, 'train_split'):
         train_dataset = VOCTrainValDataset(voc_root, 
@@ -83,6 +86,16 @@ elif data_format == 'COCO':
 
     if hasattr(d, 'val_split'):
         val_dataset = CocoDataset(voc_root, val_split, transforms=val_transform)
+
+
+elif data_format == 'CUSTOM_JSON':
+    if hasattr(d, 'train_split'):
+        train_dataset = TILETrainValDataset(voc_root, class_names, split=train_split, transforms=train_transform)
+
+    if hasattr(d, 'val_split'):
+        val_dataset = TILETrainValDataset(voc_root, class_names, split=val_split, transforms=val_transform)
+    
+    test_dataset = TILETestDataset(voc_root, transforms=test_transform)
 
 """
 Dataloaders
@@ -106,3 +119,12 @@ if hasattr(d, 'val_split'):
         drop_last=False)
 else:
     val_dataloader = None
+
+if test_dataset is None:
+    test_dataloader = None
+else:
+    test_dataloader = torch.utils.data.DataLoader(test_dataset,
+        shuffle=False,
+        batch_size=opt.batch_size,
+        num_workers=opt.workers // 2,
+        drop_last=False)

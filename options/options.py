@@ -41,8 +41,8 @@ def parse_args():
     parser.add_argument('--batch_size', '-b', type=int, default=1, help='input batch size')
 
     # optimizer and scheduler
-    parser.add_argument('--optimizer', choices=['adam', 'sgd', 'radam', 'lookahead', 'ranger'], default='adam')
-    parser.add_argument('--scheduler', default='1x')
+    parser.add_argument('--optimizer', choices=['adam', 'sgd', 'radam', 'lookahead', 'ranger'], default='sgd')
+    parser.add_argument('--scheduler', default='tile')
 
     # data augmentation
     # parser.add_argument('--aug', action='store_true', help='Randomly scale, jitter, change hue, saturation and brightness')
@@ -53,7 +53,7 @@ def parse_args():
     parser.add_argument('--workers', '-w', type=int, default=4, help='num of workers')
 
     # for datasets
-    parser.add_argument('--dataset', default='voc', help='training dataset')
+    parser.add_argument('--dataset', default='tile', help='training dataset')
     parser.add_argument('--transform', default=None, help='transform')
     parser.add_argument('--val_set', type=str, default=None)
     parser.add_argument('--test_set', type=str, default=None)
@@ -72,7 +72,7 @@ def parse_args():
     parser.add_argument('--reset', action='store_true', help='reset training, only used when --load')
 
     parser.add_argument('--epochs', '--max_epoch', type=int, default=500, help='epochs to train')
-    parser.add_argument('--lr', type=float, default=0.0001, help='initial learning rate for adam')
+    parser.add_argument('--lr', type=float, default=0.001, help='initial learning rate for adam')
     parser.add_argument('--seed', type=int, default=None, help='random seed')
 
     # test time bbox settings
@@ -82,7 +82,7 @@ def parse_args():
     parser.add_argument('--box_fusion', choices=['nms', 'wbf'], default='nms')
 
     parser.add_argument('--save_freq', type=int, default=10, help='freq to save models')
-    parser.add_argument('--eval_freq', '--val_freq', type=int, default=10, help='freq to eval models')
+    parser.add_argument('--eval_freq', '--val_freq', type=int, default=20, help='freq to eval models')
     parser.add_argument('--log_freq', type=int, default=1, help='freq to vis in tensorboard')
     parser.add_argument('--no_eval', '--no_val', action='store_true', help='不要eval')
 

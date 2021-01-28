@@ -1,76 +1,182 @@
-# detection_template
+## 天池2021广东工业智造创新大赛Faster_RCNN baseline (线上70+)
 
-　　一个目标检测的通用框架(不需要cuda编译)，支持Yolo全系列(v2~v5)、EfficientDet、RetinaNet、Cascade-RCNN等SOTA网络，Kaggle小麦检测12/2245。
+　　初赛小白入门级baseline(基于pytorch, 线上单模70+)。
 
-![preview](http://www.xyu.ink/wp-content/uploads/2020/10/COCO2.png)
+　　代码开源在：。基于一个非常简单的检测框架[detection_template](https://github.com/misads/detection_template)，模型为Faster_RCNN+ResNet50FPN。线上线下能够很好的对应，欢迎大家来star~。
 
-## Functionalities
+| 方法                                | 线上分数       |
+| ----------------------------------- | -------------- |
+| 2000×2000测试，nms阈值为0.5         | ~64            |
+| +nms阈值设为0.1                     | 66.480508      |
+| +4500×3500测试，(需要11G左右显存)   | 67.298847      |
+| +过滤最大得分小于0.6的图像(提升acc) | 69.019690      |
+| +多尺度测试（需要19G左右显存）      | 70.019778      |
+| + 多模型融合                        | 可以自己试一试 |
 
-- 数据格式
-  - [x] VOC
-  - [ ] CSV文件
-  - [x] COCO
+　　训练方法非常简单，使用Faster_RCNN+ResNet50FPN，将图像crop出`2000×2000`的小块训练（需要11G显存），如果显存足够可以裁出`3000×3000`，没有目标框的小块直接丢弃。（我们也试过resize，由于瑕疵太小效果不是很好）。
 
-- 网络模型
-  - [x] EfficientDet(目前不支持训练过程中验证)
-  - [x] YoloV2、V3  
-  - [x] YoloV4  
-  - [x] YoloV5  
-  - [x] SSD300、SSD512(目前只支持vgg backbone,且不支持预训练模型)
-  - [x] Faster-RCNN
-  - [ ] Cascade-RCNN
-  - [x] RetinaNet
-  
-- TTA
-  - [ ] 多尺度融合
-  - [x] nms
-  - [x] Weighted Box Fusion(WBF)
-  - [ ] 伪标签
+　　训练时的`transform`是这样的(代码见`dataloader/transforms/frcnn.py`)：
 
-- Scheduler
-  - [ ] 验证集指标不下降时学习率衰减
+```python
+import albumentations as A
+from albumentations.pytorch.transforms import ToTensorV2
 
-- Metrics
-  - [x] mAP
+height = width = 2000
+train_transform = A.Compose(  # FRCNN
+    [
+        A.RandomCrop(height=height, width=width, p=1.0),  # 2000×2000
+        A.ToGray(p=0.01),
+        A.HorizontalFlip(p=0.5),
+        ToTensorV2(p=1.0),
+    ]
+)
+```
 
-- 可视化
-  - [x] 数据集bbox预览
-  - [x] dataloader数据增强预览
-  - [x] 预测结果预览
+　　测试时将整张图片crop成`2×2`个`4500×3500`的小块，分别测试以后，将结果加上偏移拼接到一起，然后进行阈值为`0.1`的`nms`(代码见`tta.py`)。  
 
-- 辅助工具
-  - [ ] 手工标注工具
+　　为了提高一些`acc`的分数，我们所有检测结果最高置信度小于`0.6`的图片认为没有任何瑕疵，也就是不输出任何结果(代码在`wbf.py`中)。  
+
+　　最后进行多尺度的测试，将`4500×3500`的小块分别放大`1.0`，`1.143`，`1.286`，`1.429`倍后测试，将结果进行`wbf`融合(代码见`wbf.py`)。
+
+## 准备数据
+
+　　下载好数据后，进入`tile_round1_train_20201231`目录，使用下面的代码划分训练集和验证集(会生成一个`train.txt`和一个`val.txt`文件)。
+
+```python
+import os
+import misc_utils as utils  # 使用 pip install utils-misc 安装
+files = os.listdir('train_imgs')
+files.sort()
+
+f1 = open('train.txt', 'w')
+f2 = open('val.txt', 'w')
+
+a = set()
+val = set()
+
+for f in files:
+    tileid = '_'.join(f.split('_')[:2])
+    a.add(tileid)
+
+val_ratio = 0.2  # 划分20%验证集
+
+for tileid in a:
+    if utils.gambling(val_ratio):
+        val.add(tileid)
+        
+for f in files:
+    tileid = '_'.join(f.split('_')[:2])
+    if tileid in val:
+        f2.writelines(f+'\n')
+    else:
+        f1.writelines(f+'\n')
+        
+f1.close()
+f2.close()
+
+```
+
+## 训练模型
+
+1. 克隆此项目：
+
+```bash
+# !-bash
+git clone ?????????????????????
+cd detection_template
+```
+
+2. 安装下面的依赖项：
+
+```yml
+torch>=1.0  # effdet需要torch>=1.5，如果不使用effdet，在network/__init__.py下将其注释掉
+tensorboardX>=1.6
+utils-misc>=0.0.5
+mscv>=0.0.3
+matplotlib>=3.1.1
+opencv-python>=4.2.0.34  # opencv>=4.4版本需要编译，耗时较长，建议安装4.2版本
+opencv-python-headless>=4.2.0.34
+albumentations>=0.5.1  # 需要opencv>=4.2
+easydict>=1.9
+```
+
+　　你也可以安装好`pytorch`后运行`bash install.sh`一键安装。
+
+2. 新建一个`datasets`文件夹：
+
+```bash
+mkdir datasets
+```
+
+4. 在`datasets`目录中新建一个软链接链接到数据位置：
+
+```python
+ln -s <数据下载目录>/tile_round1_train_20201231 datasets/tile
+```
+
+5. 运行训练命令：
+
+```bash
+python3 train.py --tag frcnn_res50_2k --model Faster_RCNN -b1 --optimizer sgd --val_freq 20 --save_freq 10 --lr 0.001 --scale 2000 --scheduler tile
+
+python3 train.py --tag frcnn_res50_2k --model Faster_RCNN --scale 2000
+```
+
+　　参数中的`val_freq`是每`20`代验证一次，线下验证的是**全图**mAP@0.1，mAP@0.3和mAP@0.5的平均值，acc暂不支持验证。  
+
+## 验证模型和提交结果
+
+验证模型
+
+```bash
+python3 eval.py --model Faster_RCNN -b1 --scale 2000 --load checkpoints/frcnn_res50_2k/40_Faster_RCNN.pt --vis
+```
+
+　　`--vis`可以加也可以不加，加上后可以在`tensorboard`预览预测的结果，但是**时间会变得很慢**。  
+
+生成提交结果的json：
+
+```bash
+python submit.py --model Faster_RCNN -b1 --load checkpoints/frcnn_res50_2k/40_Faster_RCNN.pt --scale 2000
+```
+
+去除概率较低的结果，提高acc值：
+
+```bash
+wbf.py result.json
+```
+
+我们也提供了一个我们训练的模型方便你测试环境和代码的正确性：
+
+　　**40_Faster_RCNN.pt** [百度网盘链接]()
+
+## [进阶]多尺度测试和多模型融合
+
+多尺度测试会将crop的小块放大成不同的尺寸，分别运行以下命令：
+
+```bash
+python submit.py --model Faster_RCNN -b1 --load checkpoints/frcnn_res50_2k/40_Faster_RCNN.pt --scale 2000 --ms 1.
+```
+```bash
+python submit.py --model Faster_RCNN -b1 --load checkpoints/frcnn_res50_2k/40_Faster_RCNN.pt --scale 2000 --ms 1.143
+```
+```bash
+python submit.py --model Faster_RCNN -b1 --load checkpoints/frcnn_res50_2k/40_Faster_RCNN.pt --scale 2000 --ms 1.286
+```
+```bash
+python submit.py --model Faster_RCNN -b1 --load checkpoints/frcnn_res50_2k/40_Faster_RCNN.pt --scale 2000 --ms 1.429
+```
+
+会生成4个文件：`result_1.0.json`，`result_1.143.json`，`result_1.286.json`和`result_1.429.json`。
+
+最后运行下面的命令，使用`wbf`将四个结果融合为一个结果。这个命令同样也可以用于**融合多个不同模型的结果**。
+
+```bash
+python wbf.py result_1.0.json result_1.143.json result_1.286.json result_1.429.json
+```
 
 
-## 安装和使用教程
 
-安装和使用教程见 [get_started.md](https://github.com/misads/detection_template/blob/master/_assets/_docs/get_started.md).
-
+最后，代码开源在：。欢迎大家来star~~
 
 
-## 预训练模型
-
-| Model | backbone | 数据集 | 论文mAP@.5 | 复现mAP@.5 | 下载链接 | 密码 | sha256 | 
-| ----- | ------ | -------- | ---------- | -------- | ----- | ----- | ----- |
-| YoloV2 | Darknet-19 | VOC |76.8|76.46|   [[百度网盘]](https://pan.baidu.com/s/1UyWGG1kn5h1l_FHP3idurw)| mwik | 5d29a34b |
-| YoloV3 | Darknet-19 | COCO |55.3|-| [[百度网盘]](https://pan.baidu.com/s/1SxmjpgCbwAEyRtwLNhG3xQ) | cf4j | 943b926a|
-| FRCNN | Res50+FPN | VOC | - |83.26 |  [[百度网盘]](https://pan.baidu.com/s/17NDNGeVRYxCG0vWqgaFDxQ) | isqt | 3d5c3b15 |
-| FRCNN | Res50+FPN |  COCO |  |48.81|  |  |  |
-| YoloV4 | CSPDarknet-53 | COCO| 62.8 | - | [[百度网盘]](https://pan.baidu.com/s/1keDDPyMvpX11jnXbJsoTrg) | nio7 | 797dc954 |
-| YoloV5 | CSPDarknet | COCO | - |  64.30 | [[百度网盘]](https://pan.baidu.com/s/1j45qGCEu5_Tl0BlDF8ixnw) | cssw | 8e54a2e8 |
-
-## Reference
-
-- SSD <https://github.com/lufficc/SSD>
-  
-- YoloV2、YoloV3 <https://github.com/andy-yun/pytorch-0.4-yolov3>
-
-- EfficientDet <https://github.com/rwightman/efficientdet-pytorch>
-
-- YoloV4 <https://github.com/Tianxiaomo/pytorch-YOLOv4> <https://github.com/argusswift/YOLOv4-pytorch>
-
-- YoloV5 <https://github.com/ultralytics/yolov5>
-
-- Faster_RCNN <https://github.com/pytorch/vision/tree/master/torchvision/models/detection>
-
-- RetinaNet <https://github.com/yhenon/pytorch-retinanet>

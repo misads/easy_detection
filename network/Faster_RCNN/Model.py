@@ -7,6 +7,13 @@ import cv2
 import os
 
 from torch import nn
+import torch
+
+if torch.__version__ >= '1.6.0':
+    from torch.cuda.amp import autocast, GradScaler
+    fp16 = True
+else:
+    fp16 = False
 
 from options import opt
 
@@ -22,31 +29,36 @@ import misc_utils as utils
 import ipdb
 
 from .frcnn.faster_rcnn import FasterRCNN, FastRCNNPredictor
+from .frcnn.rpn import AnchorGenerator
 from .frcnn import fasterrcnn_resnet50_fpn
 
 from dataloader.coco import coco_90_to_80_classes
+from utils import tta_wrapper
 
 from .backbones import vgg16_backbone, res101_backbone
 
-
-nms_thresh = 0.5  # 测试时的nms iou阈值
-conf_thresh = 0.05  # 测试时置信度小于多少的去掉
+from .frcnn.backbone_utils import resnet_fpn_backbone
 
 class Model(BaseModel):
-    def __init__(self, opt, logger=None):
+    def __init__(self, opt):
         super(Model, self).__init__()
         self.opt = opt
-        self.logger = logger
 
         kargs = {}
         if opt.scale:
             min_size = opt.scale
             max_size = int(min_size / 3 * 4)
+
+            anchor_sizes = ((16,), (32,), (64,), (128,), (512,)) # ,( 4,), (256,), (512,))
+            aspect_ratios = ((0.2, 0.5, 1.0, 2.0, 5.0),) * len(anchor_sizes)
+            rpn_anchor_generator = AnchorGenerator(
+                anchor_sizes, aspect_ratios
+            )
+
             kargs = {'min_size': min_size,
                      'max_size': max_size,
+                     'rpn_anchor_generator': rpn_anchor_generator
                     }
-        
-        kargs.update({'box_nms_thresh': nms_thresh})
 
         # 定义backbone和Faster RCNN模型
         if opt.backbone is None or opt.backbone.lower() in ['res50', 'resnet50']:
@@ -69,7 +81,6 @@ class Model(BaseModel):
 
         elif opt.backbone.lower() in ['res', 'resnet']:
             raise RuntimeError(f'backbone "{opt.backbone}" is ambiguous, please specify layers.')
-
         else:
             raise NotImplementedError(f'no such backbone: {opt.backbone}')
 
@@ -81,6 +92,9 @@ class Model(BaseModel):
 
         self.avg_meters = ExponentialMovingAverage(0.95)
         self.save_dir = os.path.join(opt.checkpoint_dir, opt.tag)
+
+        if fp16:
+            self.scaler = GradScaler()
 
     def update(self, sample, *arg):
         """
@@ -97,9 +111,8 @@ class Model(BaseModel):
 
         image, bboxes, labels = sample['image'], sample['bboxes'], sample['labels']
         
-        for b in range(len(image)):
-            if len(bboxes[b]) == 0:  # 没有bbox，不更新参数
-                return {}
+        if len(bboxes[0]) == 0:  # 没有bbox，不更新参数
+            return {}
 
         image = image.to(opt.device)
         bboxes = [bbox.to(opt.device).float() for bbox in bboxes]
@@ -117,20 +130,41 @@ class Model(BaseModel):
             target['area'] = area
             target['iscrowd'] = iscrowd
         """
-        loss_dict = self.detector(image, target)
-
+        # try:
+            # if fp16:
+            #     with autocast():
+            #         loss_dict = self.detector(image, target)
+            # else:
+            #     loss_dict = self.detector(image, target)
+        # except:
+            # return {}
+            # import ipdb
+            # ipdb.set_trace()
+        try:
+            loss_dict = self.detector(image, target)
+        except:
+            print('warning: OOM')
         loss = sum(l for l in loss_dict.values())
 
         self.avg_meters.update({'loss': loss.item()})
 
         self.optimizer.zero_grad()
-        loss.backward()
-        self.optimizer.step()
+        if fp16:
+            self.scaler.scale(loss).backward()
+            self.scaler.step(self.optimizer)
+            self.scaler.update()
+        else:
+            loss.backward()
+            self.optimizer.step()
 
         return {}
 
+
+    @tta_wrapper(2, 2, 4500, 3500)
     def forward_test(self, image):  # test
         """给定一个batch的图像, 输出预测的[bounding boxes, labels和scores], 仅在验证和测试时使用"""
+        conf_thresh = 0.05
+
         image = list(im for im in image)
 
         batch_bboxes = []

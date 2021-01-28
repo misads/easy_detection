@@ -17,6 +17,31 @@ from mscv.image import tensor2im
 from mscv.summary import write_loss, write_image
 from utils.vis import visualize_boxes
 
+
+def denormalize(img, mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225), max_pixel_value=255.0):
+    """denormalize an image
+
+    Args:
+        img(numpy.array): numpy format image [h, w, c].
+
+    Returns:
+        denormalized image.
+
+    """
+    mean = np.array(mean, dtype=np.float32)
+    mean *= max_pixel_value
+
+    std = np.array(std, dtype=np.float32)
+    std *= max_pixel_value
+
+
+    img = img.astype(np.float32)
+
+    img *= std
+    img += mean
+    return img
+
+
 class BaseModel(torch.nn.Module):
     def __init__(self):
         super(BaseModel, self).__init__()
@@ -79,18 +104,24 @@ class BaseModel(torch.nn.Module):
                     gt_difficults.append(np.array([False] * len(gt_bbox[b])))
 
                 if opt.vis:  # 可视化预测结果
-                    img = tensor2im(image).copy()
-                    # for x1, y1, x2, y2 in gt_bbox[0]:
-                    #     cv2.rectangle(img, (x1,y1), (x2,y2), (0, 255, 0), 2)  # 绿色的是gt
+                    img = image[0].detach().cpu().numpy()
+                    img = img.transpose((1, 2, 0))
+                    img = denormalize(img, max_pixel_value=1.0)
+                    img *= 255
+                    img = img.astype(np.uint8).copy()
 
                     num = len(batch_scores[0])
                     visualize_boxes(image=img, boxes=batch_bboxes[0],
                              labels=batch_labels[0].astype(np.int32), probs=batch_scores[0], class_labels=opt.class_names)
 
+                    for x1, y1, x2, y2 in gt_bbox[0]:
+                        x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+                        cv2.rectangle(img, (x1,y1), (x2,y2), (255, 0, 0), 2)  # 绿色的是gt
+
                     write_image(writer, f'{data_name}/{i}', 'image', img, epoch, 'HWC')
 
             result = []
-            for iou_thresh in [0.5, 0.55, 0.6, 0.65, 0.7, 0.75]:
+            for iou_thresh in [0.1, 0.3, 0.5]:
                 AP = eval_detection_voc(
                     pred_bboxes,
                     pred_labels,
