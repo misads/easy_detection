@@ -49,6 +49,8 @@ def parse_args():
 
     # scale
     parser.add_argument('--scale', type=int, default=None, help='scale images to this size')
+    parser.add_argument('--ms', type=float, default=1., help='scale images to this size')
+
     parser.add_argument('--crop', type=int, default=None, help='then crop to this size')
     parser.add_argument('--workers', '-w', type=int, default=4, help='num of workers')
 

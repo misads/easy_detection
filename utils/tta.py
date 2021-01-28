@@ -3,17 +3,22 @@ import torch.nn as nn
 import numpy as np
 import ipdb
 from torchvision.ops import nms
-from mmdet.ops.nms import batched_nms
+from torchvision.ops.boxes import batched_nms
+import torch.nn.functional as F
+from options import opt
 
 nms_type = 'soft_nms'
 nms_type = 'nms'
 nms_thresh = 0.1
+
+scale = opt.ms
 
 def tta_wrapper(nw: int, nh: int, patch_w: int, patch_h: int):
     def decorator(fn):
         def handle(*args, **kwargs):
             image = args[1]  # 0是self
             b, c, h, w = image.shape
+
             assert b == 1, 'batch size must be 1'
 
             overlap_w = (nw * patch_w - w) // (nw - 1) 
@@ -43,12 +48,17 @@ def tta_wrapper(nw: int, nh: int, patch_w: int, patch_h: int):
                     except:
                         ipdb.set_trace()
 
+                    if scale != 1.:
+                        patch = F.interpolate(patch, scale_factor=scale, mode='bilinear')
                     # patch_bboxes, patch_labels, patch_scores = model.forward_test(patch)
                     patch_bboxes, patch_labels, patch_scores = fn(args[0], patch)
 
                     patch_bboxes = patch_bboxes[0]
                     patch_labels = patch_labels[0]
                     patch_scores = patch_scores[0]
+
+                    if scale != 1.:
+                        patch_bboxes /= scale
 
                     for k in range(len(patch_bboxes)):
                         patch_bboxes[k][0] += startw[j]
@@ -64,9 +74,9 @@ def tta_wrapper(nw: int, nh: int, patch_w: int, patch_h: int):
 
             if len(batch_labels) > 0:
                 nms_cfg = {'type': nms_type, 'iou_thr': nms_thresh}
-                dets, keep = batched_nms(torch.Tensor(batch_bboxes).cuda(), 
+                keep = batched_nms(torch.Tensor(batch_bboxes).cuda(), 
                                         torch.Tensor(batch_scores).cuda(), 
-                                        torch.Tensor(batch_labels).cuda(), nms_cfg)
+                                        torch.Tensor(batch_labels).cuda(), nms_thresh)
                 # import ipdb
                 # ipdb.set_trace()
                 # keep = nms(torch.Tensor(batch_bboxes).cuda(), torch.Tensor(batch_scores).cuda(), nms_thresh)
@@ -80,4 +90,3 @@ def tta_wrapper(nw: int, nh: int, patch_w: int, patch_h: int):
         return handle
 
     return decorator
-
