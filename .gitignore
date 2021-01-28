@@ -140,7 +140,6 @@ logs/
 results/
 run_log.txt
 mscv
-submit*
 submission*
 .idea/
 pretrained/

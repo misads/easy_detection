@@ -167,12 +167,12 @@ python submit.py --model Faster_RCNN -b1 --load checkpoints/frcnn_res50_2k/40_Fa
 python submit.py --model Faster_RCNN -b1 --load checkpoints/frcnn_res50_2k/40_Faster_RCNN.pt --scale 2000 --ms 1.429
 ```
 
-会生成4个文件：`result_1.0.json`，`result_1.143.json`，`result_1.286.json`和`result_1.429.json`。
+会生成4个文件：`result.json`，`result_1.143.json`，`result_1.286.json`和`result_1.429.json`。
 
 最后运行下面的命令，使用`wbf`将四个结果融合为一个结果。这个命令同样也可以用于**融合多个不同模型的结果**。
 
 ```bash
-python wbf.py result_1.0.json result_1.143.json result_1.286.json result_1.429.json
+python wbf.py result.json result_1.143.json result_1.286.json result_1.429.json
 ```
 
 
