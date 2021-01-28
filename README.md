@@ -126,7 +126,7 @@ python3 train.py --tag frcnn_res50_2k --model Faster_RCNN --scale 2000 --val_fre
 
 ## 验证模型和提交结果
 
-验证模型
+线下验证模型
 
 ```bash
 python3 eval.py --model Faster_RCNN -b1 --scale 2000 --load checkpoints/frcnn_res50_2k/40_Faster_RCNN.pt --vis
