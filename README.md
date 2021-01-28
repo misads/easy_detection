@@ -2,7 +2,7 @@
 
 　　初赛小白入门级baseline(基于pytorch, 线上单模70+)。
 
-　　代码开源在：。基于一个非常简单的检测框架[detection_template](https://github.com/misads/detection_template)，模型为Faster_RCNN+ResNet50FPN。线上线下能够很好的对应，欢迎大家来star~。
+　　代码开源在：<https://github.com/misads/detection_template/tree/tile>。基于一个非常简单的检测框架[detection_template](https://github.com/misads/detection_template)，模型为Faster_RCNN+ResNet50FPN。线上线下能够很好的对应，欢迎大家来star~。
 
 | 方法                                | 线上分数       |
 | ----------------------------------- | -------------- |
@@ -82,7 +82,7 @@ f2.close()
 
 ```bash
 # !-bash
-git clone ?????????????????????
+git clone -b tile https://github.com/misads/detection_template
 cd detection_template
 ```
 
@@ -117,12 +117,12 @@ ln -s <数据下载目录>/tile_round1_train_20201231 datasets/tile
 5. 运行训练命令：
 
 ```bash
-python3 train.py --tag frcnn_res50_2k --model Faster_RCNN -b1 --optimizer sgd --val_freq 20 --save_freq 10 --lr 0.001 --scale 2000 --scheduler tile
-
-python3 train.py --tag frcnn_res50_2k --model Faster_RCNN --scale 2000
+python3 train.py --tag frcnn_res50_2k --model Faster_RCNN --scale 2000 --val_freq 20
 ```
 
 　　参数中的`val_freq`是每`20`代验证一次，线下验证的是**全图**mAP@0.1，mAP@0.3和mAP@0.5的平均值，acc暂不支持验证。  
+
+　　详细的参数使用方法可以参考[说明文档](https://github.com/misads/detection_template/blob/tile/_assets/_docs/get_started.md#%E5%8F%82%E6%95%B0%E8%AF%B4%E6%98%8E)。
 
 ## 验证模型和提交结果
 
@@ -177,6 +177,6 @@ python wbf.py result_1.0.json result_1.143.json result_1.286.json result_1.429.j
 
 
 
-最后，代码开源在：。欢迎大家来star~~
+最后，代码开源在<https://github.com/misads/detection_template/tree/tile>：。欢迎大家来star~~
 
 
