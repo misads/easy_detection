@@ -1,6 +1,6 @@
 # 天池2021广东工业智造创新大赛Faster_RCNN baseline (线上70+)
 
-　　初赛小白入门级baseline(基于pytorch, 线上单模70+)。
+　　代码非常简单的小白入门级baseline(基于pytorch, 初赛A榜单模70+)。
 
 　　代码开源在: <https://github.com/misads/detection_template/tree/tile>。基于一个非常简单的检测框架[detection_template](https://github.com/misads/detection_template)，模型为Faster_RCNN+ResNet50FPN。线上线下能够很好的对应，欢迎大家来star~。
 
