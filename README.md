@@ -117,7 +117,7 @@ ln -s <数据下载目录>/tile_round1_train_20201231 datasets/tile
 5. 运行训练命令：
 
 ```bash
-python3 train.py --tag frcnn_res50_2k --model Faster_RCNN --scale 2000 --val_freq 20
+python3 train.py --tag frcnn_res50_2k --model Faster_RCNN --scale 2000 --val_freq 20 --scheduler tile
 ```
 
 　　参数中的`val_freq`是每`20`代验证一次，线下验证的是**全图**mAP@0.1，mAP@0.3和mAP@0.5的平均值，acc暂不支持验证。  
