@@ -58,8 +58,8 @@
 | FRCNN | Res50+FPN |  COCO |  |48.81|  |  |  |
 | YoloV4 | CSPDarknet-53 | COCO| 62.8 | - | [[百度网盘]](https://pan.baidu.com/s/1keDDPyMvpX11jnXbJsoTrg) | nio7 | 797dc954 |
 | YoloV5 | CSPDarknet | COCO | - |  64.30 | [[百度网盘]](https://pan.baidu.com/s/1j45qGCEu5_Tl0BlDF8ixnw) | cssw | 8e54a2e8 |
-| SSD300 | VGG16 | VOC | 77.2 | 79.21 | [[百度网盘]](https://pan.baidu.com/s/18XN0Atybz27DnwFdUsMRPg)| 59y0 | 
-| SSD512 | VGG16 | VOC | 79.8 | 82.14 | [[百度网盘]](https://pan.baidu.com/s/1CYB7GvLYxin01Oqwo0v7ZQ)| 0iur | 
+| SSD300 | VGG16 | VOC | 77.2 | 79.21 | [[百度网盘]](https://pan.baidu.com/s/18XN0Atybz27DnwFdUsMRPg)| 59y0 | 106c0fc9 |
+| SSD512 | VGG16 | VOC | 79.8 | 82.14 | [[百度网盘]](https://pan.baidu.com/s/1CYB7GvLYxin01Oqwo0v7ZQ)| 0iur | 844b40b3 |
 
 ## Reference
 
