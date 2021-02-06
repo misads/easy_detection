@@ -3,10 +3,10 @@ import torch
 from ..utils.container import Container
 from ..utils.nms import batched_nms
 
-CONFIDENCE_THRESHOLD = 0.01
+CONFIDENCE_THRESHOLD = 0.001
 MAX_PER_CLASS = -1
-MAX_PER_IMAGE = 100
-NMS_THRESHOLD = 0.45
+MAX_PER_IMAGE = 200
+NMS_THRESHOLD = 0.4
 
 
 class PostProcessor:

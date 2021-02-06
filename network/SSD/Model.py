@@ -76,6 +76,10 @@ class Model(BaseModel):
 
         image, bboxes, labels = sample['image'], sample['bboxes'], sample['labels']
 
+        image = image * 255 
+        sub = torch.Tensor([[123, 117, 104]]).cuda().view([1, 3, 1, 1])
+        image -= sub
+
         for box in bboxes:
             box[:, 0::2] /= 512  # width
             box[:, 1::2] /= 512  # height
@@ -95,24 +99,30 @@ class Model(BaseModel):
 
     def forward_test(self, image):
         """给定一个batch的图像, 输出预测的[bounding boxes, labels和scores], 仅在验证和测试时使用"""
-        conf_thresh = 0.5
+        conf_thresh = 0.000
 
         batch_bboxes = []
         batch_labels = []
         batch_scores = []
 
+        """
+        图像预处理
+        """
+        image = image * 255 
+        sub = torch.Tensor([[123, 117, 104]]).cuda().view([1, 3, 1, 1])
+        image -= sub
+
         outputs = self.detector(image)
 
+        """
+        nms阈值设置在 .box_head/inference.py
+        """
         for b in range(len(outputs)):  #
             output = outputs[b]
             boxes = output['boxes']
             labels = output['labels']
             scores = output['scores']
-            boxes = boxes[scores > conf_thresh]
-            labels = labels[scores > conf_thresh]
             labels = labels - 1
-            scores = scores[scores > conf_thresh]
-
             batch_bboxes.append(boxes.detach().cpu().numpy())
             batch_labels.append(labels.detach().cpu().numpy())
             batch_scores.append(scores.detach().cpu().numpy())
@@ -128,8 +138,8 @@ class Model(BaseModel):
     def load(self, ckpt_path):
         return super(Model, self).load(ckpt_path)
 
-    def save(self, which_epoch):
-        super(Model, self).save(which_epoch)
+    def save(self, which_epoch, published=False):
+        super(Model, self).save(which_epoch, published)
 
 
 

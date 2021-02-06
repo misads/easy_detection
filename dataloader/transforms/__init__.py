@@ -2,12 +2,15 @@ from .no_transform import No_Transform
 from .resize import Resize
 from .frcnn import FRCNN
 from .yolo2 import Yolo2
+from .ssd import SSD
 
 transforms = {
     'yolo2': Yolo2,
     'yolo3': Yolo2,
     'faster_rcnn': FRCNN,
     'frcnn': FRCNN,
+    'ssd300': SSD,
+    'ssd512': SSD,
     'none': No_Transform,
     'resize': Resize
 }
