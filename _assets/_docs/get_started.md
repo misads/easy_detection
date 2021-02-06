@@ -99,6 +99,20 @@ cd detection_template
    python3 eval.py --model Yolo2 --load pretrained/0_voc_Yolo2.pt -b24 
    ```
 
+
+**SSD300**
+
+   ```bash
+   python3 eval.py --model SSD300 --load pretrained/0_SSD300.pt -b24 --scale 300
+   ```
+
+**SSD512**
+
+   ```bash
+   python3 eval.py --model SSD512 --load pretrained/0_SSD512.pt -b24 --scale 512
+   ```
+
+
 4. 如果需要使用`Tensorboard`可视化预测结果，可以在上面的命令最后加上`--vis`参数。然后运行`tensorboard --logdir results/cache`查看检测的可视化结果。如下图所示：
 
 　　<img alt="visualize" src="https://raw.githubusercontent.com/misads/detection_template/master/_assets/_imgs/vis.png" style="zoom:50%;" />
