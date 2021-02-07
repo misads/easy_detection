@@ -335,7 +335,8 @@ def index():
 
     tensorboard_not_open = tensorboard is None
 
-    return render_template('index.html', metas=metas, tensorboard_not_open=tensorboard_not_open, tensorboard_url=tensorboard_url, val=False)
+    template_root = os.path.abspath(os.path.join(app.root_path, '..'))
+    return render_template('index.html', metas=metas, tensorboard_not_open=tensorboard_not_open, tensorboard_url=tensorboard_url, val=False, path=template_root)
 
 
 @views.route('/val')
@@ -353,7 +354,8 @@ def validation():
 
     tensorboard_not_open = tensorboard is None
 
-    return render_template('index.html', metas=metas, tensorboard_not_open=tensorboard_not_open, tensorboard_url=tensorboard_url, val=True)
+    template_root = os.path.abspath(os.path.join(app.root_path, '..'))
+    return render_template('index.html', metas=metas, tensorboard_not_open=tensorboard_not_open, tensorboard_url=tensorboard_url, val=True, path=template_root)
 
 
 @views.route('/html/user/static/<path:path>')
