@@ -8,8 +8,8 @@
 
 - 数据格式
   - [x] VOC
-  - [ ] CSV文件
   - [x] COCO
+  - [x] 自定义格式
 
 - 网络模型
   - [x] EfficientDet(目前不支持训练过程中验证)
@@ -18,16 +18,17 @@
   - [x] YoloV5  
   - [x] SSD300、SSD512(目前只支持vgg backbone,且不支持预训练模型)
   - [x] Faster-RCNN
-  - [ ] Cascade-RCNN
+  - [x] Cascade-RCNN
   - [x] RetinaNet
   
 - TTA
-  - [ ] 多尺度融合
+  - [x] 多尺度融合
   - [x] nms
   - [x] Weighted Box Fusion(WBF)
   - [ ] 伪标签
 
 - Scheduler
+  - [x] Step Scheduler
   - [ ] 验证集指标不下降时学习率衰减
 
 - Metrics
