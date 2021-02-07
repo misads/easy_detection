@@ -85,7 +85,7 @@
                         <td class="no-border">{{ meta.model }}</td>
                         <td class="no-border">{{ meta.acc }}</td>
                         <td class="no-border">{{ meta.runtime }}</td>
-                        <td title="{{ meta.remarks }}" class="no-border">{{ meta.remarks }} <span tag="{{ meta.tag }}" remark="{{ meta.remarks }}" class="btn-fa glyphicon glyphicon-edit"></span></td>
+                        <td title="{{ meta.remarks }}" class="no-border">{{ meta.remarks | safe }} <span tag="{{ meta.tag }}" remark="{{ meta.remarks }}" class="btn-fa glyphicon glyphicon-edit"></span></td>
                     </tr>
                 {% endfor %}
             </tbody>
