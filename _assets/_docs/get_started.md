@@ -155,7 +155,7 @@ python3 train.py --tag yolo3_voc --model Yolo3  -b12 --val_freq 10 --save_freq 1
 | 指定训练标签                | `--tag`                    | `--tag yolo2_voc`            | 日志会保存在`logs/标签`目录下，模型会保存在`checkpoints/标签`目录下。 |
 | 选择模型                    | `--model`                  | `--model Yolo2`              | **必须明确给定**。                                           |
 | 选择backbone                | `--backbone`               | `--backbone res50`           | 目前仅Faster RCNN支持选择backbone。                          |
-| 选择数据集                  | `--dataset`                | `--dataset voc`              | 支持voc、coco等数据集，也支持`dataloader/custom`中自定义的数据集。 |
+| 选择数据集                  | `--dataset`                | `--dataset voc`              | 支持voc、coco等数据集，也支持`dataloader/data_roots`中自定义的数据集。 |
 | 指定batch_size              | `-b`                       | `-b24`                       | 设置batch_size为24。                                         |
 | 指定学习率                  | `--lr`                     | `--lr 0.001`                 | 设置初始学习率为0.001。                                      |
 | 设置训练总代数和周期        | `--scheduler`              | `--checuler 10x`             | `1x`总共训练`12`个epoch，`10x`总共训练`120`个epoch。         |
@@ -183,7 +183,7 @@ python3 train.py --tag yolo3_voc --model Yolo3  -b12 --val_freq 10 --save_freq 1
                           └── val.txt
    ```
 
-2. 在`dataloader/custom`目录下新建一个`my_data.py`，内容如下：
+2. 在`dataloader/data_roots`目录下新建一个`my_data.py`，内容如下：
 
    ```python
    class MyData(object):
@@ -196,10 +196,10 @@ python3 train.py --tag yolo3_voc --model Yolo3  -b12 --val_freq 10 --save_freq 1
        img_format = 'jpg'  # 根据图片文件是jpg还是png设为'jpg'或者'png'
    ```
 
-3. 在`dataloader/custom/__init__.py`中添加自己的数据集类：
+3. 在`dataloader/data_roots/__init__.py`中添加自己的数据集类：
 
    ```python
-   from .origin_voc import VOC  # 这是原始的VOC
+   from .voc import VOC  # 这是原始的VOC
    from .my_data import MyData
    
    datasets = {

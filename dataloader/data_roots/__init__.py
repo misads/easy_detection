@@ -1,5 +1,5 @@
-from .origin_voc import VOC
-from .origin_coco import COCO
+from .voc import VOC
+from .coco import COCO
 from .apollo import Apollo
 from .cityscapes import Cityscapes
 from .wheat import Wheat
@@ -13,7 +13,7 @@ datasets = {
     'cityscapes': Cityscapes,
     'wheat': Wheat,
     'widerface': Wider_face,
-    'rtts': Rtts,
+    'rtts': Rtts
 }
 
 def get_dataset(dataset: str):
