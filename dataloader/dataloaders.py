@@ -1,7 +1,7 @@
 # encoding=utf-8
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
-from dataloader.custom import get_dataset
+from dataloader.data_roots import get_dataset
 from dataloader.transforms import get_transform
 
 from dataloader.formats.voc import VOCTrainValDataset
