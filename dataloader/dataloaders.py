@@ -1,11 +1,11 @@
 # encoding=utf-8
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
-from dataloader.data_roots import get_dataset
-from dataloader.transforms import get_transform
+from configs.data_roots import get_dataset
+from configs.transforms import get_transform
 
-from dataloader.formats.voc import VOCTrainValDataset
-from dataloader.formats.coco import CocoDataset
+from dataloader.voc import VOCTrainValDataset
+from dataloader.coco import CocoDataset
 import albumentations as A
 from albumentations.pytorch.transforms import ToTensorV2
 

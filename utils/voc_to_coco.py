@@ -13,7 +13,7 @@ import albumentations as A
 from mscv.summary import create_summary_writer, write_image
 import dataloader.dataloaders
 from dataloader.voc import VOCTrainValDataset
-from dataloader.data_roots import get_dataset
+from configs.data_roots import get_dataset
 
 import xml.etree.ElementTree as ET
 import misc_utils as utils

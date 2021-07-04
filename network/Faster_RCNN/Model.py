@@ -24,7 +24,7 @@ import ipdb
 from .frcnn.faster_rcnn import FasterRCNN, FastRCNNPredictor
 from .frcnn import fasterrcnn_resnet50_fpn
 
-# from dataloader.formats.coco import coco_90_to_80_classes
+# from dataloader.coco import coco_90_to_80_classes
 
 from .backbones import vgg16_backbone, res101_backbone
 
