@@ -26,8 +26,6 @@ from .frcnn.cascade_rcnn import CascadeRCNN, FastRCNNPredictor
 from .frcnn.rpn import AnchorGenerator
 from .frcnn import cascadercnn_resnet50_fpn
 
-from dataloader.coco import coco_90_to_80_classes
-
 from .backbones import vgg16_backbone, res101_backbone
 
 

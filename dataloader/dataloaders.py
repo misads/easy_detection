@@ -4,8 +4,8 @@ from torchvision import datasets, transforms
 from dataloader.custom import get_dataset
 from dataloader.transforms import get_transform
 
-from dataloader.voc import VOCTrainValDataset
-from dataloader.coco import CocoDataset
+from dataloader.formats.voc import VOCTrainValDataset
+from dataloader.formats.coco import CocoDataset
 import albumentations as A
 from albumentations.pytorch.transforms import ToTensorV2
 
