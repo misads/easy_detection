@@ -5,7 +5,7 @@ MODEL:
 DATA:
   DATASET: voc
   TRANSFORM: frcnn
-  SCALE: [300, 500]  # [600, 1000]  # [800, 1333]
+  SCALE: [800, 1333]
 OPTIMIZE:
   OPTIMIZER: sgd
   BASE_LR: 0.001 
