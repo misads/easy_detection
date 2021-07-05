@@ -270,3 +270,20 @@ models = {
 
 4. 在config文件中将MODEL.NAME设置为自己的检测模型名称。
 
+## WEB端监控和监控任务
+
+1. 安装Flask
+
+```bash
+pip install Flask
+```
+
+2. 打开web服务
+
+```bash
+python serve.py -p8000 # 打开在8000端口
+```
+
+3. 用浏览器输入`localhost:8000`访问，效果如下：
+
+<img alt="msboard" src="https://raw.githubusercontent.com/misads/detection_template/master/_assets/_imgs/msboard.png" style="zoom:50%;" />

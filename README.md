@@ -4,8 +4,6 @@
 
 ![preview](http://www.xyu.ink/wp-content/uploads/2020/10/COCO2.png)
 
-<img alt="msboard" src="https://raw.githubusercontent.com/misads/detection_template/master/_assets/_imgs/msboard.png" style="zoom:50%;" />
-
 ## Features
 
 - 可视化
