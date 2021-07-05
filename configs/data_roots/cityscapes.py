@@ -1,7 +1,7 @@
 import albumentations as A
 from albumentations.pytorch.transforms import ToTensorV2
 
-class Cityscapes(object):
+class Data(object):
     data_format = 'VOC'
     voc_root = 'datasets/cityscapes'
     train_split = 'train.txt'

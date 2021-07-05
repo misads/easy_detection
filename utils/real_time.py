@@ -41,8 +41,8 @@ class_names = ["aeroplane", "bicycle", "bird", "boat", "bottle", "bus", "car", "
                "dog", "horse", "motorbike", "person",
                "pottedplant", "sheep", "sofa", "train", "tvmonitor"]
 
-opt.class_names = class_names
-opt.num_classes = len(class_names)
+config.DATA.CLASS_NAMES = class_names
+config.DATA.NUM_CLASSESS = len(class_names)
 
 opt.width = 600
 opt.height = 600
@@ -59,15 +59,15 @@ val_transform = A.Compose(
     p=1.0
 )
 
-Model = get_model(opt.model)
+Model = get_model(config.MODEL.NAME)
 model = Model(opt)
 model = model.to(device=opt.device)
 
 
 if opt.load:
-    opt.which_epoch = model.load(opt.load)
+    which_epoch = model.load(opt.load)
 else:
-    opt.which_epoch = 0
+    which_epoch = 0
 
 model.eval()
 
@@ -86,7 +86,7 @@ model.eval()
 #
 # num = len(batch_scores[0])
 # visualize_boxes(image=img, boxes=batch_bboxes[0],
-#                 labels=batch_labels[0].astype(np.int32), probs=batch_scores[0], class_labels=opt.class_names)
+#                 labels=batch_labels[0].astype(np.int32), probs=batch_scores[0], class_labels=config.DATA.CLASS_NAMES)
 #
 #
 # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -125,7 +125,7 @@ while True:
 
     num = len(batch_scores[0])
     visualize_boxes(image=img, boxes=batch_bboxes[0],
-                    labels=batch_labels[0].astype(np.int32), probs=batch_scores[0], class_labels=opt.class_names)
+                    labels=batch_labels[0].astype(np.int32), probs=batch_scores[0], class_labels=config.DATA.CLASS_NAMES)
 
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 

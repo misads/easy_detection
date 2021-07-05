@@ -3,7 +3,7 @@ import torch
 import ipdb
 import cv2
 import numpy as np
-from options import opt
+from options import opt, config
 # from dataloader import paired_dataset
 from mscv.summary import create_summary_writer, write_image
 from mscv.image import tensor2im
@@ -25,8 +25,8 @@ source domain 是clear的
 """
 writer = create_summary_writer('logs/preview')
 
-# class_names = opt.class_names
-class_names = opt.class_names
+# class_names = config.DATA.CLASS_NAMES
+class_names = config.DATA.CLASS_NAMES
 
 preview = train_dataloader  # train_dataloader, val_dataloader
 
@@ -45,6 +45,6 @@ for i, sample in enumerate(preview):
 
     visualize_boxes(image=image, boxes=bboxes, labels=labels, probs=np.array(np.random.randint(100, 101, size=[len(bboxes)])/100), class_labels=class_names)
 
-    write_image(writer, f'preview_{opt.dataset}/{i}', 'image', image, 0, 'HWC')
+    write_image(writer, f'preview_{config.DATA.DATASET}/{i}', 'image', image, 0, 'HWC')
 
 writer.flush()

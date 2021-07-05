@@ -43,7 +43,7 @@ opt = Option()
 
 
 
-Model = get_model(opt.model)
+Model = get_model(config.MODEL.NAME)
 model = Model(opt)
 model = model.to(device=opt.device)
 model.load(LOAD_CHECKPOINT)

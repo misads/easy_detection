@@ -31,15 +31,15 @@ import misc_utils as utils
 
 class Model(BaseModel):
     def __init__(self, opt, logger=None):
-        super(Model, self).__init__()
+        super(Model, self).__init__(config, kwargs)
         self.opt = opt
         # cfgfile = 'yolo-voc.cfg'
         # self.detector = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
         # in_features = self.detector.roi_heads.box_predictor.cls_score.in_features
         #
         # # replace the pre-trained head with a new one
-        # self.detector.roi_heads.box_predictor = FastRCNNPredictor(in_features, opt.num_classes + 1)
-        self.detector = yolov4(inference=True, n_classes=opt.num_classes)
+        # self.detector.roi_heads.box_predictor = FastRCNNPredictor(in_features, config.DATA.NUM_CLASSESS + 1)
+        self.detector = yolov4(inference=True, n_classes=config.DATA.NUM_CLASSESS)
         
         # """
         # 预训练模型
@@ -54,13 +54,14 @@ class Model(BaseModel):
         #####################
         # normal_init(self.detector)
 
-        print_network(self.detector)
+        if opt.debug:
+            print_network(self.detector)
 
         self.optimizer = get_optimizer(opt, self.detector)
         self.scheduler = get_scheduler(opt, self.optimizer)
 
         self.avg_meters = ExponentialMovingAverage(0.95)
-        self.save_dir = os.path.join(opt.checkpoint_dir, opt.tag)
+        self.save_dir = os.path.join('checkpoints', opt.tag)
 
     def update(self, sample, *arg):
         """
@@ -123,7 +124,7 @@ class Model(BaseModel):
             labels = []
             scores = []
 
-            for j in range(opt.num_classes):
+            for j in range(config.DATA.NUM_CLASSESS):
 
                 cls_argwhere = l_max_id == j
                 ll_box_array = l_box_array[cls_argwhere, :]

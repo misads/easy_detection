@@ -46,7 +46,7 @@ class Detect(nn.Module):
 
 class Model(nn.Module):
     def __init__(self, cfg='yolov5s.yaml', ch=3, nc=None):  # model, input channels, number of classes
-        super(Model, self).__init__()
+        super(Model, self).__init__(config, kwargs)
         if isinstance(cfg, dict):
             self.yaml = cfg  # model dict
         else:  # is *.yaml

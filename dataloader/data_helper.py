@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 
-def voc_to_yolo_format(sample, opt):
+def voc_to_yolo_format(sample):
     """Convert voc to yolo format
 
     Args:
@@ -9,7 +9,6 @@ def voc_to_yolo_format(sample, opt):
             'bboxes': bboxes,  # xyxy format, origin size, [N, 4]
             'labels': labels,  # labels, [N]
         }
-        opt: options
 
     Returns:
         {   'yolo_boxes': yolo_boxes,
@@ -19,8 +18,7 @@ def voc_to_yolo_format(sample, opt):
 
     """
 
-    width = opt.width
-    height = opt.height
+    _, height, width = sample['image'].shape
 
     yolo_boxes = np.zeros([50, 5])
     yolo4_boxes = np.zeros([50, 5])

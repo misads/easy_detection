@@ -30,7 +30,7 @@ def parse_meta_json(metapath):
     else:
         state = 'finished'
 
-    model = meta[0]['opt']['model']
+    model = meta[0]['config']['MODEL']['NAME']
     acc = 0.
     runtime = 0.
     for line in meta:
@@ -94,17 +94,26 @@ def parse_log(tag):
         lines = f.readlines()
 
     option = False
+    config = False
     time_color = '#777777'
     for i, line in enumerate(lines):
         if option and '===========================================' in line:
-            option = False
-            
+            option = False    
+        if config and '===========================================' in line or '==================Options==================' in line:
+            config = False
+    
         if line.startswith('[INFO]'):
             if option:
                 pos_equ = line.find('=')
                 lines[i] = f'<span style="color:{time_color};">' + lines[i][:26] + '</span>' + \
                 '<span style="color:#457ab2;">' + lines[i][26:pos_equ] + '</span>' + '=' + \
                 '<span style="color:#262420;">' + lines[i][pos_equ+1:] + '</span>'
+            elif config:
+                pos_equ = line.rfind(':')
+                lines[i] = f'<span style="color:{time_color};">' + lines[i][:26] + '</span>' + \
+                '<span style="color:#457ab2;">' + lines[i][26:pos_equ] + '</span>' + ':' + \
+                '<span style="color:#262420;">' + lines[i][pos_equ+1:] + '</span>'
+
             elif 'Eva(' in line:
                 lines[i] = f'<span style="color:{time_color};">' + lines[i][:26] + '</span><span style="color:#981e23;">' + lines[i][26:] + '</span>'
             else:
@@ -126,6 +135,11 @@ def parse_log(tag):
 
         if '==================Options==================' in line:
             option = True
+
+        if '==================Configs==================' in line:
+            config = True
+
+        lines[i] = lines[i].replace('  ', '　')
 
     log = '<br/>'.join(lines)
 

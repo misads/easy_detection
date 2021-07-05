@@ -18,6 +18,7 @@ from mscv import ExponentialMovingAverage, print_network, load_checkpoint, save_
 # from mscv.cnn import normal_init
 from mscv.summary import write_image
 
+from utils import to_2tuple
 import misc_utils as utils
 import ipdb
 
@@ -29,58 +30,59 @@ from .frcnn import fasterrcnn_resnet50_fpn
 from .backbones import vgg16_backbone, res101_backbone
 
 
-nms_thresh = 0.5  # 测试时的nms iou阈值
-conf_thresh = 0.05  # 测试时置信度小于多少的去掉
-
 class Model(BaseModel):
-    def __init__(self, opt, logger=None):
-        super(Model, self).__init__()
-        self.opt = opt
-        self.logger = logger
+    def __init__(self, config, **kwargs):
+        super(Model, self).__init__(config, kwargs)
+        self.config = config
 
         kargs = {}
-        if opt.scale:
-            min_size = opt.scale
-            max_size = int(min_size / 3 * 4)
+        if 'SCALE' in config.DATA:
+            scale = config.DATA.SCALE
+            if isinstance(scale, int):
+                min_size = scale
+                max_size = int(min_size / 3 * 5)
+            else:
+                min_size, max_size = config.DATA.SCALE
+
             kargs = {'min_size': min_size,
                      'max_size': max_size,
                     }
         
-        kargs.update({'box_nms_thresh': nms_thresh})
+        kargs.update({'box_nms_thresh': config.TEST.NMS_THRESH})
 
         # 定义backbone和Faster RCNN模型
-        if opt.backbone is None or opt.backbone.lower() in ['res50', 'resnet50']:
+        if config.MODEL.BACKBONE is None or config.MODEL.BACKBONE.lower() in ['res50', 'resnet50']:
             # 默认是带fpn的resnet50
             self.detector = fasterrcnn_resnet50_fpn(pretrained=False, **kargs)
 
             in_features = self.detector.roi_heads.box_predictor.cls_score.in_features
 
             # replace the pre-trained head with a new one
-            self.detector.roi_heads.box_predictor = FastRCNNPredictor(in_features, opt.num_classes + 1)
+            self.detector.roi_heads.box_predictor = FastRCNNPredictor(in_features, config.DATA.NUM_CLASSESS + 1)
 
-        elif opt.backbone.lower() in ['vgg16', 'vgg']:
+        elif config.MODEL.BACKBONE.lower() in ['vgg16', 'vgg']:
             backbone = vgg16_backbone()
-            self.detector = FasterRCNN(backbone, num_classes=opt.num_classes + 1, **kargs)
+            self.detector = FasterRCNN(backbone, num_classes=config.DATA.NUM_CLASSESS + 1, **kargs)
 
-        elif opt.backbone.lower() in ['res101', 'resnet101']:
+        elif config.MODEL.BACKBONE.lower() in ['res101', 'resnet101']:
             # 不带FPN的resnet101
             backbone = res101_backbone()
-            self.detector = FasterRCNN(backbone, num_classes=opt.num_classes + 1, **kargs)
+            self.detector = FasterRCNN(backbone, num_classes=config.DATA.NUM_CLASSESS + 1, **kargs)
 
-        elif opt.backbone.lower() in ['res', 'resnet']:
-            raise RuntimeError(f'backbone "{opt.backbone}" is ambiguous, please specify layers.')
+        elif config.MODEL.BACKBONE.lower() in ['res', 'resnet']:
+            raise RuntimeError(f'backbone "{config.MODEL.BACKBONE}" is ambiguous, please specify layers.')
 
         else:
-            raise NotImplementedError(f'no such backbone: {opt.backbone}')
+            raise NotImplementedError(f'no such backbone: {config.MODEL.BACKBONE}')
 
+        if opt.debug:
+            print_network(self.detector)
 
-        print_network(self.detector)
-
-        self.optimizer = get_optimizer(opt, self.detector)
-        self.scheduler = get_scheduler(opt, self.optimizer)
+        self.optimizer = get_optimizer(config, self.detector)
+        self.scheduler = get_scheduler(config, self.optimizer)
 
         self.avg_meters = ExponentialMovingAverage(0.95)
-        self.save_dir = os.path.join(opt.checkpoint_dir, opt.tag)
+        self.save_dir = os.path.join('checkpoints', opt.tag)
 
     def update(self, sample, *arg):
         """
@@ -139,6 +141,8 @@ class Model(BaseModel):
 
         with torch.no_grad():
             outputs = self.detector(image)
+
+        conf_thresh = self.config.TEST.CONF_THRESH
 
         for b in range(len(outputs)):  #
             output = outputs[b]

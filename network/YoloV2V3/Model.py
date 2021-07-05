@@ -34,14 +34,14 @@ DO_FAST_EVAL = False  # 只保留概率最高的类，能够加快eval速度但�
 
 class Model(BaseModel):
     def __init__(self, opt, logger=None):
-        super(Model, self).__init__()
+        super(Model, self).__init__(config, kwargs)
         self.opt = opt
         self.logger = logger
         
         # 根据YoloV2和YoloV3使用不同的配置文件
-        if opt.model == 'Yolo2':
+        if config.MODEL.NAME == 'Yolo2':
             cfgfile = 'configs/yolo2-voc.cfg'
-        elif opt.model == 'Yolo3':
+        elif config.MODEL.NAME == 'Yolo3':
             cfgfile = 'configs/yolo3-coco.cfg'
 
         # 初始化detector
@@ -49,15 +49,15 @@ class Model(BaseModel):
         print_network(self.detector, logger=logger)
 
         # 在--load之前加载weights文件(可选)
-        if opt.weights:
-            utils.color_print('Load Yolo weights from %s.' % opt.weights, 3)
-            self.detector.load_weights(opt.weights)
+        if opt.load[-7:] == 'weights':
+            utils.color_print('Load Yolo weights from %s.' % opt.load, 3)
+            self.detector.load_weights(opt.load)
 
         self.optimizer = get_optimizer(opt, self.detector)
         self.scheduler = get_scheduler(opt, self.optimizer)
 
         self.avg_meters = ExponentialMovingAverage(0.95)
-        self.save_dir = os.path.join(opt.checkpoint_dir, opt.tag)
+        self.save_dir = os.path.join('checkpoints', opt.tag)
 
     def update(self, sample, *args):
         """

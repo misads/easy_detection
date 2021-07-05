@@ -298,9 +298,8 @@ def draw_mask_on_image_array(image, mask, color='red', alpha=0.4):
   pil_image = Image.composite(pil_solid_color, pil_image, pil_mask)
   np.copyto(image, np.array(pil_image.convert('RGB')))
 
-from options import opt
-
 if __name__ == '__main__':
+  from options import opt
   import matplotlib.pyplot as plt
   import cv2
 
@@ -391,6 +390,6 @@ if __name__ == '__main__':
   #   "toothbrush"
   # ]
 
-  cateNames = opt.class_names
+  cateNames = config.DATA.CLASS_NAMES
   visualize_boxes(image=imshow, boxes=_boxes, labels=_labels, probs=_probs, class_labels=cateNames)
   cv2.imwrite("vis.jpg", imshow)

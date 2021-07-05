@@ -1,7 +1,7 @@
 import albumentations as A
 from albumentations.pytorch.transforms import ToTensorV2
 
-class COCO(object):
+class Data(object):
     data_format = 'COCO'
     voc_root = 'datasets/coco'
     train_split = 'train2017'

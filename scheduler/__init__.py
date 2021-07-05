@@ -30,29 +30,30 @@ schedulers = {
 
 }
 
-
 schedulers = EasyDict(schedulers)
 
-def get_scheduler(opt, optimizer):
-    if opt.scheduler == 'cos':
+def get_scheduler(config, optimizer):
+    scheduler = config.OPTIMIZE.SCHEDULER
+
+    if scheduler == 'cos':
         scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=opt.epochs, eta_min=opt.lr * 0.1)
-    elif opt.scheduler.lower() == 'none':
+    elif scheduler.lower() == 'none':
         def lambda_decay(step) -> float:
             return 1.
         scheduler = optim.lr_scheduler.LambdaLR(optimizer, lambda_decay)
     else:
-        if opt.scheduler not in schedulers:
-            if opt.scheduler[-1] == 'x': 
-                times = int(opt.scheduler[:-1])
-                schedulers[opt.scheduler] = {
+        if scheduler not in schedulers:
+            if scheduler[-1] == 'x': 
+                times = int(scheduler[:-1])
+                schedulers[scheduler] = {
                     'epochs': [s * times for s in schedulers['1x'].epochs],
                     'ratios': [0.1, 1, 0.1, 0.01],
                 }
-                schedulers[opt.scheduler]['epochs'][0] = 1
+                schedulers[scheduler]['epochs'][0] = 1
 
-        epochs = schedulers[opt.scheduler].epochs  # [1, 7, 10, 99999999]
+        epochs = schedulers[scheduler].epochs  # [1, 7, 10, 99999999]
         opt.epochs = epochs[-1]
-        ratios = schedulers[opt.scheduler].ratios
+        ratios = schedulers[scheduler].ratios
         
         def lambda_decay(step) -> float:
             for epoch, ratio in zip(epochs, ratios):

@@ -42,25 +42,26 @@ hyp = {'momentum': 0.937,  # SGD momentum
 
 class Model(BaseModel):
     def __init__(self, opt, logger=None):
-        super(Model, self).__init__()
+        super(Model, self).__init__(config, kwargs)
         self.opt = opt
         cfgfile = 'configs/yolov5x.yaml'
         self.detector = Yolo5(cfgfile)
         self.detector.hyp = hyp
         self.detector.gr = 1.0
-        self.detector.nc = opt.num_classes
+        self.detector.nc = config.DATA.NUM_CLASSESS
         #####################
         #    Init weights
         #####################
         # normal_init(self.detector)
 
-        print_network(self.detector)
+        if opt.debug:
+            print_network(self.detector)
 
         self.optimizer = get_optimizer(opt, self.detector)
         self.scheduler = get_scheduler(opt, self.optimizer)
 
         self.avg_meters = ExponentialMovingAverage(0.95)
-        self.save_dir = os.path.join(opt.checkpoint_dir, opt.tag)
+        self.save_dir = os.path.join('checkpoints', opt.tag)
         self.it = 0
 
     def update(self, sample, *arg):

@@ -18,8 +18,20 @@ from mscv.summary import write_loss, write_image
 from utils.vis import visualize_boxes
 
 class BaseModel(torch.nn.Module):
-    def __init__(self):
+    def __init__(self, config, kwargs):
         super(BaseModel, self).__init__()
+        self.config = config
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+
+    def forward(self, sample, *args):
+        if self.training:
+            return self.update(sample, *args)
+        else:
+            image = sample
+            return self.forward_test(image, *args)
+
 
     @abstractmethod
     def update(self, sample: dict, *args, **kwargs):
@@ -85,7 +97,7 @@ class BaseModel(torch.nn.Module):
 
                     num = len(batch_scores[0])
                     visualize_boxes(image=img, boxes=batch_bboxes[0],
-                             labels=batch_labels[0].astype(np.int32), probs=batch_scores[0], class_labels=opt.class_names)
+                             labels=batch_labels[0].astype(np.int32), probs=batch_scores[0], class_labels=config.DATA.CLASS_NAMES)
 
                     write_image(writer, f'{data_name}/{i}', 'image', img, epoch, 'HWC')
 
@@ -105,7 +117,7 @@ class BaseModel(torch.nn.Module):
                 mAP = AP['map']
                 result.append(mAP)
 
-                logger.info(f'Eva({data_name}) epoch {epoch}, IoU: {iou_thresh}, APs: {str(APs[:opt.num_classes])}, mAP: {mAP}')
+                logger.info(f'Eva({data_name}) epoch {epoch}, IoU: {iou_thresh}, APs: {str(APs[:self.config.DATA.NUM_CLASSESS])}, mAP: {mAP}')
 
                 write_loss(writer, f'val/{data_name}', 'mAP', mAP, epoch)
 
@@ -118,7 +130,7 @@ class BaseModel(torch.nn.Module):
             'detector': self.detector,
         }
 
-        if opt.resume:
+        if opt.resume or 'RESUME' in self.config.MISC:
             load_dict.update({
                 'optimizer': self.optimizer,
                 'scheduler': self.scheduler,
@@ -129,8 +141,8 @@ class BaseModel(torch.nn.Module):
 
         ckpt_info = load_checkpoint(load_dict, ckpt_path, map_location=opt.device)
 
-        s = torch.load(ckpt_path)
-        if opt.resume:
+        s = torch.load(ckpt_path, map_location='cpu')
+        if opt.resume or 'RESUME' in self.config.MISC:
             self.optimizer.load_state_dict(s['optimizer'])
             self.scheduler.step()
 
@@ -139,7 +151,7 @@ class BaseModel(torch.nn.Module):
         return epoch
 
     def save(self, which_epoch, published=False):
-        save_filename = f'{which_epoch}_{opt.model}.pt'
+        save_filename = f'{which_epoch}_{self.config.MODEL.NAME}.pt'
         save_path = os.path.join(self.save_dir, save_filename)
         save_dict = {
             'detector': self.detector,

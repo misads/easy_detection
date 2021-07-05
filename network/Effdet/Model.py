@@ -28,7 +28,7 @@ def get_net(pretrained=True):
     if pretrained:
         checkpoint = torch.load('/home/ubuntu/.cache/torch/checkpoints/efficientdet_d5-ef44aea8.pth')
         net.load_state_dict(checkpoint)
-    config.num_classes = opt.num_classes
+    config.num_classes = config.DATA.NUM_CLASSESS
     config.image_size = opt.scale
     net.class_net = HeadNet(config, num_outputs=config.num_classes, norm_kwargs=dict(eps=.001, momentum=.01))
     return DetBenchTrain(net, config)
@@ -36,7 +36,7 @@ def get_net(pretrained=True):
 
 class Model(BaseModel):
     def __init__(self, opt, logger=None):
-        super(Model, self).__init__()
+        super(Model, self).__init__(config, kwargs)
         self.opt = opt
         self.detector = get_net().to(device=opt.device)
         #####################
@@ -44,13 +44,14 @@ class Model(BaseModel):
         #####################
         # normal_init(self.detector)
 
-        print_network(self.detector)
+        if opt.debug:
+            print_network(self.detector)
 
         self.optimizer = get_optimizer(opt, self.detector)
         self.scheduler = get_scheduler(opt, self.optimizer)
 
         self.avg_meters = ExponentialMovingAverage(0.95)
-        self.save_dir = os.path.join(opt.checkpoint_dir, opt.tag)
+        self.save_dir = os.path.join('checkpoints', opt.tag)
 
     def update(self, sample, *arg):
         """

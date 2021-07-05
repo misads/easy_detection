@@ -24,7 +24,7 @@ import misc_utils as utils
 
 class Model(BaseModel):
     def __init__(self, opt, logger=None):
-        super(Model, self).__init__()
+        super(Model, self).__init__(config, kwargs)
         self.opt = opt
         self.detector = SSDDetector(opt).to(device=opt.device)
         #####################
@@ -32,13 +32,14 @@ class Model(BaseModel):
         #####################
         # normal_init(self.detector)
 
-        print_network(self.detector)
+        if opt.debug:
+            print_network(self.detector)
 
         self.optimizer = get_optimizer(opt, self.detector)
         self.scheduler = get_scheduler(opt, self.optimizer)
 
         self.avg_meters = ExponentialMovingAverage(0.95)
-        self.save_dir = os.path.join(opt.checkpoint_dir, opt.tag)
+        self.save_dir = os.path.join('checkpoints', opt.tag)
 
         CENTER_VARIANCE = 0.1
         SIZE_VARIANCE = 0.2

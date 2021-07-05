@@ -10,8 +10,8 @@ tensorboardX>=1.6
 utils-misc>=0.0.5
 mscv>=0.0.3
 matplotlib>=3.1.1
-opencv-python>=4.2.0.34  # opencv>=4.4版本需要编译，耗时较长，建议安装4.2版本
-opencv-python-headless>=4.2.0.34
+opencv-python==4.2.0.34  # opencv>=4.4版本需要编译，耗时较长，建议安装4.2版本
+opencv-python-headless==4.2.0.34
 albumentations>=0.5.1  # 需要opencv>=4.2
 scikit-image>=0.17.2
 easydict>=1.9
@@ -25,9 +25,7 @@ omegaconf>=2.0.0  # effdet依赖
 
 ```
 
-　　都是很好装的包，使用`pip install`安装即可，不需要编译(最好逐行安装，因为存在前后依赖关系)。  
-  
-　　也可以安装好pytorch后使用`bash ./install.sh`一键安装依赖项。
+　　使用`pip install`逐行安装即可。也可以安装好pytorch后使用`bash ./install.sh`一键安装依赖项。
 
 ## 训练和验证模型voc数据集
 
@@ -68,7 +66,21 @@ cd detection_template
              └── <其他数据集>
    ```
 
-### 使用预训练模型验证
+
+5. 预览数据集标注
+
+　　运行下面的指令来预览数据集标注： 
+
+   ```bash
+   python3 preview.py --config configs/faster_rcnn_voc.yml
+   tensorboard --logdir logs/preview
+   ```
+
+　　效果如下：
+　　<img alt="visualize" src="https://raw.githubusercontent.com/misads/detection_template/master/_assets/_imgs/preview.png" style="zoom:50%;" />
+
+
+### 验证预训练模型
 
 
 1. 新建`pretrained`文件夹：
@@ -90,26 +102,26 @@ cd detection_template
 **Faster RCNN**
 
    ```bash
-   python3 eval.py --model Faster_RCNN --dataset voc --load pretrained/0_voc_FasterRCNN.pt -b1
+   python3 eval.py --config configs/faster_rcnn_voc.yml --load pretrained/0_voc_FasterRCNN.pt
    ```
 
 **YOLOv2**
 
    ```bash
-   python3 eval.py --model Yolo2 --load pretrained/0_voc_Yolo2.pt -b24 
+   python3 eval.py --config configs/yolo2_voc.yml --load pretrained/0_voc_Yolo2.pt
    ```
 
 
 **SSD300**
 
    ```bash
-   python3 eval.py --model SSD300 --load pretrained/0_SSD300.pt -b24 --scale 300
+   python3 eval.py --config configs/ssd300_voc.yml --load pretrained/0_SSD300.pt
    ```
 
 **SSD512**
 
    ```bash
-   python3 eval.py --model SSD512 --load pretrained/0_SSD512.pt -b24 --scale 512
+   python3 eval.py --config configs/ssd512_voc.yml --load pretrained/0_SSD512.pt
    ```
 
 
@@ -125,7 +137,7 @@ cd detection_template
 #### Faster RCNN
 
 ```bash
-python3 train.py --tag frcnn_voc --model Faster_RCNN -b1 --optimizer sgd --val_freq 1 --save_freq 1 --lr 0.001
+python3 train.py --config configs/ssd300_voc.yml
 ```
 
 【[训练日志](https://raw.githubusercontent.com/misads/detection_template/master/_assets/_logs/frcnn_voc.txt)】
@@ -183,10 +195,10 @@ python3 train.py --tag yolo3_voc --model Yolo3  -b12 --val_freq 10 --save_freq 1
                           └── val.txt
    ```
 
-2. 在`configs/data_roots`目录下新建一个`my_data.py`，内容如下：
+2. 在`configs/data_roots`目录下新建一个`mydata.py`，内容如下：
 
    ```python
-   class MyData(object):
+   class Data(object):
        data_format = 'VOC'
        voc_root = 'datasets/mydata_dir'
        train_split = 'train.txt'
@@ -196,26 +208,31 @@ python3 train.py --tag yolo3_voc --model Yolo3  -b12 --val_freq 10 --save_freq 1
        img_format = 'jpg'  # 根据图片文件是jpg还是png设为'jpg'或者'png'
    ```
 
-3. 在`configs/data_roots/__init__.py`中添加自己的数据集类：
+3. 在`configs`目录下复制**faster_rcnn_voc.yml**，改为**faster_rcnn_mydata.yml**，修改内容如下：
 
-   ```python
-   from .voc import VOC  # 这是原始的VOC
-   from .my_data import MyData
-   
-   datasets = {
-       'voc': VOC,  # if --dataset is not specified
-       'mydata': MyData
-   }
+   ```yaml
+  MODEL:
+    NAME: Faster_RCNN
+    BACKBONE: resnet50
+  DATA:
+    DATASET: mydata  # 这个注意要改一下
+    TRANSFORM: frcnn
+    SCALE: [600, 1000]
+  OPTIMIZE:
+    OPTIMIZER: sgd
+    BASE_LR: 0.001 
+    SCHEDULER: 1x
+    BATCH_SIZE: 1
    ```
 
-4. 完成定义数据集后，训练和验证时就可以使用`--dataset mydata`参数来使用自己的数据集。
+4. 完成定义数据集后，训练和验证时就可以使用`--config configs/faster_rcnn_mydata.yml`参数来使用自己的数据集。
 
 ### 预览数据集标注
 
 1. 运行`preview.py`：
 
    ```bash
-   python3 preview.py --dataset mydata --transform none
+   python3 preview.py --config faster_rcnn_mydata.yml
    ```
 
 2. 运行`tensorboard`：
@@ -231,22 +248,10 @@ python3 train.py --tag yolo3_voc --model Yolo3  -b12 --val_freq 10 --save_freq 1
 #### Faster RCNN
 
 ```bash
-python3 train.py --tag frcnn_mydata --dataset mydata --model Faster_RCNN -b1 --optimizer sgd --val_freq 1 --save_freq 1 --lr 0.001
+python3 train.py --config configs/faster_rcnn_mydata.yml
 ```
 
-#### YOLOv2
-
-```bash
-python3 train.py --tag yolo2_mydata --dataset mydata --model Yolo2  -b24 --val_freq 5 --save_freq 5 --optimizer sgd --lr 0.00005 --scheduler 10x --weights pretrained/darknet19_448.conv.23 --scale 544
-```
-
-#### YOLOv3
-
-```bash
-python3 train.py --tag yolo3_mydata --dataset mydata --model Yolo3  -b12 --val_freq 10 --save_freq 10 --optimizer sgd --lr 0.0001 --scheduler 10x --weights pretrained/darknet53.conv.74 --scale 544
-```
-
-　　学习率和`batch_size`可以视情况调整。
+　　学习率和`batch_size`可以在config文件中视情况调整。
 
 ## 添加新的检测模型
 
@@ -263,5 +268,5 @@ models = {
 }
 ```
 
-4. 运行 `python train.py --model MyNet` 看能否成功运行
+4. 在config文件中将MODEL.NAME设置为自己的检测模型名称。
 

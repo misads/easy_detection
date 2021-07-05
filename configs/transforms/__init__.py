@@ -12,7 +12,8 @@ transforms = {
     'ssd300': SSD,
     'ssd512': SSD,
     'none': No_Transform,
-    'resize': Resize
+    'resize': Resize,
+    None: No_Transform,
 }
 
 

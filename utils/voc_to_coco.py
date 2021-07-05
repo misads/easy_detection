@@ -50,8 +50,8 @@ if __name__ == '__main__':
         # 等价于 exec(f'{v}=d.{v}')
         locals()[v] = getattr(d, v)  # 把类的成员变量赋值给当前的局部变量
 
-    opt.class_names = class_names
-    opt.num_classes = len(class_names)
+    config.DATA.CLASS_NAMES = class_names
+    config.DATA.NUM_CLASSESS = len(class_names)
 
     for global_category_id, class_name in enumerate(class_names, 1):
         coco_dataset['categories'].append({   

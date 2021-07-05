@@ -1,10 +1,17 @@
-# detection_template
+# easy_detection
 
-　　一个目标检测的通用框架(不需要cuda编译)，支持Yolo全系列(v2~v5)、EfficientDet、RetinaNet、Cascade-RCNN等SOTA网络，Kaggle小麦检测12/2245。
+　　easy_detection是一个能够轻松上手的Pytorch目标检测框架，它不需要cuda编译，支持Faster_RCNN、Yolo系列(v2~v5)、EfficientDet等经典网络，能够一键预览数据集标注并对训练过程进行可视化，同时有配套的web平台进行任务监控和管理。
 
 ![preview](http://www.xyu.ink/wp-content/uploads/2020/10/COCO2.png)
 
-## Functionalities
+<img alt="msboard" src="https://raw.githubusercontent.com/misads/detection_template/master/_assets/_imgs/msboard.png" style="zoom:50%;" />
+
+## Features
+
+- 可视化
+  - [x] 数据集标注可视化
+  - [x] 训练任务web端可视化管理
+  - [x] 预测结果可视化输出
 
 - 数据格式
   - [x] VOC
@@ -12,35 +19,26 @@
   - [x] 自定义格式
 
 - 网络模型
-  - [x] EfficientDet(目前不支持训练过程中验证)
+  - [x] Faster-RCNN
+  - [x] Cascade-RCNN
   - [x] YoloV2、V3  
   - [x] YoloV4  
   - [x] YoloV5  
   - [x] SSD300、SSD512
-  - [x] Faster-RCNN
-  - [x] Cascade-RCNN
+  - [x] EfficientDet
   - [x] RetinaNet
   
-- TTA
+- 预测框融合
   - [x] 多尺度融合
   - [x] nms
   - [x] Weighted Box Fusion(WBF)
-  - [ ] 伪标签
 
 - Scheduler
   - [x] Step Scheduler
-  - [ ] 验证集指标不下降时学习率衰减
+  - [x] Cos Scheduler
 
 - Metrics
   - [x] mAP
-
-- 可视化
-  - [x] 数据集bbox预览
-  - [x] dataloader数据增强预览
-  - [x] 预测结果预览
-
-- 辅助工具
-  - [ ] 手工标注工具
 
 
 ## 安装和使用教程

@@ -1,20 +1,19 @@
-from .voc import VOC
-from .coco import COCO
-from .apollo import Apollo
-from .cityscapes import Cityscapes
-from .wheat import Wheat
-from .widerface import Wider_face
-from .rtts import Rtts
+import os
+import importlib
+import misc_utils as utils
 
-datasets = {
-    'voc': VOC,  # if --dataset is not specified
-    'coco': COCO,
-    'apollo': Apollo,  
-    'cityscapes': Cityscapes,
-    'wheat': Wheat,
-    'widerface': Wider_face,
-    'rtts': Rtts
-}
+data_names = os.listdir('configs/data_roots')
+
+datasets = {}
+
+# 解析configs/data_roots中的所有py文件
+for name in data_names:
+    if os.path.isfile(f'configs/data_roots/{name}'):
+        if name in ['__pycache__', '__init__.py', '.DS_Store']:
+            continue
+
+        name = utils.get_file_name(name)
+        datasets[name] = importlib.import_module(f'.{name}', 'configs.data_roots').Data
 
 def get_dataset(dataset: str):
     if dataset in datasets:

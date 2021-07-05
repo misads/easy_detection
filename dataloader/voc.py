@@ -6,7 +6,6 @@ import torchvision.transforms.functional as F
 import os
 from PIL import Image
 from torchvision import transforms
-from options import opt
 import torch.utils.data.dataset as dataset
 import albumentations as A
 
@@ -221,7 +220,7 @@ class VOCTrainValDataset(dataset.Dataset):
         sample['labels'] = torch.Tensor(sample['labels'])  # <--- add this!
         sample['path'] = image_path
 
-        sample.update(voc_to_yolo_format(sample, opt))
+        sample.update(voc_to_yolo_format(sample))
 
         return sample
 

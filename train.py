@@ -13,10 +13,11 @@ from dataloader.dataloaders import train_dataloader, val_dataloader
 from network import get_model
 from eval import evaluate
 
-from options import opt
+from options import opt, config
+from options.helper import init_log, load_meta, save_meta
+from utils import seed_everything
 from scheduler import schedulers
 
-from utils import init_log, seed_everything, load_meta, save_meta
 from mscv.summary import create_summary_writer, write_meters_loss, write_image
 from mscv.image import tensor2im
 # from utils.send_sms import send_notification
@@ -30,12 +31,12 @@ from albumentations.pytorch.transforms import ToTensorV2
 # 初始化
 with torch.no_grad():
     # 设置随机种子
-    if opt.seed is not None:
-        seed_everything(opt.seed)
+    if 'RANDOM_SEED' in config.MISC:
+        seed_everything(config.MISC.RANDOM_SEED)
     
     # 初始化路径
-    save_root = os.path.join(opt.checkpoint_dir, opt.tag)
-    log_root = os.path.join(opt.log_dir, opt.tag)
+    save_root = os.path.join('checkpoints', opt.tag)
+    log_root = os.path.join('logs', opt.tag)
 
     utils.try_make_dir(save_root)
     utils.try_make_dir(log_root)
@@ -52,8 +53,8 @@ with torch.no_grad():
     save_meta(meta)
 
     # 初始化模型
-    Model = get_model(opt.model)
-    model = Model(opt, logger)
+    Model = get_model(config.MODEL.NAME)
+    model = Model(config, logger=logger)
 
     # 暂时还不支持多GPU
     # if len(opt.gpu_ids):
@@ -62,7 +63,10 @@ with torch.no_grad():
 
     if opt.load:
         load_epoch = model.load(opt.load)
-        start_epoch = load_epoch + 1 if opt.resume else 1
+        start_epoch = load_epoch + 1 if opt.resume or 'RESUME' in config.MISC else 1
+    elif 'LOAD' in config.MODEL:
+        load_epoch = model.load(config.MODEL.LOAD)
+        start_epoch = load_epoch + 1 if opt.resume or 'RESUME' in config.MISC else 1
     else:
         start_epoch = 1
 
@@ -91,8 +95,8 @@ with torch.no_grad():
     logger.info('===========================================')
 
     # 在日志记录scheduler
-    if opt.scheduler in schedulers:
-        logger.info('scheduler: (Lambda scheduler)\n' + str(schedulers[opt.scheduler]))
+    if config.OPTIMIZE.SCHEDULER in schedulers:
+        logger.info('scheduler: (Lambda scheduler)\n' + str(schedulers[config.OPTIMIZE.SCHEDULER]))
         logger.info('===========================================')
 
 # 训练循环
@@ -130,12 +134,12 @@ try:
         # 记录训练日志
         logger.info(f'Train epoch: {epoch}, lr: {round(scheduler.get_lr()[0], 6) : .6f}, (loss) ' + str(model.avg_meters))
 
-        if epoch % opt.save_freq == 0 or epoch == opt.epochs:  # 最后一个epoch要保存一下
+        if epoch % config.MISC.SAVE_FREQ == 0 or epoch == opt.epochs:  # 最后一个epoch要保存一下
             model.save(epoch)
 
   
         # 训练时验证
-        if not opt.no_eval and epoch % opt.eval_freq == 0:
+        if not opt.no_val and epoch % config.MISC.EVAL_FREQ == 0:
 
             model.eval()
             evaluate(model, val_dataloader, epoch, writer, logger, data_name='val')
@@ -145,7 +149,7 @@ try:
             scheduler.step()
 
     # 保存结束信息
-    if opt.tag != 'cache':
+    if opt.tag != 'default':
         with open('run_log.txt', 'a') as f:
             f.writelines('    Accuracy:' + eval_result + '\n')
 
@@ -158,7 +162,7 @@ except Exception as e:
     # if not opt.debug:  # debug模式不会发短信 12是短信模板字数限制
     #     send_notification([opt.tag[:12], str(e)[:12]], template='error')
 
-    if opt.tag != 'cache':
+    if opt.tag != 'default':
         with open('run_log.txt', 'a') as f:
             f.writelines('    Error: ' + str(e)[:120] + '\n')
 

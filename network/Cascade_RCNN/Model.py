@@ -31,7 +31,7 @@ from .backbones import vgg16_backbone, res101_backbone
 
 class Model(BaseModel):
     def __init__(self, opt, logger=None):
-        super(Model, self).__init__()
+        super(Model, self).__init__(config, kwargs)
         self.opt = opt
 
         if opt.scale:
@@ -52,40 +52,40 @@ class Model(BaseModel):
                 }
 
         # 定义backbone和Faster RCNN模型
-        if opt.backbone is None or opt.backbone.lower() in ['res50', 'resnet50']:
+        if config.MODEL.BACKBONE is None or config.MODEL.BACKBONE.lower() in ['res50', 'resnet50']:
             # 默认是带fpn的resnet50
             self.detector = cascadercnn_resnet50_fpn(pretrained=False, **kargs)
 
             in_features = self.detector.roi_heads[0].box_predictor.cls_score.in_features
 
             # replace the pre-trained head with a new one
-            self.detector.roi_heads[0].box_predictor = FastRCNNPredictor(in_features, opt.num_classes + 1)
-            self.detector.roi_heads[1].box_predictor = FastRCNNPredictor(in_features, opt.num_classes + 1)
-            self.detector.roi_heads[2].box_predictor = FastRCNNPredictor(in_features, opt.num_classes + 1)
+            self.detector.roi_heads[0].box_predictor = FastRCNNPredictor(in_features, config.DATA.NUM_CLASSESS + 1)
+            self.detector.roi_heads[1].box_predictor = FastRCNNPredictor(in_features, config.DATA.NUM_CLASSESS + 1)
+            self.detector.roi_heads[2].box_predictor = FastRCNNPredictor(in_features, config.DATA.NUM_CLASSESS + 1)
 
-        elif opt.backbone.lower() in ['vgg16', 'vgg']:
+        elif config.MODEL.BACKBONE.lower() in ['vgg16', 'vgg']:
             backbone = vgg16_backbone()
-            self.detector = CascadeRCNN(backbone, num_classes=opt.num_classes + 1, **kargs)
+            self.detector = CascadeRCNN(backbone, num_classes=config.DATA.NUM_CLASSESS + 1, **kargs)
 
-        elif opt.backbone.lower() in ['res101', 'resnet101']:
+        elif config.MODEL.BACKBONE.lower() in ['res101', 'resnet101']:
             # 不带FPN的resnet101
             backbone = res101_backbone()
-            self.detector = CascadeRCNN(backbone, num_classes=opt.num_classes + 1, **kargs)
+            self.detector = CascadeRCNN(backbone, num_classes=config.DATA.NUM_CLASSESS + 1, **kargs)
 
-        elif opt.backbone.lower() in ['res', 'resnet']:
-            raise RuntimeError(f'backbone "{opt.backbone}" is ambiguous, please specify layers.')
+        elif config.MODEL.BACKBONE.lower() in ['res', 'resnet']:
+            raise RuntimeError(f'backbone "{config.MODEL.BACKBONE}" is ambiguous, please specify layers.')
 
         else:
-            raise NotImplementedError(f'no such backbone: {opt.backbone}')
+            raise NotImplementedError(f'no such backbone: {config.MODEL.BACKBONE}')
 
-
-        print_network(self.detector)
+        if opt.debug:
+            print_network(self.detector)
 
         self.optimizer = get_optimizer(opt, self.detector)
         self.scheduler = get_scheduler(opt, self.optimizer)
 
         self.avg_meters = ExponentialMovingAverage(0.95)
-        self.save_dir = os.path.join(opt.checkpoint_dir, opt.tag)
+        self.save_dir = os.path.join('checkpoints', opt.tag)
 
     def update(self, sample, *arg):
         """
