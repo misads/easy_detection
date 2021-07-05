@@ -130,7 +130,7 @@ cd detection_template
 　　<img alt="visualize" src="https://raw.githubusercontent.com/misads/detection_template/master/_assets/_imgs/vis.png" style="zoom:50%;" />
 
 
-4. 使用其他的模型只需要修改`--model`参数即可。
+5. 使用其他的模型只需要修改`--config`参数使用不同配置问价即可。
 
 ### 训练模型
 
