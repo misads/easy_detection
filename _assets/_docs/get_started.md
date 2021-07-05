@@ -165,16 +165,8 @@ python3 train.py --tag yolo3_voc --model Yolo3  -b12 --val_freq 10 --save_freq 1
 | 作用                        | 参数                       | 示例                         | 说明                                                         |
 | --------------------------- | -------------------------- | ---------------------------- | ------------------------------------------------------------ |
 | 指定训练标签                | `--tag`                    | `--tag yolo2_voc`            | 日志会保存在`logs/标签`目录下，模型会保存在`checkpoints/标签`目录下。 |
-| 选择模型                    | `--model`                  | `--model Yolo2`              | **必须明确给定**。                                           |
-| 选择backbone                | `--backbone`               | `--backbone res50`           | 目前仅Faster RCNN支持选择backbone。                          |
-| 选择数据集                  | `--dataset`                | `--dataset voc`              | 支持voc、coco等数据集，也支持`configs/data_roots`中自定义的数据集。 |
-| 指定batch_size              | `-b`                       | `-b24`                       | 设置batch_size为24。                                         |
-| 指定学习率                  | `--lr`                     | `--lr 0.001`                 | 设置初始学习率为0.001。                                      |
-| 设置训练总代数和周期        | `--scheduler`              | `--checuler 10x`             | `1x`总共训练`12`个epoch，`10x`总共训练`120`个epoch。         |
-| 指定优化器                  | `--optimizer`             | `--optimizer sgd`            | 指定优化器为sgd。                                            |
-| 指定dataloader的进程数      | `-w`                       | `-w4`                        | 如果需要用pdb调试，须设为`-w0`。                             |
+| 选择配置文件                    | `--config`                  | `--config configs/faster_rcnn_voc.yml`              | **必须明确给定**。                                           |
 | 加载之前的模型/恢复训练     | `--load`       | `--load pretrained/yolo2.pt` | `--resume`配合`--load`使用，会恢复上次训练的`epoch`和优化器。 |
-| 指定每几代验证/保存一次模型 | `--val_freq`、`--save_freq` | `--val_freq 5`               | 每5代验证一次模型。    |
 | 调试模式                    | `--debug`                  | `--debug`                    | 调试模式下只会训练几个batch就会开始验证。      |
 
 
@@ -210,7 +202,8 @@ python3 train.py --tag yolo3_voc --model Yolo3  -b12 --val_freq 10 --save_freq 1
 
 3. 在`configs`目录下复制**faster_rcnn_voc.yml**，改为**faster_rcnn_mydata.yml**，修改内容如下：
 
-   ```yaml
+
+  ```yaml
   MODEL:
     NAME: Faster_RCNN
     BACKBONE: resnet50
@@ -223,7 +216,7 @@ python3 train.py --tag yolo3_voc --model Yolo3  -b12 --val_freq 10 --save_freq 1
     BASE_LR: 0.001 
     SCHEDULER: 1x
     BATCH_SIZE: 1
-   ```
+  ```
 
 4. 完成定义数据集后，训练和验证时就可以使用`--config configs/faster_rcnn_mydata.yml`参数来使用自己的数据集。
 
