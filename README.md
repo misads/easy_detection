@@ -41,7 +41,7 @@
 
 ## 安装和使用教程
 
-安装和使用教程见 [get_started.md](https://github.com/misads/detection_template/blob/master/_assets/_docs/get_started.md).
+安装和使用教程见 [get_started.md](https://github.com/misads/easy_detection/blob/master/_assets/_docs/get_started.md).
 
 
 

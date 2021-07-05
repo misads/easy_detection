@@ -141,7 +141,7 @@ while True:
 
     cv2.putText(img, 'fps:' + str(fps), (35, 0 + 30), 0, 1, (0, 255, 0), 2)
 
-    cv2.imshow('detection_template', img)
+    cv2.imshow('easy_detection', img)
     if cv2.waitKey(10) & 0xFF == ord('q'):
         cv2.destroyAllWindows()
         break

@@ -32,8 +32,8 @@ omegaconf>=2.0.0  # effdet依赖
 ### 克隆此项目
 
 ```bash
-git clone https://github.com/misads/detection_template
-cd detection_template
+git clone https://github.com/misads/easy_detection
+cd easy_detection
 ```
 
 ### 准备voc数据集
@@ -55,7 +55,7 @@ cd detection_template
 4. 数据准备好后，数据的目录结构看起来应该是这样的：
 
    ```yml
-   detection_template
+   easy_detection
        └── datasets
              ├── voc           
              │    ├── Annotations
@@ -77,7 +77,7 @@ cd detection_template
    ```
 
 　　效果如下：
-　　<img alt="visualize" src="https://raw.githubusercontent.com/misads/detection_template/master/_assets/_imgs/preview.png" style="zoom:50%;" />
+　　<img alt="visualize" src="https://raw.githubusercontent.com/misads/easy_detection/master/_assets/_imgs/preview.png" style="zoom:50%;" />
 
 
 ### 验证预训练模型
@@ -89,10 +89,10 @@ cd detection_template
    mkdir pretrained
    ```
 
-2. 以Faster-RCNN为例，下载[[预训练模型]](https://github.com/misads/detection_template#%E9%A2%84%E8%AE%AD%E7%BB%83%E6%A8%A1%E5%9E%8B)，并将其放在`pretrained`目录下：
+2. 以Faster-RCNN为例，下载[[预训练模型]](https://github.com/misads/easy_detection#%E9%A2%84%E8%AE%AD%E7%BB%83%E6%A8%A1%E5%9E%8B)，并将其放在`pretrained`目录下：
 
    ```yml
-   detection_template
+   easy_detection
        └── pretrained
              └── 0_voc_FasterRCNN.pt
    ```
@@ -127,7 +127,7 @@ cd detection_template
 
 4. 如果需要使用`Tensorboard`可视化预测结果，可以在上面的命令最后加上`--vis`参数。然后运行`tensorboard --logdir results/cache`查看检测的可视化结果。如下图所示：
 
-　　<img alt="visualize" src="https://raw.githubusercontent.com/misads/detection_template/master/_assets/_imgs/vis.png" style="zoom:50%;" />
+　　<img alt="visualize" src="https://raw.githubusercontent.com/misads/easy_detection/master/_assets/_imgs/vis.png" style="zoom:50%;" />
 
 
 5. 使用其他的模型只需要修改`--config`参数使用不同配置问价即可。
@@ -140,7 +140,7 @@ cd detection_template
 python3 train.py --config configs/ssd300_voc.yml
 ```
 
-【[训练日志](https://raw.githubusercontent.com/misads/detection_template/master/_assets/_logs/frcnn_voc.txt)】
+【[训练日志](https://raw.githubusercontent.com/misads/easy_detection/master/_assets/_logs/frcnn_voc.txt)】
 
 #### YOLOv2
 
@@ -148,7 +148,7 @@ python3 train.py --config configs/ssd300_voc.yml
 python3 train.py --tag yolo2_voc --model Yolo2  -b24 --val_freq 5 --save_freq 5 --optimizer sgd --lr 0.00005 --scheduler 10x --weights pretrained/darknet19_448.conv.23 --scale 544
 ```
 
-【[训练日志](https://raw.githubusercontent.com/misads/detection_template/master/_assets/_logs/yolo2_voc.txt)】
+【[训练日志](https://raw.githubusercontent.com/misads/easy_detection/master/_assets/_logs/yolo2_voc.txt)】
 
 `darknet19_448.conv.23`是Yolo2在`ImageNet`上的预训练模型，可以在yolo官网下载。[[下载地址]](https://pjreddie.com/media/files/darknet19_448.conv.23)。
 
@@ -177,7 +177,7 @@ python3 train.py --tag yolo3_voc --model Yolo3  -b12 --val_freq 10 --save_freq 1
 1. 将自己的数据集制作成`VOC`格式，并放在`datasets`目录下(可以使用软链接)。目录结构如下：
 
    ```yml
-   detection_template
+   easy_detection
        └── datasets
              └── mydata_dir    
                   ├── Annotations
@@ -279,4 +279,4 @@ python serve.py -p8000 # 打开在8000端口
 
 3. 用浏览器输入`localhost:8000`访问，效果如下：
 
-<img alt="msboard" src="https://raw.githubusercontent.com/misads/detection_template/master/_assets/_imgs/msboard.png" style="zoom:50%;" />
+<img alt="msboard" src="https://raw.githubusercontent.com/misads/easy_detection/master/_assets/_imgs/msboard.png" style="zoom:50%;" />
