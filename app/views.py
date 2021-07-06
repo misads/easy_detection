@@ -110,9 +110,12 @@ def parse_log(tag):
                 '<span style="color:#262420;">' + lines[i][pos_equ+1:] + '</span>'
             elif config:
                 pos_equ = line.rfind(':')
-                lines[i] = f'<span style="color:{time_color};">' + lines[i][:26] + '</span>' + \
-                '<span style="color:#457ab2;">' + lines[i][26:pos_equ] + '</span>' + ':' + \
-                '<span style="color:#262420;">' + lines[i][pos_equ+1:] + '</span>'
+                if pos_equ > 26:
+                    lines[i] = f'<span style="color:{time_color};">' + lines[i][:26] + '</span>' + \
+                    '<span style="color:#457ab2;">' + lines[i][26:pos_equ] + '</span>' + ':' + \
+                    '<span style="color:#262420;">' + lines[i][pos_equ+1:] + '</span>'
+                else:
+                    lines[i] = ''
 
             elif 'Eva(' in line:
                 lines[i] = f'<span style="color:{time_color};">' + lines[i][:26] + '</span><span style="color:#981e23;">' + lines[i][26:] + '</span>'
@@ -141,6 +144,7 @@ def parse_log(tag):
 
         lines[i] = lines[i].replace('  ', '　')
 
+    lines = filter(lambda x: x, lines)
     log = '<br/>'.join(lines)
 
     return log
