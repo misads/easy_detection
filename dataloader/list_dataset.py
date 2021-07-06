@@ -68,9 +68,7 @@ def get_all_datasets():
             if name not in class_names:
                 class_names.append(name)
 
-        """
-        // TODO: 把这里改一下, 改成dataset_item.
-        """
+
         data_format = dataset_item.data_format
         if data_format == 'VOC':
             if hasattr(dataset_item, 'train_split'):

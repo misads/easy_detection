@@ -333,6 +333,37 @@ def editremark():
     return 'ok'
 
 
+@views.route('/editacc', methods=['POST'])
+def editacc():
+    tag = request.form['tag']
+    acc = request.form['acc']
+    # session.permanent = True
+    if not tag:
+        return 'error'
+
+    if not acc:
+        acc = '0'
+
+    template_root = os.path.abspath(os.path.join(app.root_path, '..'))
+    logroot = os.path.join(template_root, 'logs')
+    logpath = os.path.join(logroot, tag, 'meta.json')
+    if not os.path.isfile(logpath):
+        return 'error'
+
+    with open(logpath, 'r') as f:
+        meta = json.load(f)
+
+    try:
+        meta[0]['best_acc'] = float(acc)
+    except:
+        return 'acc must be float'
+
+    with open(logpath, 'w', encoding='utf-8') as f:
+        json.dump(meta, f, ensure_ascii=False)
+
+    return 'ok'
+
+
 @views.route('/')
 @views.route('/index')
 def index():
