@@ -15,7 +15,7 @@ for name in data_names:
         name = utils.get_file_name(name)
         datasets[name] = importlib.import_module(f'.{name}', 'configs.data_roots').Data
 
-def get_dataset(dataset: str):
+def get_one_dataset(dataset: str):
     if dataset in datasets:
         return datasets[dataset]
     else:
