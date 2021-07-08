@@ -139,7 +139,7 @@ try:
 
   
         # 训练时验证
-        if not opt.no_val and epoch % config.MISC.EVAL_FREQ == 0:
+        if not opt.no_val and epoch % config.MISC.VAL_FREQ == 0:
 
             model.eval()
             evaluate(model, val_dataloader, epoch, writer, logger, data_name='val')

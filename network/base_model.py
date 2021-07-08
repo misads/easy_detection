@@ -126,6 +126,9 @@ class BaseModel(torch.nn.Module):
 
 
     def load(self, ckpt_path):
+        if ckpt_path[-2:] != 'pt':
+            return 0
+            
         load_dict = {
             'detector': self.detector,
         }

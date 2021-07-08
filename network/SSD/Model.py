@@ -23,10 +23,10 @@ import misc_utils as utils
 
 
 class Model(BaseModel):
-    def __init__(self, opt, logger=None):
+    def __init__(self, config, **kwargs):
         super(Model, self).__init__(config, kwargs)
-        self.opt = opt
-        self.detector = SSDDetector(opt).to(device=opt.device)
+        self.config = config
+        self.detector = SSDDetector(config).to(device=opt.device)
         #####################
         #    Init weights
         #####################

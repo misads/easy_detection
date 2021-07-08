@@ -3,7 +3,7 @@ from configs.transforms import custom_transform as C
 from albumentations.pytorch.transforms import ToTensorV2
 
 class SSD(object):
-    def __init__(self, opt):
+    def __init__(self, config):
         width = height = config.DATA.SCALE  # 300/512
 
         self.train_transform = A.Compose(  # Yolo

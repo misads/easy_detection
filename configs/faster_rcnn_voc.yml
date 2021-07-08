@@ -1,7 +1,7 @@
 MODEL:
   NAME: Faster_RCNN
   BACKBONE: resnet50
-  LOAD: ./pretrained/0_voc_FasterRCNN.pt
+  # LOAD: ./pretrained/0_voc_FasterRCNN.pt
 DATA:
   DATASET: voc
   TRANSFORM: frcnn

@@ -100,7 +100,7 @@ def set_config():
 
     if opt.debug:
         config.MISC.SAVE_FREQ = 1
-        config.MISC.EVAL_FREQ = 1
+        config.MISC.VAL_FREQ = 1
         config.MISC.LOG_FREQ = 1
 
     if opt.tag != 'default':

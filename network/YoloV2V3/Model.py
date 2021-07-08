@@ -33,28 +33,31 @@ nms_thresh = 0.45
 DO_FAST_EVAL = False  # 只保留概率最高的类，能够加快eval速度但会降低精度
 
 class Model(BaseModel):
-    def __init__(self, opt, logger=None):
+    def __init__(self, config, **kwargs):
         super(Model, self).__init__(config, kwargs)
-        self.opt = opt
-        self.logger = logger
+        self.config = config
         
         # 根据YoloV2和YoloV3使用不同的配置文件
         if config.MODEL.NAME == 'Yolo2':
-            cfgfile = 'configs/yolo2-voc.cfg'
+            cfgfile = 'configs/networks/yolo2-voc.cfg'
         elif config.MODEL.NAME == 'Yolo3':
-            cfgfile = 'configs/yolo3-coco.cfg'
+            cfgfile = 'configs/networks/yolo3-coco.cfg'
 
         # 初始化detector
         self.detector = Darknet(cfgfile, device=opt.device).to(opt.device)
-        print_network(self.detector, logger=logger)
+        if opt.debug:
+            print_network(self.detector)
 
         # 在--load之前加载weights文件(可选)
-        if opt.load[-7:] == 'weights':
+        if opt.load and opt.load[-2:] != 'pt':
             utils.color_print('Load Yolo weights from %s.' % opt.load, 3)
             self.detector.load_weights(opt.load)
+        elif 'LOAD' in config.MODEL and config.MODEL.LOAD[-2:] != 'pt':
+            utils.color_print('Load Yolo weights from %s.' % config.MODEL.LOAD, 3)
+            self.detector.load_weights(config.MODEL.LOAD)
 
-        self.optimizer = get_optimizer(opt, self.detector)
-        self.scheduler = get_scheduler(opt, self.optimizer)
+        self.optimizer = get_optimizer(config, self.detector)
+        self.scheduler = get_scheduler(config, self.optimizer)
 
         self.avg_meters = ExponentialMovingAverage(0.95)
         self.save_dir = os.path.join('checkpoints', opt.tag)
