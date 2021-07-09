@@ -137,7 +137,7 @@ cd easy_detection
 #### Faster RCNN
 
 ```bash
-python3 train.py --config configs/ssd300_voc.yml
+python3 train.py --config configs/faster_rcnn_voc.yml
 ```
 
 【[训练日志](https://raw.githubusercontent.com/misads/easy_detection/master/_assets/_logs/frcnn_voc.txt)】
@@ -145,7 +145,7 @@ python3 train.py --config configs/ssd300_voc.yml
 #### YOLOv2
 
 ```bash
-python3 train.py --tag yolo2_voc --model Yolo2  -b24 --val_freq 5 --save_freq 5 --optimizer sgd --lr 0.00005 --scheduler 10x --weights pretrained/darknet19_448.conv.23 --scale 544
+python3 train.py --config configs/yolo2_voc.yml
 ```
 
 【[训练日志](https://raw.githubusercontent.com/misads/easy_detection/master/_assets/_logs/yolo2_voc.txt)】
