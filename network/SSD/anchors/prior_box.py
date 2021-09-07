@@ -25,11 +25,11 @@ class Config300:
 
 
 class PriorBox:
-    def __init__(self, opt):
-        self.image_size = opt.scale
-        if opt.scale == 300:
+    def __init__(self, config):
+        self.image_size = config.DATA.SCALE
+        if config.DATA.SCALE == 300:
             prior_config = Config300()
-        elif opt.scale == 512:
+        elif config.DATA.SCALE== 512:
             prior_config = Config512()
         else:
             raise RuntimeError

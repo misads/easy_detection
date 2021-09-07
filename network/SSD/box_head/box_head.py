@@ -13,12 +13,12 @@ SIZE_VARIANCE = 0.2
 
 
 class SSDBoxHead(nn.Module):
-    def __init__(self, opt):
+    def __init__(self, config):
         super().__init__()
-        self.opt = opt
-        self.predictor = make_box_predictor(opt)
+        self.config = config
+        self.predictor = make_box_predictor(config)
         self.loss_evaluator = MultiBoxLoss(neg_pos_ratio=3)
-        self.post_processor = PostProcessor(opt)
+        self.post_processor = PostProcessor(config)
         self.priors = None
 
     def forward(self, features, targets=None):
@@ -40,7 +40,7 @@ class SSDBoxHead(nn.Module):
 
     def _forward_test(self, cls_logits, bbox_pred):
         if self.priors is None:
-            self.priors = PriorBox(self.opt)().to(bbox_pred.device)
+            self.priors = PriorBox(self.config)().to(bbox_pred.device)
         scores = F.softmax(cls_logits, dim=2)
         boxes = box_utils.convert_locations_to_boxes(
             bbox_pred, self.priors, CENTER_VARIANCE, SIZE_VARIANCE

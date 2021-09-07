@@ -10,11 +10,11 @@ NMS_THRESHOLD = 0.4
 
 
 class PostProcessor:
-    def __init__(self, opt):
+    def __init__(self, config):
         super().__init__()
-        self.opt = opt
-        self.width = opt.scale
-        self.height = opt.scale
+        self.config = config
+        self.width = config.DATA.SCALE
+        self.height = config.DATA.SCALE
 
     def __call__(self, detections):
         batches_scores, batches_boxes = detections

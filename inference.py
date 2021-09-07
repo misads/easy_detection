@@ -8,6 +8,7 @@ import misc_utils as utils  # pip install utils-misc
 import albumentations as A
 
 from network import get_model
+from options import opt, config
 from utils.vis import visualize_boxes
 from torchvision.ops import nms
 from albumentations.pytorch.transforms import ToTensorV2

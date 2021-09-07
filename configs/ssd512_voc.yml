@@ -1,0 +1,18 @@
+MODEL:
+  NAME: SSD512
+DATA:
+  DATASET: voc
+  TRANSFORM: ssd512
+  SCALE: 512
+OPTIMIZE:
+  OPTIMIZER: sgd
+  BASE_LR: 0.001
+  SCHEDULER: 10x
+  BATCH_SIZE: 24
+TEST:
+  NMS_THRESH : 0.5  # nms iou thresh at test time
+  CONF_THRESH: 0.05 # confidence thresh to keep at test time
+MISC:
+  VAL_FREQ: 5
+  SAVE_FREQ: 5
+  NUM_WORKERS: 0

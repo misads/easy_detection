@@ -5,16 +5,16 @@ from ..layers.layer import SeparableConv2d
 
 
 class BoxPredictor(nn.Module):
-    def __init__(self, opt):
+    def __init__(self, config):
         super().__init__()
-        self.opt = opt
+        self.config = config
         self.cls_headers = nn.ModuleList()
         self.reg_headers = nn.ModuleList()
-        if opt.scale == 300:
+        if config.DATA.SCALE == 300:
             self.BOXES_PER_LOCATION = [4, 6, 6, 6, 4, 4]
             self.OUT_CHANNELS = (512, 1024, 512, 256, 256, 256)
 
-        elif opt.scale == 512:
+        elif config.DATA.SCALE == 512:
             self.BOXES_PER_LOCATION = [4, 6, 6, 6, 6, 4, 4]
             self.OUT_CHANNELS = (512, 1024, 512, 256, 256, 256, 256)
 

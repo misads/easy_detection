@@ -35,8 +35,8 @@ class Model(BaseModel):
         if opt.debug:
             print_network(self.detector)
 
-        self.optimizer = get_optimizer(opt, self.detector)
-        self.scheduler = get_scheduler(opt, self.optimizer)
+        self.optimizer = get_optimizer(config, self.detector)
+        self.scheduler = get_scheduler(config, self.optimizer)
 
         self.avg_meters = ExponentialMovingAverage(0.95)
         self.save_dir = os.path.join('checkpoints', opt.tag)
@@ -45,7 +45,7 @@ class Model(BaseModel):
         SIZE_VARIANCE = 0.2
         THRESHOLD = 0.5
 
-        self.target_transform = SSDTargetTransform(PriorBox(opt)(),
+        self.target_transform = SSDTargetTransform(PriorBox(config)(),
                                    CENTER_VARIANCE,
                                    SIZE_VARIANCE,
                                    THRESHOLD)
@@ -78,7 +78,7 @@ class Model(BaseModel):
         image, bboxes, labels = sample['image'], sample['bboxes'], sample['labels']
 
         image = image * 255 
-        sub = torch.Tensor([[123, 117, 104]]).cuda().view([1, 3, 1, 1])
+        sub = torch.Tensor([[123, 117, 104]]).view([1, 3, 1, 1])
         image -= sub
 
         for box in bboxes:
