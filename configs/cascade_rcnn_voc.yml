@@ -1,0 +1,20 @@
+MODEL:
+  NAME: Cascade_RCNN
+  BACKBONE: resnet50
+  # LOAD: ./pretrained/0_voc_CascadeRCNN.pt
+DATA:
+  DATASET: voc
+  TRANSFORM: frcnn
+  SCALE: [800, 1333]
+OPTIMIZE:
+  OPTIMIZER: sgd
+  BASE_LR: 0.001 
+  SCHEDULER: 1x
+  BATCH_SIZE: 1
+TEST:
+  NMS_THRESH : 0.5  # nms iou thresh at test time
+  CONF_THRESH: 0.05 # confidence thresh to keep at test time
+MISC:
+  VAL_FREQ: 1
+  SAVE_FREQ: 1
+  NUM_WORKERS: 0

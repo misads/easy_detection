@@ -30,26 +30,24 @@ from .backbones import vgg16_backbone, res101_backbone
 
 
 class Model(BaseModel):
-    def __init__(self, opt, logger=None):
+    def __init__(self, config, **kwargs):
         super(Model, self).__init__(config, kwargs)
-        self.opt = opt
+        self.config = config
 
-        if opt.scale:
-            min_size = opt.scale
-            max_size = int(min_size / 3 * 5)
-        else:
-            min_size = 800
-            max_size = 1333
-            # anchor_sizes = ((16,), (32,), (64,), (128,), (512,)) # ,( 4,), (256,), (512,))
-            # aspect_ratios = ((0.2, 0.5, 1.0, 2.0, 5.0),) * len(anchor_sizes)
-            # rpn_anchor_generator = AnchorGenerator(
-            #     anchor_sizes, aspect_ratios
-            # )
+        kargs = {}
+        if 'SCALE' in config.DATA:
+            scale = config.DATA.SCALE
+            if isinstance(scale, int):
+                min_size = scale
+                max_size = int(min_size / 3 * 5)
+            else:
+                min_size, max_size = config.DATA.SCALE
 
-        kargs = {'min_size': min_size,
-                 'max_size': max_size,
-                 'cascade_iou_thr': [0.5, 0.6, 0.7],
-                }
+            kargs = {'min_size': min_size,
+                     'max_size': max_size,
+                    }
+        
+        kargs.update({'box_nms_thresh': config.TEST.NMS_THRESH})
 
         # 定义backbone和Faster RCNN模型
         if config.MODEL.BACKBONE is None or config.MODEL.BACKBONE.lower() in ['res50', 'resnet50']:
@@ -81,8 +79,8 @@ class Model(BaseModel):
         if opt.debug:
             print_network(self.detector)
 
-        self.optimizer = get_optimizer(opt, self.detector)
-        self.scheduler = get_scheduler(opt, self.optimizer)
+        self.optimizer = get_optimizer(config, self.detector)
+        self.scheduler = get_scheduler(config, self.optimizer)
 
         self.avg_meters = ExponentialMovingAverage(0.95)
         self.save_dir = os.path.join('checkpoints', opt.tag)
