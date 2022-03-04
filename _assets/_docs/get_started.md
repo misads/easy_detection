@@ -22,7 +22,7 @@ PyYAML>=5.3.1
 Cython>=0.29.16
 pycocotools>=2.0  # 需要Cython
 omegaconf>=2.0.0  # effdet依赖
-ipdb
+ipdb>=0.13.9  # 调试工具
 
 ```
 
