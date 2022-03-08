@@ -79,7 +79,7 @@ class CocoDataset(Dataset):
         sample['labels']= torch.Tensor(sample['labels'])
         sample['path'] = path
 
-        sample.update(voc_to_yolo_format(sample, opt))  # yolo format
+        sample.update(voc_to_yolo_format(sample))  # yolo format
 
         return sample
 
