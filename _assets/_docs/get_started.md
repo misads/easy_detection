@@ -1,5 +1,16 @@
 # 安装和使用教程
 
+- [环境需求](https://github.com/misads/easy_detection/edit/master/_assets/_docs/get_started.md#%E7%8E%AF%E5%A2%83%E9%9C%80%E6%B1%82)
+- [训练和验证模型 voc或coco数据集](https://github.com/misads/easy_detection/edit/master/_assets/_docs/get_started.md#%E8%AE%AD%E7%BB%83%E5%92%8C%E9%AA%8C%E8%AF%81%E6%A8%A1%E5%9E%8Bvoc%E6%88%96coco%E6%95%B0%E6%8D%AE%E9%9B%86)
+  - [训练模型(单卡)](https://github.com/misads/easy_detection/edit/master/_assets/_docs/get_started.md#3-%E5%8D%95%E5%8D%A1%E8%AE%AD%E7%BB%83%E6%A8%A1%E5%9E%8B)
+  - [训练模型(多卡)](https://github.com/misads/easy_detection/edit/master/_assets/_docs/get_started.md#faster-rcnn-1)
+  - [验证模型](https://github.com/misads/easy_detection/edit/master/_assets/_docs/get_started.md#5-%E9%AA%8C%E8%AF%81%E8%AE%AD%E7%BB%83%E6%A8%A1%E5%9E%8B)
+- [自定义数据集](https://github.com/misads/easy_detection/edit/master/_assets/_docs/get_started.md#%E8%87%AA%E5%AE%9A%E4%B9%89%E6%95%B0%E6%8D%AE%E9%9B%86%E4%BB%A5voc%E6%A0%BC%E5%BC%8F%E4%B8%BA%E4%BE%8B)
+- [自定义检测模型](https://github.com/misads/easy_detection/edit/master/_assets/_docs/get_started.md#%E8%87%AA%E5%AE%9A%E4%B9%89%E6%A3%80%E6%B5%8B%E6%A8%A1%E5%9E%8B)
+- [任务监控](https://github.com/misads/easy_detection/edit/master/_assets/_docs/get_started.md#web%E7%AB%AF%E7%9B%91%E6%8E%A7%E5%92%8C%E7%9B%91%E6%8E%A7%E4%BB%BB%E5%8A%A1)
+
+
+
 ## 环境需求
 
 ```yaml
@@ -28,16 +39,16 @@ ipdb>=0.13.9  # 调试工具
 
 　　使用`pip install`逐行安装即可。也可以安装好pytorch后使用`bash ./install.sh`一键安装依赖项。
 
-## 训练和验证模型voc数据集
+## 训练和验证模型voc或coco数据集
 
-### 克隆此项目
+### 1. 克隆此项目
 
 ```bash
 git clone https://github.com/misads/easy_detection
 cd easy_detection
 ```
 
-### 准备voc数据集
+### 2. 准备数据集（以voc为例）
 
 1. 下载voc数据集，这里提供一个VOC0712的网盘下载链接：<https://pan.baidu.com/s/1AYao-vYtHbTRN-gQajfHCw>，密码7yyp。
 
@@ -81,59 +92,7 @@ cd easy_detection
 　　<img alt="visualize" src="https://raw.githubusercontent.com/misads/easy_detection/master/_assets/_imgs/preview.png" style="zoom:50%;" />
 
 
-### 验证预训练模型
-
-
-1. 新建`pretrained`文件夹：
-
-   ```bash
-   mkdir pretrained
-   ```
-
-2. 以Faster-RCNN为例，下载[[预训练模型]](https://github.com/misads/easy_detection#%E9%A2%84%E8%AE%AD%E7%BB%83%E6%A8%A1%E5%9E%8B)，并将其放在`pretrained`目录下：
-
-   ```yml
-   easy_detection
-       └── pretrained
-             └── 0_voc_FasterRCNN.pt
-   ```
-
-3. 运行以下命令来验证模型的`mAP`指标：
-
-**Faster RCNN**
-
-   ```bash
-   python3 eval.py --config configs/faster_rcnn_voc.yml --load pretrained/0_voc_FasterRCNN.pt
-   ```
-
-**YOLOv2**
-
-   ```bash
-   python3 eval.py --config configs/yolo2_voc.yml --load pretrained/0_voc_Yolo2.pt
-   ```
-
-
-**SSD300**
-
-   ```bash
-   python3 eval.py --config configs/ssd300_voc.yml --load pretrained/0_SSD300.pt
-   ```
-
-**SSD512**
-
-   ```bash
-   python3 eval.py --config configs/ssd512_voc.yml --load pretrained/0_SSD512.pt
-   ```
-
-
-4. 如果需要使用`Tensorboard`可视化预测结果，可以在上面的命令最后加上`--vis`参数。然后运行`tensorboard --logdir results/cache`查看检测的可视化结果。如下图所示：
-
-　　<img alt="visualize" src="https://raw.githubusercontent.com/misads/easy_detection/master/_assets/_imgs/vis.png" style="zoom:50%;" />
-
-
-5. 使用其他的模型只需要修改`--config`参数使用不同配置问价即可。
-
-### 训练模型
+### 3. 单卡训练模型
 
 #### Faster RCNN
 
@@ -171,9 +130,59 @@ python3 train.py --tag yolo3_voc --model Yolo3  -b12 --val_freq 10 --save_freq 1
 | 调试模式                    | `--debug`                  | `--debug`                    | 调试模式下只会训练几个batch就会开始验证。      |
 
 
-## 训练和验证模型自定义数据集(voc格式)
+### 4. 多卡训练模型
 
-### 准备数据集
+#### Faster RCNN
+
+```bash
+# 8卡
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 ./dist_train.sh 8 --config configs/faster_rcnn_voc_dist.yml
+```
+
+### 5. 验证训练模型
+
+
+1. 新建`pretrained`文件夹：
+
+   ```bash
+   mkdir pretrained
+   ```
+
+2. 以Faster-RCNN为例，下载[[预训练模型]](https://github.com/misads/easy_detection#%E9%A2%84%E8%AE%AD%E7%BB%83%E6%A8%A1%E5%9E%8B)，并将其放在`pretrained`目录下：
+
+   ```yml
+   easy_detection
+       └── pretrained
+             └── 0_voc_FasterRCNN.pt
+   ```
+
+3. 运行以下命令来验证模型的`mAP`指标：
+
+**Faster RCNN**
+
+   ```bash
+   python3 eval.py --config configs/faster_rcnn_voc.yml --load pretrained/0_voc_FasterRCNN.pt
+   ```
+
+**YOLOv2**
+
+   ```bash
+   python3 eval.py --config configs/yolo2_voc.yml --load pretrained/0_voc_Yolo2.pt
+   ```
+
+
+4. 如果需要使用`Tensorboard`可视化预测结果，可以在上面的命令最后加上`--vis`参数。然后运行`tensorboard --logdir results/cache`查看检测的可视化结果。如下图所示：
+
+　　<img alt="visualize" src="https://raw.githubusercontent.com/misads/easy_detection/master/_assets/_imgs/vis.png" style="zoom:50%;" />
+
+
+5. 使用其他的模型只需要修改`--config`参数使用不同配置文件即可。
+
+
+
+## 自定义数据集(以voc格式为例)
+
+### 1. 准备数据集
 
 1. 将自己的数据集制作成`VOC`格式，并放在`datasets`目录下(可以使用软链接)。目录结构如下：
 
@@ -221,7 +230,7 @@ python3 train.py --tag yolo3_voc --model Yolo3  -b12 --val_freq 10 --save_freq 1
 
 4. 完成定义数据集后，训练和验证时就可以使用`--config configs/faster_rcnn_mydata.yml`参数来使用自己的数据集。
 
-### 预览数据集标注
+### 2. 预览数据集标注
 
 1. 运行`preview.py`：
 
@@ -237,7 +246,7 @@ python3 train.py --tag yolo3_voc --model Yolo3  -b12 --val_freq 10 --save_freq 1
 
 3. 打开浏览器，查看标注是否正确。
 
-### 在自定义数据集上训练已有模型
+### 3. 在自定义数据集上训练已有模型
 
 #### Faster RCNN
 
@@ -247,7 +256,7 @@ python3 train.py --config configs/faster_rcnn_mydata.yml
 
 　　学习率和`batch_size`可以在config文件中视情况调整。
 
-## 添加新的检测模型
+## 自定义检测模型
 
 1. 复制`network`目录下的`Faster_RCNN`文件夹，改成另外一个名字(比如`MyNet`)。
 2. 仿照`Faster_RCNN`的model.py，修改自己的网络结构、损失函数和优化过程。
