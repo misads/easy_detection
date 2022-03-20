@@ -65,7 +65,7 @@
 
 
 | 结构 | mAP@.5:0.95 | mAP@.5 | mAP@.75 |下载链接 | 密码 | sha256 |
-| ----------- | ---------- | ------ | -------- | ----- | ----- | ----- |
+| --------------- | ---------- | ------ | -------- | ----- | ----- | ----- |
 | FasterRCNN + Res50 + FPN | 35.41 |57.11| 38.43 | [[pytorch]](https://download.pytorch.org/models/fasterrcnn_resnet50_fpn_coco-258fb6c6.pth) | - | 258fb6c6 |
 | CascadeRCNN + Res50 + FPN | 38.71 |56.61| 42.16 | - | - | - |
 | YoloV3  | - | 55.3| - | [[百度网盘]](https://pan.baidu.com/s/1SxmjpgCbwAEyRtwLNhG3xQ) | cf4j | 943b926a|
