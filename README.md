@@ -64,7 +64,7 @@
 | 结构 | mAP@.5:0.95 | mAP@.5 | 下载链接 | 密码 | sha256 |
 | ----------- | ---------- | -------- | ----- | ----- | ----- |
 | YoloV3  | - | 55.3| [[百度网盘]](https://pan.baidu.com/s/1SxmjpgCbwAEyRtwLNhG3xQ) | cf4j | 943b926a|
-| FasterRCNN+Res50+FPN | 35.5 |57.9|  [[pytorch]](https://download.pytorch.org/models/fasterrcnn_resnet50_fpn_coco-258fb6c6.pth) | - | 258fb6c6 |
+| FasterRCNN + Res50 + FPN | 35.5 |57.9|  [[pytorch]](https://download.pytorch.org/models/fasterrcnn_resnet50_fpn_coco-258fb6c6.pth) | - | 258fb6c6 |
 | YoloV4 | - | 62.8 | [[百度网盘]](https://pan.baidu.com/s/1keDDPyMvpX11jnXbJsoTrg) | nio7 | 797dc954 |
 | YoloV5 |  - |  64.30 | [[百度网盘]](https://pan.baidu.com/s/1j45qGCEu5_Tl0BlDF8ixnw) | cssw | 8e54a2e8 |
 
