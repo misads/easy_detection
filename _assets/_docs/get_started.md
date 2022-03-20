@@ -1,13 +1,13 @@
 # 安装和使用教程
 
-- [环境需求](https://github.com/misads/easy_detection/edit/master/_assets/_docs/get_started.md#%E7%8E%AF%E5%A2%83%E9%9C%80%E6%B1%82)
-- [训练和验证模型 voc或coco数据集](https://github.com/misads/easy_detection/edit/master/_assets/_docs/get_started.md#%E8%AE%AD%E7%BB%83%E5%92%8C%E9%AA%8C%E8%AF%81%E6%A8%A1%E5%9E%8Bvoc%E6%88%96coco%E6%95%B0%E6%8D%AE%E9%9B%86)
-  - [训练模型(单卡)](https://github.com/misads/easy_detection/edit/master/_assets/_docs/get_started.md#3-%E5%8D%95%E5%8D%A1%E8%AE%AD%E7%BB%83%E6%A8%A1%E5%9E%8B)
-  - [训练模型(多卡)](https://github.com/misads/easy_detection/edit/master/_assets/_docs/get_started.md#faster-rcnn-1)
-  - [验证模型](https://github.com/misads/easy_detection/edit/master/_assets/_docs/get_started.md#5-%E9%AA%8C%E8%AF%81%E8%AE%AD%E7%BB%83%E6%A8%A1%E5%9E%8B)
-- [自定义数据集](https://github.com/misads/easy_detection/edit/master/_assets/_docs/get_started.md#%E8%87%AA%E5%AE%9A%E4%B9%89%E6%95%B0%E6%8D%AE%E9%9B%86%E4%BB%A5voc%E6%A0%BC%E5%BC%8F%E4%B8%BA%E4%BE%8B)
-- [自定义检测模型](https://github.com/misads/easy_detection/edit/master/_assets/_docs/get_started.md#%E8%87%AA%E5%AE%9A%E4%B9%89%E6%A3%80%E6%B5%8B%E6%A8%A1%E5%9E%8B)
-- [任务监控](https://github.com/misads/easy_detection/edit/master/_assets/_docs/get_started.md#web%E7%AB%AF%E7%9B%91%E6%8E%A7%E5%92%8C%E7%9B%91%E6%8E%A7%E4%BB%BB%E5%8A%A1)
+- [环境需求](#%E7%8E%AF%E5%A2%83%E9%9C%80%E6%B1%82)
+- [训练和验证模型 voc或coco数据集](#%E8%AE%AD%E7%BB%83%E5%92%8C%E9%AA%8C%E8%AF%81%E6%A8%A1%E5%9E%8Bvoc%E6%88%96coco%E6%95%B0%E6%8D%AE%E9%9B%86)
+  - [训练模型(单卡)](#3-%E5%8D%95%E5%8D%A1%E8%AE%AD%E7%BB%83%E6%A8%A1%E5%9E%8B)
+  - [训练模型(多卡)](#faster-rcnn-1)
+  - [验证模型](#5-%E9%AA%8C%E8%AF%81%E8%AE%AD%E7%BB%83%E6%A8%A1%E5%9E%8B)
+- [自定义数据集](#%E8%87%AA%E5%AE%9A%E4%B9%89%E6%95%B0%E6%8D%AE%E9%9B%86%E4%BB%A5voc%E6%A0%BC%E5%BC%8F%E4%B8%BA%E4%BE%8B)
+- [自定义检测模型](#%E8%87%AA%E5%AE%9A%E4%B9%89%E6%A3%80%E6%B5%8B%E6%A8%A1%E5%9E%8B)
+- [任务监控](#web%E7%AB%AF%E7%9B%91%E6%8E%A7%E5%92%8C%E7%9B%91%E6%8E%A7%E4%BB%BB%E5%8A%A1)
 
 
 
