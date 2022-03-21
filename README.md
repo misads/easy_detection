@@ -64,7 +64,7 @@
 ### COCO数据集
 
 
-| 结构 | mAP@.5:0.95 | mAP@.5 | mAP@.75 |下载链接 | 密码 | sha256 |
+| 结构 | COCO AP\* | mAP@.5 | mAP@.75 |下载链接 | 密码 | sha256 |
 | --------------- | ---------- | ------ | -------- | ----- | ----- | ----- |
 | FasterRCNN + Res50 + FPN | 35.41 |57.11| 38.43 | [[pytorch]](https://download.pytorch.org/models/fasterrcnn_resnet50_fpn_coco-258fb6c6.pth) | - | 258fb6c6 |
 | CascadeRCNN + Res50 + FPN | 38.71 |56.61| 42.16 | - | - | - |
@@ -72,6 +72,7 @@
 | YoloV4 | - | 62.8 |- | [[百度网盘]](https://pan.baidu.com/s/1keDDPyMvpX11jnXbJsoTrg) | nio7 | 797dc954 |
 | YoloV5 |  - |  64.30 |- | [[百度网盘]](https://pan.baidu.com/s/1j45qGCEu5_Tl0BlDF8ixnw) | cssw | 8e54a2e8 |
 
+　　\*注：COCO AP是mAP@\[0.5:0.95\]的平均值。
 
 ## Reference
 
