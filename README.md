@@ -72,7 +72,7 @@
 | YoloV4 | - | 62.8 |- | [[百度网盘]](https://pan.baidu.com/s/1keDDPyMvpX11jnXbJsoTrg) | nio7 | 797dc954 |
 | YoloV5 |  - |  64.30 |- | [[百度网盘]](https://pan.baidu.com/s/1j45qGCEu5_Tl0BlDF8ixnw) | cssw | 8e54a2e8 |
 
-　　\*注：COCO AP是mAP@\[0.5:0.95\]的平均值。
+　　\*注：COCO AP是IoU@\[0.5:0.95\]的mAP平均值。
 
 ## Reference
 
