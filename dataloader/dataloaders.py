@@ -1,14 +1,16 @@
 # encoding=utf-8
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, DistributedSampler
 from dataloader.list_dataset import get_all_datasets
 
 from options import opt, config
+from options.helper import is_distributed
+
 import torch
 
 def collate_fn(batch):
     target = {}
     b = len(batch)
-    target['image'] = torch.stack([sample['image'] for sample in batch])
+    target['image'] = [sample['image'] for sample in batch]   # torch.stack([sample['image'] for sample in batch])
     target['bboxes'] = [sample['bboxes'] for sample in batch]
     target['labels'] = [sample['labels'] for sample in batch]
     target['path'] = [sample['path'] for sample in batch]
@@ -26,12 +28,16 @@ train_dataset, val_dataset = get_all_datasets()
 if train_dataset is None:
     train_dataloader = None
 else:
+    sampler = DistributedSampler(train_dataset) if is_distributed() else None
+    shuffle = not is_distributed() 
+
     train_dataloader = torch.utils.data.DataLoader(train_dataset,
-        shuffle=True,
+        shuffle=shuffle,
         collate_fn=collate_fn,
         batch_size=config.OPTIMIZE.BATCH_SIZE,
         num_workers=config.MISC.NUM_WORKERS,
-        drop_last=True)
+        drop_last=True,
+        sampler=sampler)
 
 
 if val_dataset is None:
@@ -42,4 +48,4 @@ else:
         collate_fn=collate_fn,
         batch_size=config.OPTIMIZE.BATCH_SIZE,
         num_workers=config.MISC.NUM_WORKERS // 2,
-        drop_last=False)
+        )

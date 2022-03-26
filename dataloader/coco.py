@@ -65,7 +65,8 @@ class CocoDataset(Dataset):
         labels = annot[:, 4]
 
         if self.transforms:           
-            for i in range(20):
+            num_transforms = 20 if len(bboxes) else 1  
+            for i in range(num_transforms):
                 sample = self.transforms(**{
                     'image': img,
                     'bboxes': bboxes,
@@ -85,6 +86,7 @@ class CocoDataset(Dataset):
 
     def load_image(self, image_index):
         image_info = self.coco.loadImgs(self.image_ids[image_index])[0]
+        
         path = os.path.join(self.root_dir, self.set_name, image_info['file_name'])
         img = cv2.imread(path)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)

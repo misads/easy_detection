@@ -1,6 +1,6 @@
 # encoding=utf-8
 import torch
-torch.multiprocessing.set_sharing_strategy('file_system')  # ulimit -SHn 51200
+#torch.multiprocessing.set_sharing_strategy('file_system')  # ulimit -SHn 51200
 
 from dataloader.dataloaders import val_dataloader
 from options import opt, config

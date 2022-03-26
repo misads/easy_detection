@@ -43,7 +43,7 @@ class GeneralizedRCNN(nn.Module):
         """
         if self.training and targets is None:
             raise ValueError("In training mode, targets should be passed")
-        assert len(images) == 1, 'Batch size of Cascade RCNN must be 1.'
+        #assert len(images) == 1, 'Batch size of Cascade RCNN must be 1.'
 
         original_image_sizes = [img.shape[-2:] for img in images]
         images, targets = self.transform(images, targets)
@@ -52,23 +52,24 @@ class GeneralizedRCNN(nn.Module):
             features = OrderedDict([(0, features)])
         proposals, proposal_losses = self.rpn(images, features, targets)
 
+        # 训练
         if self.training:
-            detections_1, detector_losses_1 = self.roi_heads[0](features, proposals, images.image_sizes, targets)
-            detections_2, detector_losses_2 = self.roi_heads[1](features, detections_1[0], images.image_sizes, targets)
-            detections_3, detector_losses_3 = self.roi_heads[2](features, detections_2[0], images.image_sizes, targets)
+            proposals_1, detector_losses_1 = self.roi_heads[0](features, proposals, images.image_sizes, targets)
+            proposals_2, detector_losses_2 = self.roi_heads[1](features, proposals_1, images.image_sizes, targets)
+            proposals_3, detector_losses_3 = self.roi_heads[2](features, proposals_2, images.image_sizes, targets)
         else:
-            detections_1, detector_losses_1 = self.roi_heads[0](features, proposals, images.image_sizes, targets)
-            detections_2, detector_losses_2 = self.roi_heads[1](features, detections_1[0]['cascade_proposals'], images.image_sizes, targets)
-            detections_3, detector_losses_3 = self.roi_heads[2](features, detections_2[0]['cascade_proposals'], images.image_sizes, targets)
+            results_1, detector_losses_1 = self.roi_heads[0](features, proposals, images.image_sizes, targets)
+            results_2, detector_losses_2 = self.roi_heads[1](features, results_1['cascade_proposals'], images.image_sizes, targets)
+            results_3, detector_losses_3 = self.roi_heads[2](features, results_2['cascade_proposals'], images.image_sizes, targets)
 
-        
+        # 测试
         if not self.training:
-            class_logits = (detections_1[0]['class_logits'] + \
-                            detections_2[0]['class_logits'] + \
-                            detections_3[0]['class_logits']) / 3
-            box_regression = detections_3[0]['box_regression']
-            proposals = detections_3[0]['proposals']
-            boxes, scores, labels = self.roi_heads[2].postprocess_detections(class_logits, box_regression, proposals, images.image_sizes)
+            class_logits = (results_1['class_logits'] + \
+                            results_2['class_logits'] + \
+                            results_3['class_logits']) / 3
+            box_regression = results_3['box_regression']
+            proposals = results_3['proposals']
+            boxes, scores, labels = self.roi_heads[-1].postprocess_detections(class_logits, box_regression, proposals, images.image_sizes)
             num_images = len(boxes)
             detections = []
             for i in range(num_images):

@@ -2,11 +2,13 @@
 from configs.data_roots import get_one_dataset
 from configs.transforms import get_transform
 from options import opt, config
+from options.helper import is_first_gpu
 
 from dataloader.voc import VOCTrainValDataset
 from dataloader.coco import CocoDataset
 
 import torch.utils.data.dataset as dataset
+import cv2
 
 class ListTrainValDataset(dataset.Dataset):
     def __init__(self, *datasets, transforms=None):
@@ -76,7 +78,8 @@ def get_all_datasets():
                         dataset_item.class_names,
                         split=dataset_item.train_split,
                         format=dataset_item.img_format,
-                        transforms=train_transform)
+                        transforms=train_transform,
+                        first_gpu=is_first_gpu())
                 train_datasets.append(train_dataset)
 
             if hasattr(dataset_item, 'val_split'):
@@ -84,7 +87,8 @@ def get_all_datasets():
                         dataset_item.class_names,
                         split=dataset_item.val_split,
                         format=dataset_item.img_format,
-                        transforms=val_transform)
+                        transforms=val_transform,
+                        first_gpu=is_first_gpu())
                 val_datasets.append(val_dataset)
 
         elif data_format == 'COCO':

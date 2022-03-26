@@ -8,12 +8,12 @@ class FRCNN(object):
         divisor = 32
         self.train_transform = A.Compose(  # FRCNN
             [
-                A.OneOf([
-                    A.HueSaturationValue(hue_shift_limit=0.3, sat_shift_limit=0.3,
-                                            val_shift_limit=0.3, p=0.95),
-                    A.RandomBrightnessContrast(brightness_limit=0.3,
-                                                contrast_limit=0.3, p=0.95),
-                ],p=1.0),
+                #A.OneOf([
+                #    A.HueSaturationValue(hue_shift_limit=0.3, sat_shift_limit=0.3,
+                #                            val_shift_limit=0.3, p=0.95),
+                #    A.RandomBrightnessContrast(brightness_limit=0.3,
+                #                                contrast_limit=0.3, p=0.95),
+                #],p=1.0),
 
                 A.ToGray(p=0.01),
                 A.HorizontalFlip(p=0.5),

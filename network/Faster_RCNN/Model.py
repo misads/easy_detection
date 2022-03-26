@@ -9,6 +9,7 @@ import os
 from torch import nn
 
 from options import opt
+from options.helper import is_distributed, is_first_gpu
 
 from optimizer import get_optimizer
 from scheduler import get_scheduler
@@ -50,6 +51,10 @@ class Model(BaseModel):
         
         kargs.update({'box_nms_thresh': config.TEST.NMS_THRESH})
 
+        # 多卡使用 SyncBN
+        if is_distributed():
+            kargs.update({'norm_layer': torch.nn.SyncBatchNorm})
+
         # 定义backbone和Faster RCNN模型
         if config.MODEL.BACKBONE is None or config.MODEL.BACKBONE.lower() in ['res50', 'resnet50']:
             # 默认是带fpn的resnet50
@@ -75,14 +80,23 @@ class Model(BaseModel):
         else:
             raise NotImplementedError(f'no such backbone: {config.MODEL.BACKBONE}')
 
-        if opt.debug:
+
+        if opt.debug and is_first_gpu():
             print_network(self.detector)
+
+        self.to(opt.device)
+        # 多GPU支持
+        if is_distributed():
+            self.detector = torch.nn.parallel.DistributedDataParallel(self.detector, find_unused_parameters=False,
+                    device_ids=[opt.local_rank], output_device=opt.local_rank)
+            # self.detector = torch.nn.parallel.DistributedDataParallel(self.detector, device_ids=[opt.local_rank], output_device=opt.local_rank)
 
         self.optimizer = get_optimizer(config, self.detector)
         self.scheduler = get_scheduler(config, self.optimizer)
 
         self.avg_meters = ExponentialMovingAverage(0.95)
         self.save_dir = os.path.join('checkpoints', opt.tag)
+
 
     def update(self, sample, *arg):
         """
@@ -103,10 +117,10 @@ class Model(BaseModel):
             if len(bboxes[b]) == 0:  # 没有bbox，不更新参数
                 return {}
 
-        image = image.to(opt.device)
+        #image = image.to(opt.device)
         bboxes = [bbox.to(opt.device).float() for bbox in bboxes]
         labels = [label.to(opt.device).float() for label in labels]
-        image = list(im for im in image)
+        image = list(im.to(opt.device) for im in image)
 
         b = len(bboxes)
 
@@ -133,7 +147,8 @@ class Model(BaseModel):
 
     def forward_test(self, image):  # test
         """给定一个batch的图像, 输出预测的[bounding boxes, labels和scores], 仅在验证和测试时使用"""
-        image = list(im for im in image)
+        #image = list(im for im in image)
+        image = list(im.to(opt.device) for im in image)
 
         batch_bboxes = []
         batch_labels = []

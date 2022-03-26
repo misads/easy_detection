@@ -7,6 +7,7 @@ import numpy as np
 from .region_layer import RegionLayer
 from .yolo_layer import YoloLayer
 import ipdb
+import gc
 #from layers.batchnorm.bn import BN2d
 
 class MaxPoolStride1(nn.Module):
@@ -139,7 +140,7 @@ class Darknet(nn.Module):
         self.header = torch.IntTensor([0,1,0,0])
         self.seen = 0
 
-    def forward(self, x, return_outputs=False):
+    def forward(self, x, return_outputs=False, target=None):
         ind = -2
         #self.loss_layers = None
         outputs = dict()
@@ -186,9 +187,24 @@ class Darknet(nn.Module):
                 print('unknown type %s' % (block['type']))
 
         if return_outputs:
-            return outputs
+            detection_output = outputs
         else:
-            return x if outno == 0 else out_boxes
+            detection_output = x if outno == 0 else out_boxes
+
+        org_loss = []
+        if self.training:
+            assert target is not None
+            for i, l in enumerate(self.loss_layers):
+                ol=l(detection_output[i]['x'], target)
+                org_loss.append(ol)
+
+            loss = sum(org_loss)     
+            
+            org_loss.clear()
+            gc.collect()
+            return loss       
+        else:
+            return detection_output
 
     def print_network(self):
         print_cfg(self.blocks)

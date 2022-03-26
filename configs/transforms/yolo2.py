@@ -5,7 +5,7 @@ from options import opt
 
 class Yolo2(object):
     def __init__(self, config):
-        width = height = config.DATA.SCALE  # 544
+        width, height = config.DATA.SCALE
 
         self.train_transform = A.Compose(  # Yolo
             [

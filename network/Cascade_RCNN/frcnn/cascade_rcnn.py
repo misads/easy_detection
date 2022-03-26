@@ -207,7 +207,7 @@ class CascadeRCNN(GeneralizedRCNN):
             box_roi_pool = MultiScaleRoIAlign(
                 featmap_names=[0, 1, 2, 3],
                 output_size=7,
-                sampling_ratio=2)
+                sampling_ratio=0)
 
             resolution = box_roi_pool.output_size[0]
             representation_size = 1024
@@ -302,7 +302,8 @@ model_urls = {
 
 
 def cascadercnn_resnet50_fpn(pretrained=False, progress=True,
-                            num_classes=91, pretrained_backbone=True, **kwargs):
+                            num_classes=91, pretrained_backbone=True, norm_layer=misc_nn_ops.FrozenBatchNorm2d,
+                            **kwargs):
     """
     Constructs a Faster R-CNN model with a ResNet-50-FPN backbone.
 
@@ -343,7 +344,7 @@ def cascadercnn_resnet50_fpn(pretrained=False, progress=True,
     if pretrained:
         # no need to download the backbone if pretrained is set
         pretrained_backbone = False
-    backbone = resnet_fpn_backbone('resnet50', pretrained_backbone)
+    backbone = resnet_fpn_backbone('resnet50', pretrained_backbone, norm_layer=norm_layer)
     model = CascadeRCNN(backbone, num_classes, **kwargs)
     if pretrained:
         state_dict = load_state_dict_from_url(model_urls['fasterrcnn_resnet50_fpn_coco'],

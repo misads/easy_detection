@@ -8,7 +8,7 @@ import sys
 import ipdb
 from utils.eval_metrics.eval_map import eval_detection_voc
 
-from misc_utils import color_print, progress_bar
+from misc_utils import color_print, progress_bar, save_json
 from options import opt
 import misc_utils as utils
 import numpy as np
@@ -71,16 +71,17 @@ class BaseModel(torch.nn.Module):
         gt_bboxes = []
         gt_labels = []
         gt_difficults = []
-
+        
         with torch.no_grad():
             for i, sample in enumerate(dataloader):
                 utils.progress_bar(i, len(dataloader), 'Eva... ')
-                image = sample['image'].to(opt.device)
+                image = sample['image'] #.to(opt.device)
                 gt_bbox = sample['bboxes']
                 labels = sample['labels']
                 paths = sample['path']
 
                 batch_bboxes, batch_labels, batch_scores = self.forward_test(image)
+
                 pred_bboxes.extend(batch_bboxes)
                 pred_labels.extend(batch_labels)
                 pred_scores.extend(batch_scores)
@@ -101,8 +102,9 @@ class BaseModel(torch.nn.Module):
 
                     write_image(writer, f'{data_name}/{i}', 'image', img, epoch, 'HWC')
 
+
             result = []
-            for iou_thresh in [0.5, 0.55, 0.6, 0.65, 0.7, 0.75]:
+            for iou_thresh in [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]:
                 AP = eval_detection_voc(
                     pred_bboxes,
                     pred_labels,
@@ -116,13 +118,13 @@ class BaseModel(torch.nn.Module):
                 APs = AP['ap']
                 mAP = AP['map']
                 result.append(mAP)
-
-                logger.info(f'Eva({data_name}) epoch {epoch}, IoU: {iou_thresh}, APs: {str(APs[:self.config.DATA.NUM_CLASSESS])}, mAP: {mAP}')
+                if iou_thresh in [0.5, 0.75]:
+                    logger.info(f'Eva({data_name}) epoch {epoch}, IoU: {iou_thresh}, APs: {str(APs[:10])}, mAP: {mAP}')
 
                 write_loss(writer, f'val/{data_name}', 'mAP', mAP, epoch)
 
             logger.info(
-                f'Eva({data_name}) epoch {epoch}, mean of (AP50-AP75): {sum(result)/len(result)}')
+                f'Eva({data_name}) epoch {epoch}, mean of (AP50-AP95): {sum(result)/len(result)}')
 
 
     def load(self, ckpt_path):

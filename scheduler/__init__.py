@@ -4,28 +4,32 @@ from options import opt
 
 schedulers = {
     '1x': {  # Faster_RCNN
-        'epochs': [1, 7, 10, 12],  # 12个epoch   7:3:2
-        'ratios': [0.1, 1, 0.1, 0.01],
+        'epochs': [8, 11, 13],  # 12个epoch
+        'ratios': [1, 0.1, 0.01],
     },
     '2x': {
-        'epochs': [1, 14, 20, 24],  # 24个epoch
-        'ratios': [0.1, 1, 0.1, 0.01],
+        'epochs': [16, 22, 24],  # 24个epoch
+        'ratios': [1, 0.1, 0.01],
     },
     '5x': { 
-        'epochs': [1, 35, 50, 60],  # 60个epoch
-        'ratios': [0.1, 1, 0.1, 0.01],
+        'epochs': [40, 55, 60],  # 60个epoch
+        'ratios': [1, 0.1, 0.01],
     },
     '10x': {  
-        'epochs': [2, 70, 100, 120],  # 120个epoch
-        'ratios': [0.1, 1, 0.1, 0.01],
+        'epochs': [80, 110, 130],  # 120个epoch
+        'ratios': [1, 0.1, 0.01],
     },
     '20e': {
-        'epochs': [1, 15, 18, 20],  # 20个epoch
-        'ratios': [0.1, 1, 0.1, 0.01],
+        'epochs': [16, 19, 20],  # 20个epoch
+        'ratios': [1, 0.1, 0.01],
     },
     '100e': {  # Yolo2和Yolo3
-        'epochs': [2, 60, 90, 100],  # 100个epoch
-        'ratios': [0.1, 1, 0.1, 0.01],
+        'epochs': [80, 95, 100],  # 100个epoch
+        'ratios': [1, 0.1, 0.01],
+    },
+    '1e': { # debug
+        'epochs': [1],
+        'ratios': [1],
     }
 
 }

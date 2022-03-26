@@ -8,13 +8,13 @@ DATA:
   SCALE: [800, 1333]
 OPTIMIZE:
   OPTIMIZER: sgd
-  BASE_LR: 0.001 
+  BASE_LR: 0.016 # 0.001
   SCHEDULER: 1x
   BATCH_SIZE: 2
 TEST:
   NMS_THRESH : 0.5  # nms iou thresh at test time
   CONF_THRESH: 0.05 # confidence thresh to keep at test time
 MISC:
-  VAL_FREQ: 1
+  VAL_FREQ: 12
   SAVE_FREQ: 1
-  NUM_WORKERS: 0
+  NUM_WORKERS: 2

@@ -4,8 +4,7 @@ from albumentations.pytorch.transforms import ToTensorV2
 
 class Resize(object):
     def __init__(self, config):
-
-        width = height = config.DATA.SCALE  # 416
+        width, height = config.DATA.SCALE  # 416
 
         self.train_transform = A.Compose(
             [

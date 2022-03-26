@@ -88,18 +88,32 @@ class RegionLayer(nn.Module):
                 pred_box = pred_boxes[b*nAnchors+best_n*nPixels+gj*nW+gi]
                 iou = bbox_iou(gt_box, pred_box, x1y1x2y2=False)
 
-                obj_mask  [b][best_n][gj][gi] = 1
-                noobj_mask[b][best_n][gj][gi] = 0
-                coord_mask[b][best_n][gj][gi] = 2. - tbox[t][3]*tbox[t][4]
-                tcoord [0][b][best_n][gj][gi] = gx - gi
-                tcoord [1][b][best_n][gj][gi] = gy - gj
-                tcoord [2][b][best_n][gj][gi] = math.log(gw/anchors[best_n][0])
-                tcoord [3][b][best_n][gj][gi] = math.log(gh/anchors[best_n][1])
-                tcls      [b][best_n][gj][gi] = tbox[t][0]
-                tconf     [b][best_n][gj][gi] = iou if self.rescore else 1.
-                if iou > 0.5:
-                    nRecall += 1
+                try:
+                    if gj >= nH:
+                        gj = nH - 1
+                    if gi >= nW:
+                        gi = nW - 1
 
+                    obj_mask  [b][best_n][gj][gi] = 1
+                    noobj_mask[b][best_n][gj][gi] = 0
+                    coord_mask[b][best_n][gj][gi] = 2. - tbox[t][3]*tbox[t][4]
+                    tcoord [0][b][best_n][gj][gi] = gx - gi
+                    tcoord [1][b][best_n][gj][gi] = gy - gj
+                    tcoord [2][b][best_n][gj][gi] = math.log(gw/anchors[best_n][0])
+                    tcoord [3][b][best_n][gj][gi] = math.log(gh/anchors[best_n][1])
+                    tcls      [b][best_n][gj][gi] = tbox[t][0]
+                    tconf     [b][best_n][gj][gi] = iou if self.rescore else 1.
+                    if iou > 0.5:
+                        nRecall += 1
+                except Exception as e:
+                    print('obj_mask', obj_mask.shape)
+                    print(f'b: {b}')
+                    print(f'best_n: {best_n}')
+                    print(f'nB: {nB}')
+                    print(f'gj: {gj}')
+                    print(f'gi: {gi}')
+                    print(str(e))
+                    raise Exception('Error')
         return nGT, nRecall, obj_mask, noobj_mask, coord_mask, tcoord, tconf, tcls
 
     def get_mask_boxes(self, output):

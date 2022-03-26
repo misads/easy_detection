@@ -541,6 +541,8 @@ class RoIHeads(torch.nn.Module):
         box_features = self.box_head(box_features)
         class_logits, box_regression = self.box_predictor(box_features)
 
+        boxes_per_image = [len(boxes_in_image) for boxes_in_image in proposals]
+
         result, losses = [], {}
         if self.training:
             loss_classifier, loss_box_reg = fastrcnn_loss(
@@ -548,27 +550,26 @@ class RoIHeads(torch.nn.Module):
             losses = dict(loss_classifier=loss_classifier, loss_box_reg=loss_box_reg)
             # boxes, scores, labels = self.postprocess_detections(class_logits, box_regression, proposals, image_shapes)
             boxes = self.box_coder.decode(box_regression, proposals)
-            boxes = boxes[:, 0, :]
+            boxes = boxes[:, 0, :]  # proposal score与类别无关，所以取第一个
+            boxes = boxes.split(boxes_per_image, 0)
+
             # boxes = torch.mean(boxes, dim=1)
 
-            result.append(
-                [boxes]
-            )
+            return boxes, losses
+
         else:
             cascade_proposals = self.box_coder.decode(box_regression, proposals)
             cascade_proposals = cascade_proposals[:, 0, :]
+            cascade_proposals = cascade_proposals.split(boxes_per_image, 0)
 
             # boxes, scores, labels = self.postprocess_detections(class_logits, box_regression, proposals, image_shapes)
-            num_images = 1  # batch_size
-            for i in range(num_images):
-                result.append(
-                    dict(
+            results = dict(
                         class_logits=class_logits,
                         box_regression=box_regression,
                         proposals=proposals,
-                        cascade_proposals=[cascade_proposals]
-                    )
-                )
+                        cascade_proposals=cascade_proposals
+            )
+            
             # for i in range(num_images):
             #     result.append(
             #         dict(
@@ -579,67 +580,4 @@ class RoIHeads(torch.nn.Module):
             #         )
             #     )
 
-        if self.has_mask:
-            mask_proposals = [p["boxes"] for p in result]
-            if self.training:
-                # during training, only focus on positive boxes
-                num_images = len(proposals)
-                mask_proposals = []
-                pos_matched_idxs = []
-                for img_id in range(num_images):
-                    pos = torch.nonzero(labels[img_id] > 0).squeeze(1)
-                    mask_proposals.append(proposals[img_id][pos])
-                    pos_matched_idxs.append(matched_idxs[img_id][pos])
-
-            mask_features = self.mask_roi_pool(features, mask_proposals, image_shapes)
-            mask_features = self.mask_head(mask_features)
-            mask_logits = self.mask_predictor(mask_features)
-
-            loss_mask = {}
-            if self.training:
-                gt_masks = [t["masks"] for t in targets]
-                gt_labels = [t["labels"] for t in targets]
-                loss_mask = maskrcnn_loss(
-                    mask_logits, mask_proposals,
-                    gt_masks, gt_labels, pos_matched_idxs)
-                loss_mask = dict(loss_mask=loss_mask)
-            else:
-                labels = [r["labels"] for r in result]
-                masks_probs = maskrcnn_inference(mask_logits, labels)
-                for mask_prob, r in zip(masks_probs, result):
-                    r["masks"] = mask_prob
-
-            losses.update(loss_mask)
-
-        if self.has_keypoint:
-            keypoint_proposals = [p["boxes"] for p in result]
-            if self.training:
-                # during training, only focus on positive boxes
-                num_images = len(proposals)
-                keypoint_proposals = []
-                pos_matched_idxs = []
-                for img_id in range(num_images):
-                    pos = torch.nonzero(labels[img_id] > 0).squeeze(1)
-                    keypoint_proposals.append(proposals[img_id][pos])
-                    pos_matched_idxs.append(matched_idxs[img_id][pos])
-
-            keypoint_features = self.keypoint_roi_pool(features, keypoint_proposals, image_shapes)
-            keypoint_features = self.keypoint_head(keypoint_features)
-            keypoint_logits = self.keypoint_predictor(keypoint_features)
-
-            loss_keypoint = {}
-            if self.training:
-                gt_keypoints = [t["keypoints"] for t in targets]
-                loss_keypoint = keypointrcnn_loss(
-                    keypoint_logits, keypoint_proposals,
-                    gt_keypoints, pos_matched_idxs)
-                loss_keypoint = dict(loss_keypoint=loss_keypoint)
-            else:
-                keypoints_probs, kp_scores = keypointrcnn_inference(keypoint_logits, keypoint_proposals)
-                for keypoint_prob, kps, r in zip(keypoints_probs, kp_scores, result):
-                    r["keypoints"] = keypoint_prob
-                    r["keypoints_scores"] = kps
-
-            losses.update(loss_keypoint)
-
-        return result, losses
+        return results, losses

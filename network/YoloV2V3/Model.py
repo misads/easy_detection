@@ -15,6 +15,7 @@ from torchvision.ops import nms
 from torchvision.ops import boxes as box_ops
 
 from options import opt
+from options.helper import is_distributed, is_first_gpu
 
 from optimizer import get_optimizer
 from scheduler import get_scheduler
@@ -50,11 +51,21 @@ class Model(BaseModel):
 
         # 在--load之前加载weights文件(可选)
         if opt.load and opt.load[-2:] != 'pt':
-            utils.color_print('Load Yolo weights from %s.' % opt.load, 3)
+            if is_first_gpu():
+                utils.color_print('Load Yolo weights from %s.' % opt.load, 3)
             self.detector.load_weights(opt.load)
         elif 'LOAD' in config.MODEL and config.MODEL.LOAD[-2:] != 'pt':
-            utils.color_print('Load Yolo weights from %s.' % config.MODEL.LOAD, 3)
+            if is_first_gpu():
+                utils.color_print('Load Yolo weights from %s.' % config.MODEL.LOAD, 3)
             self.detector.load_weights(config.MODEL.LOAD)
+
+        self.to(opt.device)
+        # 多GPU支持
+        if is_distributed():
+            self.detector = torch.nn.SyncBatchNorm.convert_sync_batchnorm(self.detector)
+            self.detector = torch.nn.parallel.DistributedDataParallel(self.detector, find_unused_parameters=False,
+                    device_ids=[opt.local_rank], output_device=opt.local_rank)
+            # self.detector = torch.nn.parallel.DistributedDataParallel(self.detector, device_ids=[opt.local_rank], output_device=opt.local_rank)
 
         self.optimizer = get_optimizer(config, self.detector)
         self.scheduler = get_scheduler(config, self.optimizer)
@@ -71,19 +82,20 @@ class Model(BaseModel):
                    'labels': a list of labels [[N1], [N2], ..., [Nb]],
                    'path': a list of paths}
         """
-        loss_layers = self.detector.loss_layers
-        org_loss = []
+        #loss_layers = self.detector.loss_layers
+        #org_loss = []
 
-        image = sample['image'].to(opt.device)  # target domain
+        image = torch.stack(sample['image']).to(opt.device)  # target domain
         target = sample['yolo_boxes'].to(opt.device)
 
-        detection_output = self.detector(image)  # 在src domain上训练检测
+        #detection_output = self.detector(image)  # 在src domain上训练检测
 
-        for i, l in enumerate(loss_layers):
-            ol=l(detection_output[i]['x'], target)
-            org_loss.append(ol)
+        #for i, l in enumerate(loss_layers):
+        #    ol=l(detection_output[i]['x'], target)
+        #    org_loss.append(ol)
 
-        loss = sum(org_loss)
+        #loss = sum(org_loss)
+        loss = self.detector(image, target=target)
 
         self.avg_meters.update({'loss': loss.item()})
 
@@ -93,27 +105,28 @@ class Model(BaseModel):
         nn.utils.clip_grad_norm_(self.detector.parameters(), 10000)
         self.optimizer.step()
 
-        org_loss.clear()
-
-        gc.collect()
         return {}
 
     def forward_test(self, image):
         """
         给定一个batch的图像, 输出预测的[bounding boxes, labels和scores], 仅在验证和测试时使用
         Args:
-            image: [b, 3, h, w] Tensor
+            image: [b, 3, h, w] list
         """
+        image =  torch.stack(image).to(opt.device)
+
         batch_bboxes = []
         batch_labels = []
         batch_scores = []
 
-        if self.detector.net_name() == 'region':  # region_layer
+        if self.config.MODEL.NAME == 'Yolo2': # region_layer
             shape = (0, 0)
         else:
-            shape = (opt.width, opt.height)
+            shape = self.config.DATA.SCALE
+        
+        assert len(shape) == 2
 
-        num_classes = self.detector.num_classes
+        num_classes = self.config.DATA.NUM_CLASSESS
 
         outputs = self.detector(image)
 
@@ -130,14 +143,17 @@ class Model(BaseModel):
             boxes = preds[:, :4]
             det_conf = preds[:, 4]
             cls_conf = preds[:, 5:]
-            _, labels = torch.max(cls_conf, 1)
+            if len(cls_conf):
+                _, labels = torch.max(cls_conf, 1)
 
-            b, c, h, w = image.shape
+                b, c, h, w = image.shape
 
-            boxes = xywh_to_xyxy(boxes, w, h)  # yolo的xywh转成输出的xyxy
+                boxes = xywh_to_xyxy(boxes, w, h)  # yolo的xywh转成输出的xyxy
 
-            nms_indices = box_ops.batched_nms(boxes, det_conf, labels, nms_thresh)
-            # nms_indices = nms(boxes, det_conf, nms_thresh)
+                nms_indices = box_ops.batched_nms(boxes, det_conf, labels, nms_thresh)
+                # nms_indices = nms(boxes, det_conf, nms_thresh)
+            else:
+                nms_indices = []
 
             if len(nms_indices) == 0:
                 batch_bboxes.append(np.array([[]], np.float32))

@@ -40,10 +40,10 @@ class BackboneWithFPN(nn.Sequential):
         self.out_channels = out_channels
 
 
-def resnet_fpn_backbone(backbone_name, pretrained):
+def resnet_fpn_backbone(backbone_name, pretrained, norm_layer=misc_nn_ops.FrozenBatchNorm2d):
     backbone = resnet.__dict__[backbone_name](
         pretrained=pretrained,
-        norm_layer=misc_nn_ops.FrozenBatchNorm2d)
+        norm_layer=norm_layer)
     # freeze layers
     for name, parameter in backbone.named_parameters():
         if 'layer2' not in name and 'layer3' not in name and 'layer4' not in name:

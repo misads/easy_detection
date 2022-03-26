@@ -59,8 +59,9 @@ class VOCTrainValDataset(dataset.Dataset):
 
     """
 
-    def __init__(self, voc_root, class_names, split='train.txt', format='jpg', transforms=None, max_size=None, use_cache=False, use_difficult=False):
-        utils.color_print(f'Use dataset: {voc_root}, split: {split[:-4]}', 3)
+    def __init__(self, voc_root, class_names, split='train.txt', format='jpg', transforms=None, max_size=None, use_cache=False, use_difficult=False, first_gpu=True):
+        if first_gpu:
+            utils.color_print(f'Use dataset: {voc_root}, split: {split[:-4]}', 3)
 
         im_list = os.path.join(voc_root, f'ImageSets/Main/{split}')
         image_root = os.path.join(voc_root, 'JPEGImages')
@@ -84,7 +85,8 @@ class VOCTrainValDataset(dataset.Dataset):
             with open(cache_file, 'rb') as f:
                 data = pickle.load(f, encoding='bytes')
             
-            utils.color_print(f'Use cached annoations.', 3)
+            if first_gpu:
+                utils.color_print(f'Use cached annoations.', 3)
 
             self.image_paths, self.bboxes, self.labels, self.difficults, \
             counter, tot_bbox, difficult_bbox = data
@@ -93,7 +95,9 @@ class VOCTrainValDataset(dataset.Dataset):
             with open(im_list, 'r') as f:
                 lines = f.readlines()
                 for i, line in enumerate(lines):
-                    utils.progress_bar(i, len(lines), 'Load Anno...')
+                    if first_gpu:
+                        utils.progress_bar(i, len(lines), 'Load Anno...')
+                    
                     image_id = line.rstrip('\n')
                     if not os.path.isfile(os.path.join(voc_root, f'Annotations/{image_id}.xml')):
                         continue
@@ -151,14 +155,13 @@ class VOCTrainValDataset(dataset.Dataset):
             with open(cache_file, 'wb') as f:
                 pickle.dump(data, f)
 
-
-        for name in class_names:
-            utils.color_print(f'{name}: {counter[name]} ({counter[name]/tot_bbox*100:.2f}%)', 5)
+        if first_gpu:
+            for name in class_names:
+                utils.color_print(f'{name}: {counter[name]} ({counter[name]/tot_bbox*100:.2f}%)', 5)
         
-        utils.color_print(f'Total bboxes: {tot_bbox}', 4)
-        if difficult_bbox:
-            utils.color_print(f'{difficult_bbox} difficult bboxes ignored.', 1)
-        
+            utils.color_print(f'Total bboxes: {tot_bbox}', 4)
+            if difficult_bbox:
+                utils.color_print(f'{difficult_bbox} difficult bboxes ignored.', 1)
         
         self.format = format
 
