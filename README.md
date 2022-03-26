@@ -1,6 +1,6 @@
 # easy_detection
 
-　　easy_detection是一个能够轻松上手的Pytorch目标检测框架，它不需要cuda编译，支持Faster_RCNN、Yolo系列(v2~v5)、EfficientDet等经典网络，能够一键预览数据集标注并对训练过程进行可视化，同时有配套的web平台进行任务监控和管理。  
+　　easy_detection是一个能够轻松上手的Pytorch目标检测框架，它不需要cuda编译，支持Faster_RCNN、Cascade_RCNN、Yolo系列、SSD等经典网络，能够一键预览数据集标注并对训练过程进行可视化，同时有配套的web平台进行任务监控和管理。  
   
 　　对比mmdetection，mmdetection很好用，但是封装的层数过多，对于初学者来说可能不是太友好。因此我将经典的检测模型用简单的方式整理或重写了一下。如果遇到问题欢迎提issue或者与我联系。
 
@@ -21,12 +21,8 @@
 - 网络模型
   - [x] Faster-RCNN
   - [x] Cascade-RCNN
-  - [x] YoloV2、V3  
-  - [x] YoloV4  
-  - [x] YoloV5  
+  - [x] YoloV2、V3   
   - [x] SSD300、SSD512
-  - [x] EfficientDet
-  - [x] RetinaNet
   
 - 预测框融合
   - [x] 多尺度融合
@@ -39,7 +35,7 @@
 
 - Metrics
   - [x] mAP
-
+  - [x] COCO AP
 
 ## 安装和使用教程
 
