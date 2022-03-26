@@ -23,6 +23,7 @@
   - [x] Cascade-RCNN
   - [x] YoloV2、V3   
   - [x] SSD300、SSD512
+  - [ ] ~YoloV4、YoloV5、RetinaNet、EfficientDet~ (工作忙，代码还有一些BUG，感兴趣的同学可以自己研究研究)
   
 - 预测框融合
   - [x] 多尺度融合
