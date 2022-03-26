@@ -115,7 +115,7 @@ python3 train.py --config configs/yolo2_voc.yml
 #### YOLOv3
 
 ```bash
-python3 train.py --tag yolo3_voc --model Yolo3  -b12 --val_freq 10 --save_freq 10 --optimizer sgd --lr 0.0001 --scheduler 10x --weights pretrained/darknet53.conv.74 --scale 544
+python3 train.py --config configs/yolo3_voc.yml
 ```
 
 `darknet53.conv.74`可以在yolo官网下载。[[下载地址]](https://pjreddie.com/media/files/darknet53.conv.74)。
