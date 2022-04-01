@@ -1,46 +1,28 @@
 # easy_detection
 
-　　easy_detection是一个能够轻松上手的Pytorch目标检测框架，它不需要cuda编译，支持多卡同步进行训练，支持Faster_RCNN、Cascade_RCNN、Yolo系列、SSD等经典网络，能够一键预览数据集标注并对训练过程进行可视化，同时有配套的web平台进行任务监控和管理。  
+
+　　COCO和VOC目标检测，基于pytorch，开箱即用，**不需要CUDA编译**。支持Faster_RCNN、Cascade_RCNN、Yolo系列、SSD。
+
+
   
-　　对比mmdetection，mmdetection很好用，但是封装的层数过多，对于初学者来说可能不是太友好。因此我将经典的检测模型用简单的方式整理或重写了一下。如果遇到问题欢迎提issue或者与我联系。
+　　对比mmdetection，mmdetection功能很多，但是封装的层数也过多，对于初学者不是太友好。因此将经典的检测模型用简单的方式整理或重写了一下。如果遇到问题欢迎提issue或者与我联系。
 
-![preview](http://www.xyu.ink/wp-content/uploads/2020/10/COCO2.png)
 
-## Features
+## 介绍
 
-- 可视化
-  - [x] 数据集标注可视化
-  - [x] 训练任务web端可视化管理
-  - [x] 预测结果可视化输出
-
-- 数据格式
-  - [x] VOC
-  - [x] COCO
-  - [x] 自定义格式
-
-- 网络模型
-  - [x] Faster-RCNN
-  - [x] Cascade-RCNN
-  - [x] YoloV2、V3   
-  - [x] SSD300、SSD512
-  - [ ] ~YoloV4、YoloV5、RetinaNet、EfficientDet~ (工作忙，代码还有一些BUG，感兴趣的同学可以自己研究研究)
+　　支持结果可视化、自定义数据集、多卡同步训练。  
   
-- 预测框融合
-  - [x] 多尺度融合
-  - [x] nms
-  - [x] Weighted Box Fusion(WBF)
+　　训练时间(Faster RCNN)：
 
-- Scheduler
-  - [x] Step Scheduler
-  - [x] Cos Scheduler
+||单卡2080ti|8卡2080ti|
+|---|---|---|
+|VOC|6小时|45分钟|
+|COCO|48小时|6小时|
 
-- Metrics
-  - [x] mAP
-  - [x] COCO AP
 
-## 安装和使用教程
+## 使用说明
 
-安装和使用方法见 [使用手册.md](https://github.com/misads/easy_detection/blob/master/_assets/_docs/get_started.md).
+安装和使用说明见 [使用手册.md](https://github.com/misads/easy_detection/blob/master/_assets/_docs/get_started.md).
 
 
 
