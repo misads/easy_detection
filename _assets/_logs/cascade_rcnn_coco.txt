@@ -1,0 +1,62 @@
+[INFO] 2020-12-20 19:04:50 ==================Configs==================
+[INFO] 2020-12-20 19:04:50 MODEL:
+[INFO] 2020-12-20 19:04:50   NAME: Cascade_RCNN
+[INFO] 2020-12-20 19:04:50   BACKBONE: resnet50
+[INFO] 2020-12-20 19:04:50   
+[INFO] 2020-12-20 19:04:50 DATA:
+[INFO] 2020-12-20 19:04:50   DATASET: coco
+[INFO] 2020-12-20 19:04:50   TRANSFORM: frcnn
+[INFO] 2020-12-20 19:04:50   SCALE: [800, 1333]
+[INFO] 2020-12-20 19:04:50 OPTIMIZE:
+[INFO] 2020-12-20 19:04:50   OPTIMIZER: sgd
+[INFO] 2020-12-20 19:04:50   BASE_LR: 0.016 
+[INFO] 2020-12-20 19:04:50   SCHEDULER: 1x
+[INFO] 2020-12-20 19:04:50   BATCH_SIZE: 2
+[INFO] 2020-12-20 19:04:50 TEST:
+[INFO] 2020-12-20 19:04:50   NMS_THRESH : 0.5  
+[INFO] 2020-12-20 19:04:50   CONF_THRESH: 0.05 
+[INFO] 2020-12-20 19:04:50 MISC:
+[INFO] 2020-12-20 19:04:50   VAL_FREQ: 12
+[INFO] 2020-12-20 19:04:50   SAVE_FREQ: 1
+[INFO] 2020-12-20 19:04:50   NUM_WORKERS: 2
+[INFO] 2020-12-20 19:04:50 ==================Options==================
+[INFO] 2020-12-20 19:04:50 config=work_config/cascade_rcnn_coco_dist.yml
+[INFO] 2020-12-20 19:04:50 debug=False
+[INFO] 2020-12-20 19:04:50 device=cuda:0
+[INFO] 2020-12-20 19:04:50 gpu_id=0
+[INFO] 2020-12-20 19:04:50 load=None
+[INFO] 2020-12-20 19:04:50 local_rank=0
+[INFO] 2020-12-20 19:04:50 no_val=False
+[INFO] 2020-12-20 19:04:50 resume=False
+[INFO] 2020-12-20 19:04:50 save_path=None
+[INFO] 2020-12-20 19:04:50 tag=cascade_rcnn_coco_dist
+[INFO] 2020-12-20 19:04:50 vis=False
+[INFO] 2020-12-20 19:04:50 ===========================================
+[INFO] 2020-12-20 19:04:57 train_trasforms: Compose([
+  ToGray(always_apply=False, p=0.01),
+  HorizontalFlip(always_apply=False, p=0.5),
+  ToTensorV2(always_apply=True, p=1.0, transpose_mask=False),
+], p=1.0, bbox_params={'format': 'pascal_voc', 'label_fields': ['labels'], 'min_area': 0, 'min_visibility': 0, 'check_each_transform': True}, keypoint_params=None, additional_targets={})
+[INFO] 2020-12-20 19:04:57 ===========================================
+[INFO] 2020-12-20 19:04:57 val_trasforms: Compose([
+  ToTensorV2(always_apply=True, p=1.0, transpose_mask=False),
+], p=1.0, bbox_params={'format': 'pascal_voc', 'label_fields': ['labels'], 'min_area': 0, 'min_visibility': 0, 'check_each_transform': True}, keypoint_params=None, additional_targets={})
+[INFO] 2020-12-20 19:04:57 ===========================================
+[INFO] 2020-12-20 19:04:57 scheduler: (Lambda scheduler)
+{'epochs': [8, 11, 13], 'ratios': [1, 0.1, 0.01]}
+[INFO] 2020-12-20 19:04:57 ===========================================
+[INFO] 2020-12-20 19:45:47 Train epoch: 1, lr:  0.016000, (loss) loss: 1.0311 | 
+[INFO] 2020-12-20 20:25:20 Train epoch: 2, lr:  0.016000, (loss) loss: 1.0510 | 
+[INFO] 2020-12-20 21:05:05 Train epoch: 3, lr:  0.016000, (loss) loss: 1.0082 | 
+[INFO] 2020-12-20 21:44:44 Train epoch: 4, lr:  0.016000, (loss) loss: 0.9124 | 
+[INFO] 2020-12-20 22:24:27 Train epoch: 5, lr:  0.016000, (loss) loss: 0.9732 | 
+[INFO] 2020-12-20 23:04:15 Train epoch: 6, lr:  0.016000, (loss) loss: 0.8045 | 
+[INFO] 2020-12-20 23:44:01 Train epoch: 7, lr:  0.016000, (loss) loss: 0.9161 | 
+[INFO] 2020-12-21 00:23:49 Train epoch: 8, lr:  0.016000, (loss) loss: 0.9664 | 
+[INFO] 2020-12-21 01:03:46 Train epoch: 9, lr:  0.001600, (loss) loss: 0.8222 | 
+[INFO] 2020-12-21 01:43:35 Train epoch: 10, lr:  0.001600, (loss) loss: 0.7666 | 
+[INFO] 2020-12-21 02:23:22 Train epoch: 11, lr:  0.001600, (loss) loss: 0.7733 | 
+[INFO] 2020-12-21 03:03:23 Train epoch: 12, lr:  0.000160, (loss) loss: 0.7272 | 
+[INFO] 2020-12-21 03:07:40 Eva(val) epoch 12, IoU: 0.5, APs: [    0.79064     0.54369     0.66614     0.66823     0.86627     0.78248     0.82832     0.52626     0.47089     0.52418], mAP: 0.5660525526304826
+[INFO] 2020-12-21 03:07:49 Eva(val) epoch 12, IoU: 0.75, APs: [      0.579     0.27109     0.46327     0.39513     0.71427     0.73108     0.66274     0.37402     0.21934     0.27253], mAP: 0.4216403832673324
+[INFO] 2020-12-21 03:07:56 Eva(val) epoch 12, mean of (AP50-AP95): 0.38711890996589904

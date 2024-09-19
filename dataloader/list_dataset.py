@@ -1,6 +1,6 @@
 # encoding=utf-8
 from configs.data_roots import get_one_dataset
-from configs.transforms import get_transform
+from pipelines import get_transform
 from options import opt, config
 from options.helper import is_first_gpu
 
@@ -73,12 +73,15 @@ def get_all_datasets():
 
         data_format = dataset_item.data_format
         if data_format == 'VOC':
+            use_cache = config.DATA.USE_CACHE or False
+
             if hasattr(dataset_item, 'train_split'):
                 train_dataset = VOCTrainValDataset(dataset_item.voc_root, 
                         dataset_item.class_names,
                         split=dataset_item.train_split,
                         format=dataset_item.img_format,
                         transforms=train_transform,
+                        use_cache=use_cache,
                         first_gpu=is_first_gpu())
                 train_datasets.append(train_dataset)
 
@@ -88,6 +91,7 @@ def get_all_datasets():
                         split=dataset_item.val_split,
                         format=dataset_item.img_format,
                         transforms=val_transform,
+                        use_cache=use_cache,
                         first_gpu=is_first_gpu())
                 val_datasets.append(val_dataset)
 

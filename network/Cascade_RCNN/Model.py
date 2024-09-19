@@ -12,15 +12,11 @@ import torch
 from options import opt
 from options.helper import is_distributed, is_first_gpu
 
-from optimizer import get_optimizer
-from scheduler import get_scheduler
-
 from network.base_model import BaseModel
 from mscv import ExponentialMovingAverage, print_network, load_checkpoint, save_checkpoint
 # from mscv.cnn import normal_init
 from mscv.summary import write_image
 
-import misc_utils as utils
 import ipdb
 
 from .frcnn.cascade_rcnn import CascadeRCNN, FastRCNNPredictor
@@ -32,7 +28,7 @@ from .backbones import vgg16_backbone, res101_backbone
 
 class Model(BaseModel):
     def __init__(self, config, **kwargs):
-        super(Model, self).__init__(config, kwargs)
+        super(Model, self).__init__(config, **kwargs)
         self.config = config
 
         kargs = {}
@@ -84,18 +80,7 @@ class Model(BaseModel):
         if opt.debug:
             print_network(self.detector)
 
-        self.to(opt.device)
-        # 多GPU支持
-        if is_distributed():
-            self.detector = torch.nn.parallel.DistributedDataParallel(self.detector, find_unused_parameters=False,
-                    device_ids=[opt.local_rank], output_device=opt.local_rank)
-            # self.detector = torch.nn.parallel.DistributedDataParallel(self.detector, device_ids=[opt.local_rank], output_device=opt.local_rank)
-
-        self.optimizer = get_optimizer(config, self.detector)
-        self.scheduler = get_scheduler(config, self.optimizer)
-
-        self.avg_meters = ExponentialMovingAverage(0.95)
-        self.save_dir = os.path.join('checkpoints', opt.tag)
+        self.init_common()
 
     def update(self, sample, *arg):
         """
@@ -150,10 +135,11 @@ class Model(BaseModel):
         return {}
 
 
-    def forward_test(self, image):  # test
+    def forward_test(self, sample):  # test
         """给定一个batch的图像, 输出预测的[bounding boxes, labels和scores], 仅在验证和测试时使用"""
         conf_thresh = 0.05
-
+        
+        image = sample['image']
         image = list(im.to(opt.device) for im in image)
 
         batch_bboxes = []
@@ -182,14 +168,3 @@ class Model(BaseModel):
             batch_scores.append(scores.detach().cpu().numpy())
 
         return batch_bboxes, batch_labels, batch_scores
-
-    def evaluate(self, dataloader, epoch, writer, logger, data_name='val'):
-        return self.eval_mAP(dataloader, epoch, writer, logger, data_name)
-
-    def load(self, ckpt_path):
-        state = torch.load(ckpt_path, map_location='cpu')
-        self.detector.load_state_dict(state['detector'])
-        # return super(Model, self).load(ckpt_path)
-
-    def save(self, which_epoch):
-        super(Model, self).save(which_epoch)

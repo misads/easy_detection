@@ -1,6 +1,6 @@
 import os
 import importlib
-import misc_utils as utils
+from misc_utils import get_file_name
 
 data_names = os.listdir('configs/data_roots')
 
@@ -12,7 +12,7 @@ for name in data_names:
         if name in ['__pycache__', '__init__.py', '.DS_Store']:
             continue
 
-        name = utils.get_file_name(name)
+        name = get_file_name(name)
         datasets[name] = importlib.import_module(f'.{name}', 'configs.data_roots').Data
 
 def get_one_dataset(dataset: str):

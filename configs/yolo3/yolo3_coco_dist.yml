@@ -1,0 +1,20 @@
+MODEL:
+  NAME: Yolo3
+  BACKBONE: resnet50
+  # LOAD: ./pretrained/0_voc_FasterRCNN.pt
+DATA:
+  DATASET: coco
+  TRANSFORM: yolo2
+  SCALE: [608, 608]
+OPTIMIZE:
+  OPTIMIZER: sgd
+  BASE_LR: 0.016
+  SCHEDULER: 10x
+  BATCH_SIZE: 2
+TEST:
+  NMS_THRESH : 0.5  # nms iou thresh at test time
+  CONF_THRESH: 0.05 # confidence thresh to keep at test time
+MISC:
+  VAL_FREQ: 12
+  SAVE_FREQ: 1
+  NUM_WORKERS: 2

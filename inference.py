@@ -4,12 +4,12 @@ import cv2
 import torch
 import ipdb
 import numpy as np
-import misc_utils as utils  # pip install utils-misc
+from misc_utils import get_file_name # pip install utils-misc
 import albumentations as A
 
 from network import get_model
 from options import opt, config
-from utils.vis import visualize_boxes
+from utils import visualize_boxes
 from torchvision.ops import nms
 from albumentations.pytorch.transforms import ToTensorV2
 
@@ -69,7 +69,7 @@ def inference(image_path, keep_thresh=0.5, savepath=None):
             [score1, score2, ...]  # 降序排列
     """
     assert os.path.isfile(image_path), f'{image_path} not exists.'
-    filaname = utils.get_file_name(image_path)
+    filaname = get_file_name(image_path)
     
     image_org = cv2.imread(image_path)
     image_org = cv2.cvtColor(image_org, cv2.COLOR_BGR2RGB).astype(np.float32)

@@ -1,19 +1,18 @@
 import sys
 import os
 import json
-import misc_utils as utils
+import logging
+from misc_utils import get_logger, get_time_stamp
 from utils import get_command_run
 from .options import opt, config
 
 
-def init_log(training=True):
-    if training:
-        log_dir = os.path.join('logs', opt.tag)
-    else:
-        log_dir = os.path.join('results', opt.tag)
-
-    utils.try_make_dir(log_dir)
-    logger = utils.get_logger(f=os.path.join(log_dir, 'log.txt'), mode='a', level='info')
+def init_log(log_dir):
+    os.makedirs(log_dir, exist_ok=True)
+    logger = get_logger(f=os.path.join(log_dir, 'log.txt'), mode='a', level='info')
+    for handler in logger.root.handlers:
+        if type(handler) is logging.StreamHandler:
+            handler.setLevel(logging.ERROR)
     logger.info('==================Configs==================')
     with open(opt.config) as f:
         for line in f.readlines():
@@ -21,7 +20,8 @@ def init_log(training=True):
             pos = line.find('#')
             if pos != -1:
                 line = line[:pos]
-            logger.info(line)
+            if len(line.strip()):
+                logger.info(line)
     logger.info('==================Options==================')
     for k, v in opt._get_kwargs():
         logger.info(str(k) + '=' + str(v))
@@ -48,7 +48,7 @@ def load_meta(new=False):
     if new:
         new_meta = {
             'command': get_command_run(),
-            'starttime': utils.get_time_stamp(),
+            'starttime': get_time_stamp(),
             'best_acc': 0.,
             'gpu': get_gpu_id(),
             'opt': opt.__dict__,

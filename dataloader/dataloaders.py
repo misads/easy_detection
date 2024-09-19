@@ -10,6 +10,8 @@ import torch
 def collate_fn(batch):
     target = {}
     b = len(batch)
+    target['ori_image'] = [sample['ori_image'] for sample in batch]
+    target['ori_sizes'] = [sample['ori_sizes'] for sample in batch]
     target['image'] = [sample['image'] for sample in batch]   # torch.stack([sample['image'] for sample in batch])
     target['bboxes'] = [sample['bboxes'] for sample in batch]
     target['labels'] = [sample['labels'] for sample in batch]

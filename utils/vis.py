@@ -299,7 +299,7 @@ def draw_mask_on_image_array(image, mask, color='red', alpha=0.4):
   np.copyto(image, np.array(pil_image.convert('RGB')))
 
 if __name__ == '__main__':
-  from options import opt
+  from options import opt, config
   import matplotlib.pyplot as plt
   import cv2
 
@@ -307,88 +307,6 @@ if __name__ == '__main__':
   _boxes = np.array([[234.5, 161.0, 63.0+234.5, 42.0+161]])
   _labels = np.array([42])
   _probs = np.array([0.87])
-  # cateNames = [
-  #   "person",
-  #   "bicycle",
-  #   "car",
-  #   "motorbike",
-  #   "aeroplane",
-  #   "bus",
-  #   "train",
-  #   "truck",
-  #   "boat",
-  #   "traffic light",
-  #   "fire hydrant",
-  #   "stop sign",
-  #   "parking meter",
-  #   "bench",
-  #   "bird",
-  #   "cat",
-  #   "dog",
-  #   "horse",
-  #   "sheep",
-  #   "cow",
-  #   "elephant",
-  #   "bear",
-  #   "zebra",
-  #   "giraffe",
-  #   "backpack",
-  #   "umbrella",
-  #   "handbag",
-  #   "tie",
-  #   "suitcase",
-  #   "frisbee",
-  #   "skis",
-  #   "snowboard",
-  #   "sports ball",
-  #   "kite",
-  #   "baseball bat",
-  #   "baseball glove",
-  #   "skateboard",
-  #   "surfboard",
-  #   "tennis racket",
-  #   "bottle",
-  #   "wine glass",
-  #   "cup",
-  #   "fork",
-  #   "knife",
-  #   "spoon",
-  #   "bowl",
-  #   "banana",
-  #   "apple",
-  #   "sandwich",
-  #   "orange",
-  #   "broccoli",
-  #   "carrot",
-  #   "hot dog",
-  #   "pizza",
-  #   "donut",
-  #   "cake",
-  #   "chair",
-  #   "sofa",
-  #   "pottedplant",
-  #   "bed",
-  #   "diningtable",
-  #   "toilet",
-  #   "tvmonitor",
-  #   "laptop",
-  #   "mouse",
-  #   "remote",
-  #   "keyboard",
-  #   "cell phone",
-  #   "microwave",
-  #   "oven",
-  #   "toaster",
-  #   "sink",
-  #   "refrigerator",
-  #   "book",
-  #   "clock",
-  #   "vase",
-  #   "scissors",
-  #   "teddy bear",
-  #   "hair drier",
-  #   "toothbrush"
-  # ]
 
   cateNames = config.DATA.CLASS_NAMES
   visualize_boxes(image=imshow, boxes=_boxes, labels=_labels, probs=_probs, class_labels=cateNames)

@@ -1,5 +1,5 @@
 import torch
-torch.multiprocessing.set_sharing_strategy('file_system')
+# torch.multiprocessing.set_sharing_strategy('file_system')
 
 
 from options import opt
@@ -7,7 +7,6 @@ from mscv.summary import write_loss, write_image
 from mscv.image import tensor2im
 from network import get_model
 
-import misc_utils as utils
 import ipdb
 
 import cv2
@@ -17,9 +16,8 @@ import albumentations as A
 
 from albumentations.pytorch.transforms import ToTensorV2
 from options import opt
-from utils.vis import visualize_boxes
+from utils import visualize_boxes
 
-import misc_utils as utils
 
 class_names = [
         'person', 'bicycle', 'car', 'motorcycle', 'airplane',

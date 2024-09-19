@@ -11,42 +11,18 @@ import torchvision
 from .retinanet import resnet50 as Retina_50
 from options import opt
 
-from optimizer import get_optimizer
-from scheduler import get_scheduler
-
 from network.base_model import BaseModel
 from mscv import ExponentialMovingAverage, print_network, load_checkpoint, save_checkpoint
 # from mscv.cnn import normal_init
 from mscv.summary import write_image
 
-import misc_utils as utils
-
 
 class Model(BaseModel):
-    def __init__(self, opt, logger=None):
-        super(Model, self).__init__(config, kwargs)
+    def __init__(self, config, **kwargs):
+        super(Model, self).__init__(config, **kwargs)
         self.opt = opt
-        # cfgfile = 'yolo-voc.cfg'
-        # self.detector = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
-        # in_features = self.detector.roi_heads.box_predictor.cls_score.in_features
-        #
-        # # replace the pre-trained head with a new one
-        # self.detector.roi_heads.box_predictor = FastRCNNPredictor(in_features, config.DATA.NUM_CLASSESS + 1)
-        self.detector = Retina_50(config.DATA.NUM_CLASSESS,pretrained=True)
-
-        #####################
-        #    Init weights
-        #####################
-        # normal_init(self.detector)
-
-        if opt.debug:
-            print_network(self.detector)
-
-        self.optimizer = get_optimizer(opt, self.detector)
-        self.scheduler = get_scheduler(opt, self.optimizer)
-
-        self.avg_meters = ExponentialMovingAverage(0.95)
-        self.save_dir = os.path.join('checkpoints', opt.tag)
+        self._detector = Retina_50(config.DATA.NUM_CLASSESS,pretrained=True)
+        self.init_common()
 
     def update(self, sample, *arg):
         """
@@ -73,8 +49,9 @@ class Model(BaseModel):
 
         return {}
 
-    def forward_test(self, image):  # test
+    def forward_test(self, sample):  # test
         """给定一个batch的图像, 输出预测的[bounding boxes, labels和scores], 仅在验证和测试时使用"""
+        image = sample['image']
 
         conf_thresh = 0.  # 0.5 for vis result
 
@@ -100,12 +77,3 @@ class Model(BaseModel):
 
     def inference(self, x, progress_idx=None):
         raise NotImplementedError
-
-    def evaluate(self, dataloader, epoch, writer, logger, data_name='val'):
-        return self.eval_mAP(dataloader, epoch, writer, logger, data_name)
-
-    def load(self, ckpt_path):
-        return super(Model, self).load(ckpt_path)
-
-    def save(self, which_epoch):
-        super(Model, self).save(which_epoch)

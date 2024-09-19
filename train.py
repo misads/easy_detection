@@ -1,13 +1,9 @@
 # encoding = utf-8
 import os
-import pdb
 import time
-import numpy as np
 
 import torch
 import torch.distributed as dist
-from torch import optim
-from torch.autograd import Variable
 
 from options.helper import is_distributed, is_first_gpu, setup_multi_processes
 from options import opt, config
@@ -19,21 +15,14 @@ if is_distributed():
 from dataloader.dataloaders import train_dataloader, val_dataloader
 
 from network import get_model
-from eval import evaluate
+from eval import eval_mAP
 
 from options.helper import init_log, load_meta, save_meta
 from utils import seed_everything
 from scheduler import schedulers
 
-from mscv.summary import create_summary_writer, write_meters_loss, write_image
-from mscv.image import tensor2im
-# from utils.send_sms import send_notification
-
-import misc_utils as utils
-import random
-import albumentations as A
-
-from albumentations.pytorch.transforms import ToTensorV2
+from mscv.summary import create_summary_writer, write_meters_loss
+from misc_utils import progress_bar, format_time
 
 # 初始化
 with torch.no_grad():
@@ -45,8 +34,8 @@ with torch.no_grad():
     save_root = os.path.join('checkpoints', opt.tag)
     log_root = os.path.join('logs', opt.tag)
 
-    utils.try_make_dir(save_root)
-    utils.try_make_dir(log_root)
+    os.makedirs(save_root, exist_ok=True)
+    os.makedirs(log_root, exist_ok=True)
 
     # dataloader
     train_dataloader = train_dataloader
@@ -54,7 +43,7 @@ with torch.no_grad():
 
     if is_first_gpu():
         # 初始化日志
-        logger = init_log(training=True)
+        logger = init_log(log_dir=log_root)
 
         # 初始化训练的meta信息
         meta = load_meta(new=True)
@@ -149,13 +138,16 @@ if __name__ == '__main__':
 
             lr = model.optimizer.param_groups[0]['lr']
             # 显示进度条
-            msg = f'lr:{round(lr, 6) : .6f} (loss) {str(model.avg_meters)} ETA: {utils.format_time(remaining)}'
+            msg = f'lr:{round(lr, 6) : .6f} (loss) {str(model.avg_meters)} ETA: {format_time(remaining)}'
             if is_first_gpu():
-                utils.progress_bar(iteration, len(train_dataloader), pre_msg, msg)
-            # print(pre_msg, msg)
+                progress_bar(iteration, len(train_dataloader), pre_msg, msg)
+                # print(pre_msg, msg)
 
-            if global_step % 1000 == 0 and is_first_gpu():  # 每1000个step将loss写到tensorboard
-                write_meters_loss(writer, 'train', model.avg_meters, global_step)
+                if global_step % 1000 == 0:  # 每1000个step将loss写到tensorboard
+                    write_meters_loss(writer, 'train', model.avg_meters, global_step)
+                # 训练时每100个step记录一下loss
+                if global_step % 100 == 0:
+                    logger.info(f'step: {global_step} (loss) '+ str(model.avg_meters))
 
         if is_first_gpu():
             # 记录训练日志
@@ -169,7 +161,7 @@ if __name__ == '__main__':
         if not opt.no_val and epoch % config.MISC.VAL_FREQ == 0:
             if is_first_gpu():
                 model.eval()
-                evaluate(model, val_dataloader, epoch, writer, logger, data_name='val')
+                eval_mAP(model, val_dataloader, epoch, writer, logger, log_root, data_name='val')
                 model.train()
 
         if scheduler is not None:
@@ -178,36 +170,7 @@ if __name__ == '__main__':
         #if is_distributed():
         #    dist.barrier()
 
-    # 保存结束信息
-    #if is_first_gpu():
-    #    if opt.tag != 'default':
-    #        with open('run_log.txt', 'a') as f:
-    #            f.writelines('    Accuracy:' + eval_result + '\n')
-
-    #    meta = load_meta()
-    #    meta[-1]['finishtime'] = utils.get_time_stamp()
-    #    save_meta(meta)
-
     if is_distributed():
         dist.destroy_process_group()
 
-"""
-except Exception as e:
-    
-    if is_first_gpu():
-        if opt.tag != 'default':
-            with open('run_log.txt', 'a') as f:
-                f.writelines('    Error: ' + str(e)[:120] + '\n')
 
-        meta = load_meta()
-        meta[-1]['finishtime'] = utils.get_time_stamp()
-        save_meta(meta)
-        # print(e)
-    raise Exception('Error')  # 再引起一个异常，这样才能打印之前的trace back信息
-
-except:  # 其他异常，如键盘中断等
-    if is_first_gpu():
-        meta = load_meta()
-        meta[-1]['finishtime'] = utils.get_time_stamp()
-        save_meta(meta)
-"""

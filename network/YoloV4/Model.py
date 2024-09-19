@@ -14,9 +14,6 @@ import torchvision
 from .Yolov4 import Yolov4 as yolov4
 from options import opt
 
-from optimizer import get_optimizer
-from scheduler import get_scheduler
-
 from torchvision.ops import nms
 from network.base_model import BaseModel
 from mscv import ExponentialMovingAverage, print_network, load_checkpoint, save_checkpoint
@@ -26,12 +23,10 @@ from network.YoloV4.loss import Yolo_loss
 from network.YoloV4 import config as cfg
 from network.YoloV4 import tools
 
-import misc_utils as utils
-
 
 class Model(BaseModel):
-    def __init__(self, opt, logger=None):
-        super(Model, self).__init__(config, kwargs)
+    def __init__(self, config, **kwargs):
+        super(Model, self).__init__(config, **kwargs)
         self.opt = opt
         # cfgfile = 'yolo-voc.cfg'
         # self.detector = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
@@ -54,14 +49,7 @@ class Model(BaseModel):
         #####################
         # normal_init(self.detector)
 
-        if opt.debug:
-            print_network(self.detector)
-
-        self.optimizer = get_optimizer(opt, self.detector)
-        self.scheduler = get_scheduler(opt, self.optimizer)
-
-        self.avg_meters = ExponentialMovingAverage(0.95)
-        self.save_dir = os.path.join('checkpoints', opt.tag)
+        self.init_common()
 
     def update(self, sample, *arg):
         """
@@ -89,8 +77,10 @@ class Model(BaseModel):
 
         return {}
 
-    def forward_test(self, image):
+    def forward_test(self, sample):
         """给定一个batch的图像, 输出预测的[bounding boxes, labels和scores], 仅在验证和测试时使用"""
+        image = sample['image']
+
         conf_thresh = 0.001
         nms_thresh = 0.45
 
@@ -157,12 +147,3 @@ class Model(BaseModel):
 
     def inference(self, x, progress_idx=None):
         raise NotImplementedError
-
-    def evaluate(self, dataloader, epoch, writer, logger, data_name='val'):
-        return self.eval_mAP(dataloader, epoch, writer, logger, data_name)
-
-    def load(self, ckpt_path):
-        return super(Model, self).load(ckpt_path)
-
-    def save(self, which_epoch, published=False):
-        super(Model, self).save(which_epoch, published=published)

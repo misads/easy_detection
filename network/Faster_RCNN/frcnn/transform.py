@@ -5,8 +5,6 @@ from torch import nn
 
 from torchvision.ops import misc as misc_nn_ops
 from .image_list import ImageList
-from .roi_heads import paste_masks_in_image
-
 
 class GeneralizedRCNNTransform(nn.Module):
     """
@@ -111,14 +109,6 @@ class GeneralizedRCNNTransform(nn.Module):
             boxes = pred["boxes"]
             boxes = resize_boxes(boxes, im_s, o_im_s)
             result[i]["boxes"] = boxes
-            if "masks" in pred:
-                masks = pred["masks"]
-                masks = paste_masks_in_image(masks, boxes, o_im_s)
-                result[i]["masks"] = masks
-            if "keypoints" in pred:
-                keypoints = pred["keypoints"]
-                keypoints = resize_keypoints(keypoints, im_s, o_im_s)
-                result[i]["keypoints"] = keypoints
         return result
 
 

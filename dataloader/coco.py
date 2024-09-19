@@ -59,7 +59,9 @@ class CocoDataset(Dataset):
 
     def __getitem__(self, idx):
 
-        img, path = self.load_image(idx)
+        img, ori_image, path = self.load_image(idx)
+        org_h, org_w, _ = img.shape
+
         annot = self.load_annotations(idx)
         bboxes = annot[:, :4]
         labels = annot[:, 4]
@@ -76,6 +78,9 @@ class CocoDataset(Dataset):
                 if len(sample['bboxes']) > 0:
                     break
 
+        sample['ori_image'] = ori_image
+        sample['ori_sizes'] = (org_h, org_w)
+
         sample['bboxes']= torch.Tensor(sample['bboxes'])
         sample['labels']= torch.Tensor(sample['labels'])
         sample['path'] = path
@@ -88,14 +93,14 @@ class CocoDataset(Dataset):
         image_info = self.coco.loadImgs(self.image_ids[image_index])[0]
         
         path = os.path.join(self.root_dir, self.set_name, image_info['file_name'])
-        img = cv2.imread(path)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        ori_image = cv2.imread(path)
+        img = cv2.cvtColor(ori_image, cv2.COLOR_BGR2RGB)
 
         #
         # if len(img.shape) == 2:
         #     img = skimage.color.gray2rgb(img)
 
-        return img.astype(np.float32)/255.0 , path
+        return img.astype(np.float32)/255.0, ori_image, path
 
     def load_annotations(self, image_index):
         # get ground truth annotations

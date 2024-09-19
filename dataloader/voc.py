@@ -6,12 +6,11 @@ import torchvision.transforms.functional as F
 import os
 from PIL import Image
 from torchvision import transforms
+from misc_utils import progress_bar, color_print
 import torch.utils.data.dataset as dataset
 import albumentations as A
 
-import misc_utils as utils
 import xml.etree.ElementTree as ET
-import misc_utils as utils
 import random
 import pickle
 import numpy as np
@@ -61,7 +60,7 @@ class VOCTrainValDataset(dataset.Dataset):
 
     def __init__(self, voc_root, class_names, split='train.txt', format='jpg', transforms=None, max_size=None, use_cache=False, use_difficult=False, first_gpu=True):
         if first_gpu:
-            utils.color_print(f'Use dataset: {voc_root}, split: {split[:-4]}', 3)
+            color_print(f'Use dataset: {voc_root}, split: {split[:-4]}', 3)
 
         im_list = os.path.join(voc_root, f'ImageSets/Main/{split}')
         image_root = os.path.join(voc_root, 'JPEGImages')
@@ -86,7 +85,7 @@ class VOCTrainValDataset(dataset.Dataset):
                 data = pickle.load(f, encoding='bytes')
             
             if first_gpu:
-                utils.color_print(f'Use cached annoations.', 3)
+                color_print(f'Use cached annoations.', 3)
 
             self.image_paths, self.bboxes, self.labels, self.difficults, \
             counter, tot_bbox, difficult_bbox = data
@@ -96,7 +95,7 @@ class VOCTrainValDataset(dataset.Dataset):
                 lines = f.readlines()
                 for i, line in enumerate(lines):
                     if first_gpu:
-                        utils.progress_bar(i, len(lines), 'Load Anno...')
+                        progress_bar(i, len(lines), 'Load Anno...')
                     
                     image_id = line.rstrip('\n')
                     if not os.path.isfile(os.path.join(voc_root, f'Annotations/{image_id}.xml')):
@@ -157,11 +156,11 @@ class VOCTrainValDataset(dataset.Dataset):
 
         if first_gpu:
             for name in class_names:
-                utils.color_print(f'{name}: {counter[name]} ({counter[name]/tot_bbox*100:.2f}%)', 5)
+                color_print(f'{name}: {counter[name]} ({counter[name]/tot_bbox*100:.2f}%)', 5)
         
-            utils.color_print(f'Total bboxes: {tot_bbox}', 4)
+            color_print(f'Total bboxes: {tot_bbox}', 4)
             if difficult_bbox:
-                utils.color_print(f'{difficult_bbox} difficult bboxes ignored.', 1)
+                color_print(f'{difficult_bbox} difficult bboxes ignored.', 1)
         
         self.format = format
 
@@ -176,8 +175,8 @@ class VOCTrainValDataset(dataset.Dataset):
         if not os.path.exists(image_path):
             raise FileNotFoundError(f'{image_path} not found.')
 
-        image = cv2.imread(image_path)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype(np.float32)
+        ori_image = cv2.imread(image_path)
+        image = cv2.cvtColor(ori_image, cv2.COLOR_BGR2RGB).astype(np.float32)
         image /= 255.0  # 转成0~1之间
 
         bboxes = np.array(self.bboxes[index])
@@ -185,7 +184,7 @@ class VOCTrainValDataset(dataset.Dataset):
 
         h, w, _ = image.shape
 
-        return image, bboxes, labels, image_path, (w, h)
+        return image, bboxes, labels, image_path, ori_image, (h, w)
 
     def __getitem__(self, index):
         """Get indexs by index
@@ -204,7 +203,7 @@ class VOCTrainValDataset(dataset.Dataset):
             }
 
         """
-        image, bboxes, labels, image_path, (org_w, org_h) = self.load_image_and_boxes(index)
+        image, bboxes, labels, image_path, ori_image, (org_h, org_w) = self.load_image_and_boxes(index)
 
         if len(bboxes) == 0:
             pass
@@ -219,6 +218,9 @@ class VOCTrainValDataset(dataset.Dataset):
             if len(sample['bboxes']) > 0:
                 break
 
+        sample['ori_image'] = ori_image
+        sample['ori_sizes'] = (org_h, org_w)
+        
         sample['bboxes'] = torch.Tensor(sample['bboxes']) 
         sample['labels'] = torch.Tensor(sample['labels'])  # <--- add this!
         sample['path'] = image_path

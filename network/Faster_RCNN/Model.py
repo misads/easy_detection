@@ -11,29 +11,23 @@ from torch import nn
 from options import opt
 from options.helper import is_distributed, is_first_gpu
 
-from optimizer import get_optimizer
-from scheduler import get_scheduler
-
 from network.base_model import BaseModel
 from mscv import ExponentialMovingAverage, print_network, load_checkpoint, save_checkpoint
 # from mscv.cnn import normal_init
 from mscv.summary import write_image
 
 from utils import to_2tuple
-import misc_utils as utils
 import ipdb
 
 from .frcnn.faster_rcnn import FasterRCNN, FastRCNNPredictor
 from .frcnn import fasterrcnn_resnet50_fpn
-
-# from dataloader.coco import coco_90_to_80_classes
 
 from .backbones import vgg16_backbone, res101_backbone
 
 
 class Model(BaseModel):
     def __init__(self, config, **kwargs):
-        super(Model, self).__init__(config, kwargs)
+        super(Model, self).__init__(config, **kwargs)
         self.config = config
 
         kargs = {}
@@ -58,7 +52,7 @@ class Model(BaseModel):
         # 定义backbone和Faster RCNN模型
         if config.MODEL.BACKBONE is None or config.MODEL.BACKBONE.lower() in ['res50', 'resnet50']:
             # 默认是带fpn的resnet50
-            self.detector = fasterrcnn_resnet50_fpn(pretrained=False, **kargs)
+            self._detector = fasterrcnn_resnet50_fpn(pretrained=False, **kargs)
 
             in_features = self.detector.roi_heads.box_predictor.cls_score.in_features
 
@@ -67,12 +61,12 @@ class Model(BaseModel):
 
         elif config.MODEL.BACKBONE.lower() in ['vgg16', 'vgg']:
             backbone = vgg16_backbone()
-            self.detector = FasterRCNN(backbone, num_classes=config.DATA.NUM_CLASSESS + 1, **kargs)
+            self._detector = FasterRCNN(backbone, num_classes=config.DATA.NUM_CLASSESS + 1, **kargs)
 
         elif config.MODEL.BACKBONE.lower() in ['res101', 'resnet101']:
             # 不带FPN的resnet101
             backbone = res101_backbone()
-            self.detector = FasterRCNN(backbone, num_classes=config.DATA.NUM_CLASSESS + 1, **kargs)
+            self._detector = FasterRCNN(backbone, num_classes=config.DATA.NUM_CLASSESS + 1, **kargs)
 
         elif config.MODEL.BACKBONE.lower() in ['res', 'resnet']:
             raise RuntimeError(f'backbone "{config.MODEL.BACKBONE}" is ambiguous, please specify layers.')
@@ -80,22 +74,7 @@ class Model(BaseModel):
         else:
             raise NotImplementedError(f'no such backbone: {config.MODEL.BACKBONE}')
 
-
-        if opt.debug and is_first_gpu():
-            print_network(self.detector)
-
-        self.to(opt.device)
-        # 多GPU支持
-        if is_distributed():
-            self.detector = torch.nn.parallel.DistributedDataParallel(self.detector, find_unused_parameters=False,
-                    device_ids=[opt.local_rank], output_device=opt.local_rank)
-            # self.detector = torch.nn.parallel.DistributedDataParallel(self.detector, device_ids=[opt.local_rank], output_device=opt.local_rank)
-
-        self.optimizer = get_optimizer(config, self.detector)
-        self.scheduler = get_scheduler(config, self.optimizer)
-
-        self.avg_meters = ExponentialMovingAverage(0.95)
-        self.save_dir = os.path.join('checkpoints', opt.tag)
+        self.init_common()
 
 
     def update(self, sample, *arg):
@@ -134,10 +113,11 @@ class Model(BaseModel):
             target['iscrowd'] = iscrowd
         """
         loss_dict = self.detector(image, target)
+        self.avg_meters.update({loss_name: loss_dict[loss_name].item() for loss_name in loss_dict})
 
         loss = sum(l for l in loss_dict.values())
 
-        self.avg_meters.update({'loss': loss.item()})
+        # self.avg_meters.update({'loss': loss.item()})
 
         self.optimizer.zero_grad()
         loss.backward()
@@ -145,9 +125,10 @@ class Model(BaseModel):
 
         return {}
 
-    def forward_test(self, image):  # test
+    def forward_test(self, sample):  # test
         """给定一个batch的图像, 输出预测的[bounding boxes, labels和scores], 仅在验证和测试时使用"""
         #image = list(im for im in image)
+        image = sample['image']
         image = list(im.to(opt.device) for im in image)
 
         batch_bboxes = []
@@ -178,12 +159,3 @@ class Model(BaseModel):
             batch_scores.append(scores.detach().cpu().numpy())
 
         return batch_bboxes, batch_labels, batch_scores
-
-    def evaluate(self, dataloader, epoch, writer, logger, data_name='val'):
-        return self.eval_mAP(dataloader, epoch, writer, logger, data_name)
-
-    def load(self, ckpt_path):
-        return super(Model, self).load(ckpt_path)
-
-    def save(self, which_epoch):
-        super(Model, self).save(which_epoch)

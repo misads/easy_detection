@@ -5,7 +5,7 @@ import time
 from flask import current_app as app, Blueprint, jsonify, render_template, abort, send_file, session, request
 from flask.helpers import safe_join
 from app import utils
-import misc_utils
+from misc_utils import get_time_stamp, get_time_str, format_time
 import json
 import random
 import subprocess
@@ -38,9 +38,9 @@ def parse_meta_json(metapath):
         if 'finishtime' in line:
             runtime += int(line['finishtime']) - int(line['starttime'])
         else:
-            runtime += int(misc_utils.get_time_stamp()) - int(line['starttime'])
+            runtime += int(get_time_stamp()) - int(line['starttime'])
 
-    runtime = misc_utils.format_time(runtime)
+    runtime = format_time(runtime)
 
     if 'remarks' in meta[0]:
         remarks = meta[0]['remarks']
@@ -70,13 +70,13 @@ def parse_runs(tag):
     for line in meta:
         run = {
             'command': line['command'],
-            'starttime': misc_utils.get_time_str(line['starttime'], fmt='%Y-%m-%d %H:%M:%S')
+            'starttime': mget_time_str(line['starttime'], fmt='%Y-%m-%d %H:%M:%S')
         }
         if 'finishtime' in line:
             runtime = int(line['finishtime']) - int(line['starttime'])
         else:
-            runtime = int(misc_utils.get_time_stamp()) - int(line['starttime'])
-        run['runtime'] = misc_utils.format_time(runtime)
+            runtime = int(get_time_stamp()) - int(line['starttime'])
+        run['runtime'] = format_time(runtime)
         runs.append(run)
 
     return runs
@@ -252,7 +252,7 @@ def del_one_tag(tag):
     trashtmp = utils.get_time_stamp() + f'{random.randint(0,1000):04d}'
     for path in paths:
         tmp = os.path.join('_.trash', trashtmp, path)
-        misc_utils.try_make_dir(tmp)
+        os.makedirs(tmp, exist_ok=True)
         p = os.path.join(template_root, path, tag)
         if os.path.isdir(p):
             command = 'mv %s %s' % (p, tmp)

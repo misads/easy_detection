@@ -12,14 +12,11 @@ from .effdet.efficientdet import HeadNet
 
 from options import opt
 
-from optimizer import get_optimizer
-from scheduler import get_scheduler
-
 from network.base_model import BaseModel
 from mscv import ExponentialMovingAverage, print_network, load_checkpoint, save_checkpoint
 # from mscv.cnn import normal_init
 
-import misc_utils as utils
+from misc_utils import progress_bar
 
 
 def get_net(pretrained=True):
@@ -35,8 +32,8 @@ def get_net(pretrained=True):
 
 
 class Model(BaseModel):
-    def __init__(self, opt, logger=None):
-        super(Model, self).__init__(config, kwargs)
+    def __init__(self, config, **kwargs):
+        super(Model, self).__init__(config, **kwargs)
         self.opt = opt
         self.detector = get_net().to(device=opt.device)
         #####################
@@ -44,14 +41,7 @@ class Model(BaseModel):
         #####################
         # normal_init(self.detector)
 
-        if opt.debug:
-            print_network(self.detector)
-
-        self.optimizer = get_optimizer(opt, self.detector)
-        self.scheduler = get_scheduler(opt, self.optimizer)
-
-        self.avg_meters = ExponentialMovingAverage(0.95)
-        self.save_dir = os.path.join('checkpoints', opt.tag)
+        self.init_common()
 
     def update(self, sample, *arg):
         """
@@ -98,7 +88,7 @@ class Model(BaseModel):
     def evaluate(self, dataloader, epoch, writer, logger, data_name='val'):
         total_loss = 0.
         for i, sample in enumerate(dataloader):
-            utils.progress_bar(i, len(dataloader), 'Eva... ')
+            progress_bar(i, len(dataloader), 'Eva... ')
 
             with torch.no_grad():
                 loss = self.forward(sample)
@@ -107,9 +97,4 @@ class Model(BaseModel):
 
         logger.info(f'Eva({data_name}) epoch {epoch}, total loss: {total_loss}.')
 
-    def load(self, ckpt_path):
-        return super(Model, self).load(ckpt_path)
-
-    def save(self, which_epoch):
-        super(Model, self).save(which_epoch)
 

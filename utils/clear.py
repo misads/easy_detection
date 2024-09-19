@@ -3,7 +3,7 @@ import os
 import random
 import torch
 import os
-import misc_utils as utils
+from misc_utils import get_time_stamp, color_print
 
 
 def parse_args():
@@ -44,12 +44,12 @@ if opt.rm:
             os.system(command)
 else:
     for path in paths:
-        tmp = os.path.join('_.trash', utils.get_time_stamp(), path)
-        utils.try_make_dir(tmp)
+        tmp = os.path.join('_.trash', get_time_stamp(), path)
+        os.makedirs(tmp, exist_ok=True)
         p = os.path.join(path, opt.tag)
         if os.path.isdir(p):
             command = 'mv %s %s' % (p, tmp)
             print(command)
             os.system(command)
 
-utils.color_print("Directory '%s' cleared." % opt.tag, 1)
+color_print("Directory '%s' cleared." % opt.tag, 1)

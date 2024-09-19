@@ -11,35 +11,22 @@ from .anchors.prior_box import PriorBox
 
 from options import opt
 
-from optimizer import get_optimizer
-from scheduler import get_scheduler
-
 from network.base_model import BaseModel
 from mscv import ExponentialMovingAverage, print_network, load_checkpoint, save_checkpoint
 from mscv.summary import write_image
 # from mscv.cnn import normal_init
 
-import misc_utils as utils
-
 
 class Model(BaseModel):
     def __init__(self, config, **kwargs):
-        super(Model, self).__init__(config, kwargs)
+        super(Model, self).__init__(config, **kwargs)
         self.config = config
         self.detector = SSDDetector(config).to(device=opt.device)
         #####################
         #    Init weights
         #####################
         # normal_init(self.detector)
-
-        if opt.debug:
-            print_network(self.detector)
-
-        self.optimizer = get_optimizer(config, self.detector)
-        self.scheduler = get_scheduler(config, self.optimizer)
-
-        self.avg_meters = ExponentialMovingAverage(0.95)
-        self.save_dir = os.path.join('checkpoints', opt.tag)
+        self.init_common()
 
         CENTER_VARIANCE = 0.1
         SIZE_VARIANCE = 0.2
@@ -98,9 +85,10 @@ class Model(BaseModel):
 
         return loss_dict
 
-    def forward_test(self, image):
+    def forward_test(self, sample):
         """给定一个batch的图像, 输出预测的[bounding boxes, labels和scores], 仅在验证和测试时使用"""
         conf_thresh = 0.000
+        image = sample['image']
 
         batch_bboxes = []
         batch_labels = []
@@ -132,15 +120,6 @@ class Model(BaseModel):
 
     def inference(self, x, progress_idx=None):
         raise NotImplementedError
-
-    def evaluate(self, dataloader, epoch, writer, logger, data_name='val'):
-        return self.eval_mAP(dataloader, epoch, writer, logger, data_name)
-
-    def load(self, ckpt_path):
-        return super(Model, self).load(ckpt_path)
-
-    def save(self, which_epoch, published=False):
-        super(Model, self).save(which_epoch, published)
 
 
 

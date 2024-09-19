@@ -25,7 +25,7 @@ from mscv import ExponentialMovingAverage, print_network, load_checkpoint, save_
 from mscv.summary import write_loss
 # from mscv.cnn import normal_init
 
-import misc_utils as utils
+from misc_utils import color_print
 import ipdb
 
 conf_thresh = 0.005
@@ -35,7 +35,7 @@ DO_FAST_EVAL = False  # 只保留概率最高的类，能够加快eval速度但�
 
 class Model(BaseModel):
     def __init__(self, config, **kwargs):
-        super(Model, self).__init__(config, kwargs)
+        super(Model, self).__init__(config, **kwargs)
         self.config = config
         
         # 根据YoloV2和YoloV3使用不同的配置文件
@@ -45,33 +45,23 @@ class Model(BaseModel):
             cfgfile = 'configs/networks/yolo3-coco.cfg'
 
         # 初始化detector
-        self.detector = Darknet(cfgfile, device=opt.device).to(opt.device)
-        if opt.debug:
-            print_network(self.detector)
+        self._detector = Darknet(cfgfile, device=opt.device).to(opt.device)
 
         # 在--load之前加载weights文件(可选)
         if opt.load and opt.load[-2:] != 'pt':
             if is_first_gpu():
-                utils.color_print('Load Yolo weights from %s.' % opt.load, 3)
+                color_print('Load Yolo weights from %s.' % opt.load, 3)
             self.detector.load_weights(opt.load)
         elif 'LOAD' in config.MODEL and config.MODEL.LOAD[-2:] != 'pt':
             if is_first_gpu():
-                utils.color_print('Load Yolo weights from %s.' % config.MODEL.LOAD, 3)
+                color_print('Load Yolo weights from %s.' % config.MODEL.LOAD, 3)
             self.detector.load_weights(config.MODEL.LOAD)
 
-        self.to(opt.device)
         # 多GPU支持
         if is_distributed():
-            self.detector = torch.nn.SyncBatchNorm.convert_sync_batchnorm(self.detector)
-            self.detector = torch.nn.parallel.DistributedDataParallel(self.detector, find_unused_parameters=False,
-                    device_ids=[opt.local_rank], output_device=opt.local_rank)
-            # self.detector = torch.nn.parallel.DistributedDataParallel(self.detector, device_ids=[opt.local_rank], output_device=opt.local_rank)
+            self._detector = torch.nn.SyncBatchNorm.convert_sync_batchnorm(self._detector)
 
-        self.optimizer = get_optimizer(config, self.detector)
-        self.scheduler = get_scheduler(config, self.optimizer)
-
-        self.avg_meters = ExponentialMovingAverage(0.95)
-        self.save_dir = os.path.join('checkpoints', opt.tag)
+        self.init_common()
 
     def update(self, sample, *args):
         """
@@ -107,12 +97,13 @@ class Model(BaseModel):
 
         return {}
 
-    def forward_test(self, image):
+    def forward_test(self, sample):
         """
         给定一个batch的图像, 输出预测的[bounding boxes, labels和scores], 仅在验证和测试时使用
         Args:
             image: [b, 3, h, w] list
         """
+        image = sample['image']
         image =  torch.stack(image).to(opt.device)
 
         batch_bboxes = []
@@ -181,15 +172,6 @@ class Model(BaseModel):
 
         return batch_bboxes, batch_labels, batch_scores
 
-
-    def evaluate(self, dataloader, epoch, writer, logger, data_name='val'):
-        return self.eval_mAP(dataloader, epoch, writer, logger, data_name)
-
-    def load(self, ckpt_path):
-        return super(Model, self).load(ckpt_path)
-
-    def save(self, which_epoch):
-        super(Model, self).save(which_epoch)
 
 
 

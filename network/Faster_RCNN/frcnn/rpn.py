@@ -79,6 +79,7 @@ class AnchorGenerator(nn.Module):
 
     def grid_anchors(self, grid_sizes, strides):
         anchors = []
+
         for size, stride, base_anchors in zip(
             grid_sizes, strides, self.cell_anchors
         ):
@@ -116,6 +117,7 @@ class AnchorGenerator(nn.Module):
         strides = tuple((image_size[0] / g[0], image_size[1] / g[1]) for g in grid_sizes)
         self.set_cell_anchors(feature_maps[0].device)
         anchors_over_all_feature_maps = self.cached_grid_anchors(grid_sizes, strides)
+
         anchors = []
         for i, (image_height, image_width) in enumerate(image_list.image_sizes):
             anchors_in_image = []
@@ -233,7 +235,7 @@ class RegionProposalNetwork(torch.nn.Module):
                  pre_nms_top_n, post_nms_top_n, nms_thresh):
         super(RegionProposalNetwork, self).__init__()
         self.anchor_generator = anchor_generator
-        self.head = head
+        self.rpn_head = head
         self.box_coder = det_utils.BoxCoder(weights=(1.0, 1.0, 1.0, 1.0))
 
         # used during training
@@ -396,7 +398,7 @@ class RegionProposalNetwork(torch.nn.Module):
         """
         # RPN uses all feature maps that are available
         features = list(features.values())
-        objectness, pred_bbox_deltas = self.head(features)
+        objectness, pred_bbox_deltas = self.rpn_head(features)
         anchors = self.anchor_generator(images, features)
 
         num_images = len(anchors)
@@ -406,8 +408,11 @@ class RegionProposalNetwork(torch.nn.Module):
         # apply pred_bbox_deltas to anchors to obtain the decoded proposals
         # note that we detach the deltas because Faster R-CNN do not backprop through
         # the proposals
+
+
         proposals = self.box_coder.decode(pred_bbox_deltas.detach(), anchors)
         proposals = proposals.view(num_images, -1, 4)
+
         boxes, scores = self.filter_proposals(proposals, objectness, images.image_sizes, num_anchors_per_level)
 
         losses = {}

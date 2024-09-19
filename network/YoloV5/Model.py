@@ -21,9 +21,8 @@ from .utils import *
 
 from torchvision.ops import nms
 from .utils import non_max_suppression
-from utils.ensemble_boxes.ensemble_boxes_wbf import weighted_boxes_fusion
+from utils.ensemble_boxes import weighted_boxes_fusion
 
-import misc_utils as utils
 
 hyp = {'momentum': 0.937,  # SGD momentum
        'weight_decay': 5e-4,  # optimizer weight decay
@@ -41,8 +40,8 @@ hyp = {'momentum': 0.937,  # SGD momentum
        'shear': 0.0}  # image shear (+/- deg)
 
 class Model(BaseModel):
-    def __init__(self, opt, logger=None):
-        super(Model, self).__init__(config, kwargs)
+    def __init__(self, config, **kwargs):
+        super(Model, self).__init__(config, **kwargs)
         self.opt = opt
         cfgfile = 'configs/yolov5x.yaml'
         self.detector = Yolo5(cfgfile)
@@ -54,14 +53,7 @@ class Model(BaseModel):
         #####################
         # normal_init(self.detector)
 
-        if opt.debug:
-            print_network(self.detector)
-
-        self.optimizer = get_optimizer(opt, self.detector)
-        self.scheduler = get_scheduler(opt, self.optimizer)
-
-        self.avg_meters = ExponentialMovingAverage(0.95)
-        self.save_dir = os.path.join('checkpoints', opt.tag)
+        self.init_common()
         self.it = 0
 
     def update(self, sample, *arg):
@@ -98,8 +90,10 @@ class Model(BaseModel):
 
         return {}
 
-    def forward_test(self, image):  # test
+    def forward_test(self, sample):  # test
         """给定一个batch的图像, 输出预测的[bounding boxes, labels和scores], 仅在验证和测试时使用"""
+        image = sample['image']
+
         batch_bboxes = []
         batch_labels = []
         batch_scores = []
@@ -171,19 +165,5 @@ class Model(BaseModel):
     def inference(self, x, progress_idx=None):
         raise NotImplementedError
 
-    def evaluate(self, dataloader, epoch, writer, logger, data_name='val'):
-        return self.eval_mAP(dataloader, epoch, writer, logger, data_name)
-
-    def load(self, ckpt_path):
-        # state = torch.load(ckpt_path)
-        # utils.p(list(state['detector'].keys()))
-        # print('=========================================')
-        # utils.p(list(self.detector.state_dict().keys()))
-        # ipdb.set_trace()
-        # self.detector.load_state_dict(state)
-        return super(Model, self).load(ckpt_path)
-
-    def save(self, which_epoch):
-        super(Model, self).save(which_epoch)
 
 

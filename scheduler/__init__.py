@@ -1,10 +1,10 @@
 from torch import optim
-from easydict import EasyDict
+from utils import EasyDict
 from options import opt
 
 schedulers = {
     '1x': {  # Faster_RCNN
-        'epochs': [8, 11, 13],  # 12个epoch
+        'epochs': [8, 11, 13],  # 12+1个epoch
         'ratios': [1, 0.1, 0.01],
     },
     '2x': {
@@ -36,7 +36,7 @@ schedulers = {
 
 schedulers = EasyDict(schedulers)
 
-def get_scheduler(config, optimizer):
+def get_scheduler(optimizer, config):
     scheduler = config.OPTIMIZE.SCHEDULER
 
     if scheduler == 'cos':
